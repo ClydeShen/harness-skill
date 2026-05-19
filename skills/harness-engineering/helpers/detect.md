@@ -37,7 +37,25 @@ Frontend detected → also check for `DESIGN.md`.
 | No DESIGN.md (frontend only) | `DESIGN.md` absent, frontend detected | UI work starts without visual language anchor |
 | CLAUDE.md has no `<important if>` tags or `.claude/rules/` | Scan file content and directory | Task-specific rules applied universally; foundational rules crowded out |
 | No `.claude/rules/` when CLAUDE.md > 100 lines | `.claude/rules/` absent | Path-specific rules bloat the always-loaded context instead of loading on demand |
-| Cross-session memory absent | No `~/.claude/projects/*/memory/MEMORY.md` (native) and no `.memobank/` | Preferences and decisions lost between sessions |
+| Cross-session memory absent | None of the common memory signals detected (see below) | Preferences and decisions lost between sessions |
+
+---
+
+## Detecting Cross-Session Memory
+
+Count as "memory present" if **any** of these signals exist:
+
+| Signal | Tool |
+|---|---|
+| `~/.claude/projects/*/memory/MEMORY.md` exists | Claude Code native auto memory |
+| `MEMORY.md` in project root | Manual memory file (simple, zero-dep) |
+| `.memobank/` directory in project root | memobank |
+| `memory/` or `.memory/` directory in project root | Generic memory directory |
+| `onecontext` in installed skills or CLAUDE.md reference | OneContext |
+| `mem0` package in `package.json` / `pyproject.toml` | mem0 |
+| `CLAUDE.md` references a memory file with `@` import | Custom memory via import |
+
+If none found, suggest the simplest option first: a `MEMORY.md` file at project root with a note in `CLAUDE.md` to load it at session start. Only suggest heavier tools if the user asks.
 
 ---
 

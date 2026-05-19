@@ -1,0 +1,68 @@
+{
+  "skill_name": "harness-engineering",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm about to start implementing the user authentication flow for our app. It's a medium-sized task — probably 2-3 hours. What do I need to do first before writing any code?",
+      "expected_output": "A structured session-start checklist: environment health check, git status, verify baseline (lint + build), read the relevant spec, and for a multi-hour task: conduct an Initial Interview including a Sprint Contract.",
+      "files": [],
+      "expectations": [
+        "Mentions running a build or lint check BEFORE writing code (verify baseline step)",
+        "Mentions checking git status or confirming a clean working tree",
+        "Mentions reading the relevant spec or documentation before starting",
+        "Includes a pre-task alignment step or Initial Interview for the multi-hour task scope",
+        "Mentions Sprint Contract or negotiating explicit done criteria before writing code",
+        "Does NOT suggest jumping straight into coding as the first step"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need Claude to build a complete payment system with Stripe integration. It's a big feature — probably a week of work. How should I structure this so Claude stays on track and doesn't go off the rails?",
+      "expected_output": "Goal structure advice: use a Charter + Board with Scout/Judge/Worker roles; one active task at a time; receipts per task; continuation rule (keep going until Judge audit proves complete); avoid Fuzzy Done and Proxy Signal anti-patterns; context window management for long sessions.",
+      "files": [],
+      "expectations": [
+        "Recommends one active task at a time with explicit task boundaries",
+        "Names or describes at least one verification anti-pattern (Fuzzy Done, Proxy Signal, Confidence Exit, or Planning=Done)",
+        "Mentions a final audit or Judge step before declaring the overall goal complete",
+        "Mentions completion proof that is observable behavior — not just 'tests pass' or 'it compiles'",
+        "Mentions context window management or session handoff strategy for multi-day work",
+        "Warns about or addresses the risk of Claude declaring done prematurely"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I'm setting up a CLAUDE.md for my new project. It's a Next.js app with Supabase and Stripe. What should I include and what should I leave out?",
+      "expected_output": "CLAUDE.md guidance: keep it under ~150-200 lines total; include tech stack + key commands + architecture hard boundaries + real gotchas; use conditional tags for task-specific rules; do NOT include code style (linter's job), task-specific guidance, or resolved bugs.",
+      "files": [],
+      "expectations": [
+        "Specifies a concrete line or size budget for CLAUDE.md (e.g. ~60 lines target, 200 ceiling, or similar guidance)",
+        "States that code style rules belong in the linter (ESLint/Prettier), NOT in CLAUDE.md",
+        "Mentions or demonstrates conditional tags for task-specific rules (e.g. <important if='...'>)",
+        "Warns against including resolved bugs, past decisions, or ephemeral session content",
+        "Recommends referencing deep specs/docs by file path pointer rather than duplicating inline",
+        "Recommends including real gotchas — non-obvious traps that would bite a developer"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I just cloned a Next.js TypeScript project. It has a package.json with eslint and typescript, a .github/workflows/ci.yml that runs npm run build, but no .claude/settings.json, no init.sh, and a CLAUDE.md that's 250 lines long. What harness gaps do I have and what should I fix first?",
+      "expected_output": "The skill should identify: missing Stop hook (highest priority), missing PostToolUse hook, CLAUDE.md over budget (250 lines > 200 ceiling), missing init.sh, and CI not covering lint. It should produce paste-ready snippets for at least the top two gaps and suggest starting with the Stop hook.",
+      "files": [
+        "package.json with typescript and eslint deps",
+        ".github/workflows/ci.yml running npm run build only",
+        "CLAUDE.md with 250 lines",
+        "no .claude/settings.json",
+        "no init.sh"
+      ],
+      "expectations": [
+        "Identifies missing Stop hook as a gap",
+        "Identifies missing PostToolUse hook as a gap",
+        "Flags CLAUDE.md as over the 200-line budget",
+        "Identifies CI as incomplete (build only, no lint)",
+        "Produces a paste-ready .claude/settings.json snippet with PostToolUse and Stop hooks",
+        "Recommends the Stop hook as the first fix (highest impact)",
+        "Does NOT recommend E2E tests, GoalBuddy, or other complex gates for what appears to be a standard project"
+      ]
+    }
+  ]
+}

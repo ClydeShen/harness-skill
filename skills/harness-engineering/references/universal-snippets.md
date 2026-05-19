@@ -29,7 +29,7 @@ done declarations.
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "Before ending this turn: have you run the project build and lint? If this was UI work, have you opened the feature in a browser? If any check is outstanding, complete it now."
+            "prompt": "Before ending this turn: (1) Run the project build and lint — fix any errors now, not later. (2) If this was UI work, open the feature in a browser and confirm the behavior is observable end-to-end. (3) Write a two-sentence status summary: what was changed and what the next concrete step is. Complete all outstanding checks before finishing."
           }
         ]
       }
@@ -148,15 +148,30 @@ jobs:
 ```markdown
 # CLAUDE.md
 
-## Global Constraints
+## 1. Think Before Coding
 
-Apply these to every implementation decision:
+Don't assume. Surface tradeoffs before writing code.
 
-- **KISS** — prefer the simplest solution. If a simpler path exists, say so before implementing.
-- **YAGNI** — no features, abstractions, or flexibility beyond what was asked.
-- **DRY** — shared logic belongs in one place. Flag duplication before introducing it.
-- **First Principles** — before adding any layer (abstraction, wrapper, helper), name the specific problem it solves. No clear problem = don't add it.
-- **Occam's Razor** — when multiple approaches work, prefer the fewest components and dependencies.
+- New feature / "build X": explore intent and tradeoffs before writing any code
+- Bug / error / test failure: identify root cause before proposing a fix
+- Multi-step task (3+ files or >1 hr): write a step-by-step plan before touching files
+
+## 2. Simplicity First
+
+Minimum code that solves the problem. Nothing speculative.
+
+- No features beyond what was asked. No abstractions for single-use code.
+- No error handling for impossible scenarios. If 200 lines could be 50, rewrite it.
+- After writing code, before commit: review for dead code and overcomplication
+
+## 3. Surgical Changes
+
+Touch only what you must. Match existing style.
+
+- Every changed line must trace to the request — no adjacent "improvements"
+- Scope-creep risk: limit edits to the affected directory until the fix is confirmed
+- Destructive command (`rm -rf`, force-push, DROP TABLE): warn and confirm before running
+- Need checkout isolation: use git worktrees
 
 ## Stack
 
@@ -166,48 +181,43 @@ Apply these to every implementation decision:
 ## Key Commands
 
 ```bash
-# Start dev server
-[FILL IN]
-
-# Build
-[FILL IN]
-
-# Lint
-[FILL IN]
-
-# Type check
-[FILL IN]
-
-# Run tests
-[FILL IN]
+# Start dev server  [FILL IN]
+# Build             [FILL IN]
+# Lint              [FILL IN]
+# Type check        [FILL IN]
+# Run tests         [FILL IN]
 ```
 
 ## Architecture
 
-<!-- 2-3 sentences on the key boundaries that matter. Not a file tree. -->
+<!-- 2-3 sentences on key boundaries. Not a file tree. -->
 [FILL IN]
 
 ## Gotchas
 
-<!-- Real non-obvious traps that would bite a developer new to this codebase. -->
-<!-- If none yet, delete this section. -->
+<!-- Non-obvious traps only. Delete if none. -->
 
 ## Skills
 
-<!-- Trigger reminders — delete any that don't apply -->
-- New feature or component: `brainstorming` skill first
-- Any implementation task: `writing-plans` skill
-- Claiming work complete: `verification-before-completion` skill
-- Debugging failures: `systematic-debugging` skill
+<!-- Optional. Add trigger reminders for whichever skills you have installed.
+     Examples — keep only what applies:
+- New feature:      `brainstorming` skill
+- Bug / failure:    `systematic-debugging` skill
+- Multi-step task:  `writing-plans` skill
+- After coding:     `simplify` skill
+- Edit-lock:        `freeze` skill
+- Destructive ops:  `careful` / `guard` skill
+- Worktree setup:   `using-git-worktrees` skill
+-->
 
 <important if="you are writing or modifying tests">
 - Run the full test suite before marking any task done
-- Use the project's existing test helpers and fixtures — don't invent new patterns
+- Use existing test helpers — don't invent new patterns
 </important>
 
 <important if="you are editing a route handler or API endpoint">
 - Auth check must be the first operation
-- Return `{ data: T }` on success, `{ error: string }` on failure — no bare responses
+- Return `{ data: T }` on success, `{ error: string }` on failure
 </important>
 ```
 

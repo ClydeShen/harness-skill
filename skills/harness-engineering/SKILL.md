@@ -38,10 +38,13 @@ the full target list and interpretation guide.
 3. Check pre-commit: `.husky/` or `.pre-commit-config.yaml`
 4. Check Claude hooks: `.claude/settings.json` — PostToolUse + Stop hooks present?
 5. Check health script: `init.sh` at root — exists and executable?
-6. Check CLAUDE.md: exists? line count under 200? contains `<important if>` tags or `.claude/rules/`?
-7. Check rules directory: `.claude/rules/` — exists if CLAUDE.md is over 100 lines?
+6. Check agent instruction file: `CLAUDE.md` OR `AGENTS.md` present? Check whichever exists: line count under 200? contains `<important if>` tags or `.claude/rules/`?
+7. Check rules directory: `.claude/rules/` — exists if the instruction file is over 100 lines?
 8. Check spec workflow: `docs/superpowers/specs/` directory exists?
-8. Check UI harness (frontend stack only): `DESIGN.md` exists?
+9. Check UI harness (frontend stack only): `DESIGN.md` exists?
+10. Check installed skills: which of the following are available in the current session?
+    `brainstorming`, `systematic-debugging`, `writing-plans`, `simplify`,
+    `freeze`, `careful`, `guard`, `using-git-worktrees`
 
 Build two lists: **already in place** and **gaps**.
 
@@ -57,7 +60,7 @@ at a time and wait for the answer before asking the next.
 > (multi-hour or multi-session)?"
 
 **Q2 — Ask only if no branch protection or PR workflow detected:**
-> "Solo dev or team?"
+> "Solo dev or team? And is this an existing codebase you're inheriting, or starting from scratch?"
 
 **Q3 — Ask only if 3 or more major gaps found:**
 > "You're missing several components. What matters most right now: stability
@@ -85,6 +88,7 @@ Use this table after the interview to determine what to include or emphasise in 
 |---|---|
 | **Solo** | CI snippet uses `push: branches: [main]` trigger only. Do not recommend branch protection rules, PR review gates, or `pull_request` trigger. |
 | **Team** | CI snippet adds `pull_request: branches: [main]` trigger. Add a note: "Consider adding branch protection on main (require PR + passing CI before merge)." |
+| **Brownfield (inherited codebase)** | Soften pre-commit recommendation: add hooks incrementally rather than fixing all existing violations at once. Suggest a dedicated cleanup commit to baseline lint errors before enabling the hook. |
 
 ### Q3 — Priority (only fires with 3+ major gaps)
 
@@ -121,11 +125,27 @@ Produce a single response after the interview using this structure:
 
 **Output rules:**
 - Rank gaps by impact: verification gap > CLAUDE.md quality > CI > pre-commit > memory
+- Spec workflow (`docs/superpowers/specs/` absent) is a **minor gap by default** but escalates to **major gap** when Q1 answer is "long / autonomous (>1 hr)"
 - Each snippet is complete and paste-ready — no `YOUR_PROJECT_NAME`; use
   sensible defaults with inline comments marking what to customise
 - Node/TS and Python: load the relevant helper file for stack-specific snippets
-- Universal gaps: load `helpers/universal-snippets.md`
+- Universal gaps: load `references/universal-snippets.md`
 - Maximum 5 gaps shown; if more exist, note them as lower priority at the end
+
+**CLAUDE.md skill substitutions:**
+The base CLAUDE.md template uses plain behavioral descriptions. When outputting
+the template, replace each behaviour line with its skill trigger for every skill
+confirmed installed in step 10. Leave the line unchanged if the skill is absent.
+
+| Installed skill | Behaviour phrase to find | Replace end of line with |
+|---|---|---|
+| `brainstorming` | `explore intent and tradeoffs before writing any code` | `` `brainstorming` skill `` |
+| `systematic-debugging` | `identify root cause before proposing a fix` | `` `systematic-debugging` skill `` |
+| `writing-plans` | `write a step-by-step plan before touching files` | `` `writing-plans` skill; `/plan` for quick tasks `` |
+| `simplify` | `review for dead code and overcomplication` | `` `simplify` skill `` |
+| `freeze` | `limit edits to the affected directory until the fix is confirmed` | `` `freeze` skill `` |
+| `careful` or `guard` | `warn and confirm before running` | `` `careful` / `guard` skill `` |
+| `using-git-worktrees` | `use git worktrees` | `` `using-git-worktrees` skill `` |
 
 For snippet content, read the appropriate reference file:
 - Universal gaps → `references/universal-snippets.md`

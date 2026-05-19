@@ -64,5 +64,41 @@
         "Does NOT recommend E2E tests, GoalBuddy, or other complex gates for what appears to be a standard project"
       ]
     }
+    ,
+    {
+      "id": 5,
+      "prompt": "I'm taking over a Next.js TypeScript project that's been running in production for 2 years. It has roughly 50,000 lines of code, no .pre-commit-config.yaml, and eslint currently reports 340 errors. I want to start using Claude Code on it. What harness should I set up, and where should I start?",
+      "expected_output": "The skill should recognise this as a brownfield / inherited codebase scenario. It should NOT recommend fixing all 340 ESLint errors as a prerequisite. It should recommend incremental adoption: run eslint --fix on a dedicated cleanup commit to baseline existing violations, then enable the pre-commit hook going forward. Stop hook and CI gaps remain highest priority regardless.",
+      "files": [
+        "Next.js TypeScript project with ~50k lines",
+        "no .pre-commit-config.yaml",
+        "eslint reports 340 errors on existing code",
+        "no .claude/settings.json"
+      ],
+      "expectations": [
+        "Does NOT instruct the user to fix all 340 ESLint errors before starting",
+        "Recommends a baseline / ratchet approach for pre-commit hooks on inherited code",
+        "Still identifies missing Stop hook as the highest-priority gap",
+        "Acknowledges this is a brownfield codebase and adjusts recommendations accordingly",
+        "Suggests a dedicated cleanup commit to reduce lint noise before enabling the hook"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "My project already has an AGENTS.md file at the root that documents the stack, key commands, architecture, and coding conventions for AI agents. It's about 80 lines. Do I still need a CLAUDE.md? Are there any harness gaps I should fix?",
+      "expected_output": "The skill should recognise AGENTS.md as fully equivalent to CLAUDE.md. It must NOT flag missing CLAUDE.md as a gap. It should apply the same quality checks to AGENTS.md (80 lines is under the 200-line ceiling — acceptable), then report other gaps normally.",
+      "files": [
+        "AGENTS.md at project root, ~80 lines",
+        "no CLAUDE.md",
+        "no .claude/settings.json"
+      ],
+      "expectations": [
+        "Does NOT flag missing CLAUDE.md as a harness gap",
+        "Explicitly recognises AGENTS.md as equivalent to CLAUDE.md",
+        "Checks AGENTS.md quality: line count, conditional tags, .claude/rules/ if over 100 lines",
+        "Proceeds to report other harness gaps (hooks, CI, etc.) normally",
+        "Does not recommend creating a CLAUDE.md alongside AGENTS.md"
+      ]
+    }
   ]
 }

@@ -17,14 +17,16 @@ Frontend detected → also check for `DESIGN.md`.
 
 ## Gap Classification
 
+> **Note:** `AGENTS.md` is treated as fully equivalent to `CLAUDE.md`. If either is present, the "agent instruction file" gap is closed. Apply all CLAUDE.md quality checks (line count, conditional tags, rules directory) to whichever file is present.
+
 ### Major gaps (each counts toward the Q3 threshold)
 
 | Gap | Detection | Failure mode prevented |
 |---|---|---|
 | No Stop hook | `.claude/settings.json` missing or lacks `Stop` entry | Claude declares done without verifying — most common failure mode |
 | No PostToolUse hook | `.claude/settings.json` missing or lacks `PostToolUse` entry | Lint violations accumulate silently across edits |
-| No CLAUDE.md | `CLAUDE.md` absent | No persistent context anchor — every session starts blind |
-| CLAUDE.md over budget | `CLAUDE.md` exceeds 200 lines | Instructions degrade uniformly; critical rules get ignored |
+| No agent instruction file | `CLAUDE.md` absent AND `AGENTS.md` absent | No persistent context anchor — every session starts blind |
+| Agent instruction file over budget | `CLAUDE.md` or `AGENTS.md` exceeds 200 lines | Instructions degrade uniformly; critical rules get ignored |
 | No CI | `.github/workflows/` absent or no lint+build steps | Broken code merges undetected |
 | No health check | `init.sh` absent | Sessions start on a broken baseline without warning |
 
@@ -35,9 +37,10 @@ Frontend detected → also check for `DESIGN.md`.
 | No pre-commit hooks | `.husky/` and `.pre-commit-config.yaml` both absent | Style violations reach commit; slow feedback loop |
 | No spec workflow | `docs/superpowers/specs/` absent | Work starts without agreed done criteria |
 | No DESIGN.md (frontend only) | `DESIGN.md` absent, frontend detected | UI work starts without visual language anchor |
-| CLAUDE.md has no `<important if>` tags or `.claude/rules/` | Scan file content and directory | Task-specific rules applied universally; foundational rules crowded out |
-| No `.claude/rules/` when CLAUDE.md > 100 lines | `.claude/rules/` absent | Path-specific rules bloat the always-loaded context instead of loading on demand |
+| Instruction file has no `<important if>` tags or `.claude/rules/` | Scan file content and directory | Task-specific rules applied universally; foundational rules crowded out |
+| No `.claude/rules/` when instruction file > 100 lines | `.claude/rules/` absent | Path-specific rules bloat the always-loaded context instead of loading on demand |
 | Cross-session memory absent | None of the common memory signals detected (see below) | Preferences and decisions lost between sessions |
+| No observability tooling | None of: `agentops` in deps, `agenttrace` installed, structured logging in entry-point files | Cost spikes, tool failures, and regressions go undetected across sessions |
 
 ---
 

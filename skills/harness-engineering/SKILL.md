@@ -29,7 +29,7 @@ smaller change, the fewer moving parts.
 
 ## Phase 1 — Detect
 
-Before asking any questions, scan the project. Read `helpers/detect.md` for
+Before asking any questions, scan the project. Read `references/detect.md` for
 the full target list and interpretation guide.
 
 **Run these checks:**
@@ -127,10 +127,10 @@ Produce a single response after the interview using this structure:
 - Universal gaps: load `helpers/universal-snippets.md`
 - Maximum 5 gaps shown; if more exist, note them as lower priority at the end
 
-For snippet content, read the appropriate helper file:
-- Universal gaps → `helpers/universal-snippets.md`
-- Node/TS stack → `helpers/node-snippets.md`
-- Python stack → `helpers/python-snippets.md`
+For snippet content, read the appropriate reference file:
+- Universal gaps → `references/universal-snippets.md`
+- Node/TS stack → `references/node-snippets.md`
+- Python stack → `references/python-snippets.md`
 
 ---
 

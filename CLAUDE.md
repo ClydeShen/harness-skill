@@ -14,7 +14,7 @@ skills/harness-engineering/
   skill.json                 ← skill metadata (name, version, tags)
   evals/
     evals.json               ← acceptance criteria for all eval prompts
-  helpers/
+  references/
     detect.md                ← gap classification and detection interpretation
     universal-snippets.md    ← .claude/settings.json, init.sh, CI, CLAUDE.md template
     node-snippets.md         ← Node/TS paste-ready configs

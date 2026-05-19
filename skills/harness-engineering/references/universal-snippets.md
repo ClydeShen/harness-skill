@@ -3,6 +3,12 @@
 Paste-ready configs that apply regardless of stack. Inline comments mark what
 to customise; everything else is a working default.
 
+## Contents
+- [Hooks: .claude/settings.json](#claudes-settingsjson--hooks)
+- [Health check: init.sh](#initsh--environment-health-check)
+- [CI pipeline: .github/workflows/ci.yml](#githubworkflowsciyml--ci-pipeline)
+- [Project template: CLAUDE.md](#claudemd--project-template)
+
 ---
 
 ## .claude/settings.json — Hooks

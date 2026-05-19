@@ -1,15 +1,16 @@
 ---
 name: harness-engineering
 description: >
-  Use whenever starting a coding session, setting up quality gates, writing or
-  auditing CLAUDE.md or SKILL.md files, beginning any task running autonomously
-  for more than one hour, or after a session left in broken state. Trigger on:
-  "start session", "set up harness", "how should I structure this task",
-  "beginning work on", "session start", "long-running task", "set up quality
-  gates", "CI pipeline", "pre-commit hooks", "what do I need before I start",
-  "how do I keep claude on track", "agent discipline", "writing CLAUDE.md",
-  "goal structure", "sprint contract", "verification gap", "health check",
-  "harness setup", "project setup".
+  Detects harness gaps in a project and produces paste-ready config snippets to
+  close them. Covers Stop and PostToolUse hooks, CI pipeline, pre-commit,
+  CLAUDE.md/AGENTS.md quality, init.sh, and session discipline. Use when
+  starting a coding session, setting up quality gates, writing or auditing
+  CLAUDE.md or SKILL.md files, beginning long autonomous work (>1 hr), or
+  after a session left in broken state. Triggers on: "start session", "set up
+  harness", "how should I structure this task", "CI pipeline", "pre-commit
+  hooks", "writing CLAUDE.md", "goal structure", "sprint contract",
+  "verification gap", "health check", "harness setup", "project setup",
+  "agent discipline".
 ---
 
 ## Global Constraints
@@ -80,7 +81,7 @@ Use this table after the interview to determine what to include or emphasise in 
 | Answer | What changes in output |
 |---|---|
 | **Quick task (<1 hr)** | Show hooks + CLAUDE.md gaps only. Omit init.sh, Goal structure, cross-session memory — note them as "lower priority for quick tasks" if detected as gaps. Sprint Contract is the only session-discipline recommendation. |
-| **Long / autonomous (>1 hr)** | Show all major gaps. Add init.sh to top-5 if missing. After the gap list, add a one-line note: "For multi-session work, also set up cross-session memory (MEMORY.md or memobank) and run `init.sh` at the start of every session." |
+| **Long / autonomous (>1 hr)** | Show all major gaps. Add init.sh to top-5 if missing. After the gap list: (1) add a note about cross-session memory and running `init.sh`; (2) include long-task verification discipline (see section below). |
 
 ### Q2 — Team size
 
@@ -89,6 +90,19 @@ Use this table after the interview to determine what to include or emphasise in 
 | **Solo** | CI snippet uses `push: branches: [main]` trigger only. Do not recommend branch protection rules, PR review gates, or `pull_request` trigger. |
 | **Team** | CI snippet adds `pull_request: branches: [main]` trigger. Add a note: "Consider adding branch protection on main (require PR + passing CI before merge)." |
 | **Brownfield (inherited codebase)** | Soften pre-commit recommendation: add hooks incrementally rather than fixing all existing violations at once. Suggest a dedicated cleanup commit to baseline lint errors before enabling the hook. |
+
+### Long-task verification discipline (include when Q1 = long/autonomous)
+
+Warn explicitly about these failure modes when surfacing goal structure guidance:
+
+- **Fuzzy Done** — "tests pass" is not the same as "feature works end-to-end"
+- **Proxy Signal** — build success is not behavior confirmation
+- **Confidence Exit** — Claude's self-declared done is not evidence of done
+- **Planning=Done** — a written plan is not completed work
+
+Recommend: one active task at a time; require observable behavior check before marking any task done; final audit (skeptical re-read of all changes and outputs) before the overall goal is declared complete. Cross-session memory (`MEMORY.md` or memobank) + `init.sh` are the minimum resumption kit.
+
+---
 
 ### Q3 — Priority (only fires with 3+ major gaps)
 

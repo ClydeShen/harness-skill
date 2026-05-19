@@ -11,6 +11,9 @@ This repo maintains the `harness-engineering` skill — an interactive diagnosti
 ```
 skills/harness-engineering/
   SKILL.md                   ← main skill: detect → interview → output flow
+  skill.json                 ← skill metadata (name, version, tags)
+  evals/
+    evals.json               ← acceptance criteria for all eval prompts
   helpers/
     detect.md                ← gap classification and detection interpretation
     universal-snippets.md    ← .claude/settings.json, init.sh, CI, CLAUDE.md template
@@ -18,11 +21,11 @@ skills/harness-engineering/
     python-snippets.md       ← Python paste-ready configs
 ```
 
-Root `SKILL.md` stays empty (per README). Evals live in `evals/evals.json`.
+Root `SKILL.md` stays empty (per README).
 
 ## Evals
 
-`evals/evals.json` defines the acceptance criteria for this skill. When modifying any skill file, verify the updated skill would still produce passing responses for all eval prompts before committing.
+`skills/harness-engineering/evals/evals.json` defines the acceptance criteria for this skill. When modifying any skill file, verify the updated skill would still produce passing responses for all eval prompts before committing.
 
 ## Global Constraints
 

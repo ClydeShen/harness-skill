@@ -1,6 +1,6 @@
 # harness-engineering skill
 
-A Claude Code skill that detects agent-harness gaps in a project and produces paste-ready config snippets to close them.
+A Claude Code and Codex skill that detects agent-harness gaps in a project and produces paste-ready config snippets to close them.
 
 ## What it does
 
@@ -10,9 +10,37 @@ When invoked, the skill runs in three phases:
 2. **Interview** — asks at most 3 targeted questions to resolve what the file scan cannot determine (task scope, team size, priority)
 3. **Output** — produces a prioritised gap list with complete, paste-ready snippets for the top 5 gaps
 
-## When to use it
+## Installation
 
-Trigger phrases (the skill description routes automatically):
+### Claude Code
+
+```bash
+npx skills add ClydeShen/harness-skill@harness-engineering -g
+```
+
+Or add as a plugin in `~/.claude/settings.json`:
+
+```json
+{
+  "plugins": [
+    { "type": "git", "url": "https://github.com/ClydeShen/harness-skill" }
+  ]
+}
+```
+
+### Codex
+
+```bash
+npx skills add ClydeShen/harness-skill@harness-engineering -g
+```
+
+Skills installed via `npx skills` are auto-discovered by Codex. No additional config needed.
+
+## Usage
+
+### Claude Code
+
+The skill triggers automatically from natural language. Trigger phrases:
 
 - "start session", "set up harness", "session start"
 - "set up quality gates", "CI pipeline", "pre-commit hooks"
@@ -20,6 +48,16 @@ Trigger phrases (the skill description routes automatically):
 - "writing CLAUDE.md", "goal structure", "sprint contract", "verification gap"
 
 Any session-start or task-structure question qualifies — even without the word "harness".
+
+You can also invoke it explicitly:
+
+```
+/harness-engineering
+```
+
+### Codex
+
+Invoke via the `skill` tool, or use the same trigger phrases — Codex auto-routes based on the skill description.
 
 ## Skill structure
 
@@ -33,19 +71,7 @@ skills/harness-engineering/
     python-snippets.md       ← Python paste-ready configs
 ```
 
-The root `SKILL.md` is intentionally left empty for user-managed content.
-
-## Installation
-
-Add this repository as a plugin in your Claude Code settings:
-
-```json
-{
-  "plugins": [
-    { "type": "git", "url": "https://github.com/your-org/harness-skill" }
-  ]
-}
-```
+The root `SKILL.md` is intentionally left empty.
 
 ## Evals
 
@@ -57,7 +83,3 @@ Acceptance criteria are defined in `evals/evals.json`. Four eval prompts cover:
 4. Detection-first flow: identify gaps from a described project state
 
 When modifying any skill file, verify the updated skill would still pass all four evals before committing.
-
-## Reference
-
-`2026-05-18-m1-engineering-standards.md` is the canonical "full harness" example for a Next.js + TypeScript project — the reference for what the skill should recommend at maximum depth.

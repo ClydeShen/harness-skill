@@ -24,10 +24,6 @@ Root `SKILL.md` stays empty (per README). Evals live in `evals/evals.json`.
 
 `evals/evals.json` defines the acceptance criteria for this skill. When modifying any skill file, verify the updated skill would still produce passing responses for all eval prompts before committing.
 
-## Engineering Standards
-
-`2026-05-18-m1-engineering-standards.md` is the canonical Node/TS use case example. It represents the "full harness" output for a Next.js + TypeScript project and is the reference for what the skill should recommend at maximum depth.
-
 ## Global Constraints
 
 - **KISS** — prefer the simplest solution. If a simpler path exists, say so before implementing.

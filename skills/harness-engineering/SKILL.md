@@ -55,13 +55,8 @@ at a time and wait for the answer before asking the next.
 > "Is this for a quick focused task (under ~1 hour) or longer autonomous work
 > (multi-hour or multi-session)?"
 
-Use the answer to decide: Sprint Contract only, or full Goal structure + Mission
-pattern recommendations.
-
 **Q2 — Ask only if no branch protection or PR workflow detected:**
 > "Solo dev or team?"
-
-Use the answer to decide: CI strictness, branch workflow recommendations.
 
 **Q3 — Ask only if 3 or more major gaps found:**
 > "You're missing several components. What matters most right now: stability
@@ -69,6 +64,34 @@ Use the answer to decide: CI strictness, branch workflow recommendations.
 > structure (for autonomous tasks)?"
 
 Skip Q3 if fewer than 3 major gaps — just rank by impact and present all.
+
+---
+
+## Interview Branch Decisions
+
+Use this table after the interview to determine what to include or emphasise in Phase 3.
+
+### Q1 — Task scope
+
+| Answer | What changes in output |
+|---|---|
+| **Quick task (<1 hr)** | Show hooks + CLAUDE.md gaps only. Omit init.sh, Goal structure, cross-session memory — note them as "lower priority for quick tasks" if detected as gaps. Sprint Contract is the only session-discipline recommendation. |
+| **Long / autonomous (>1 hr)** | Show all major gaps. Add init.sh to top-5 if missing. After the gap list, add a one-line note: "For multi-session work, also set up cross-session memory (MEMORY.md or memobank) and run `init.sh` at the start of every session." |
+
+### Q2 — Team size
+
+| Answer | What changes in output |
+|---|---|
+| **Solo** | CI snippet uses `push: branches: [main]` trigger only. Do not recommend branch protection rules, PR review gates, or `pull_request` trigger. |
+| **Team** | CI snippet adds `pull_request: branches: [main]` trigger. Add a note: "Consider adding branch protection on main (require PR + passing CI before merge)." |
+
+### Q3 — Priority (only fires with 3+ major gaps)
+
+| Answer | What changes in output |
+|---|---|
+| **Stability gates** (CI and hooks) | Lead with `.claude/settings.json` hooks snippet, then CI. Move CLAUDE.md and init.sh gaps to "lower priority" section. |
+| **Session discipline** (CLAUDE.md and hooks) | Lead with `.claude/settings.json` hooks snippet, then CLAUDE.md template. Move CI and init.sh to "lower priority" section. |
+| **Goal structure** (autonomous tasks) | Lead with init.sh snippet, then add Goal structure guidance (Sprint Contract for <1 day; full goal board for multi-session). Move CI and hooks to "lower priority" section. |
 
 ---
 

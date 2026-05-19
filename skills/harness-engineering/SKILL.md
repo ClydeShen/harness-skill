@@ -38,8 +38,9 @@ the full target list and interpretation guide.
 3. Check pre-commit: `.husky/` or `.pre-commit-config.yaml`
 4. Check Claude hooks: `.claude/settings.json` — PostToolUse + Stop hooks present?
 5. Check health script: `init.sh` at root — exists and executable?
-6. Check CLAUDE.md: exists? line count under 200? contains `<important if>` tags?
-7. Check spec workflow: `docs/superpowers/specs/` directory exists?
+6. Check CLAUDE.md: exists? line count under 200? contains `<important if>` tags or `.claude/rules/`?
+7. Check rules directory: `.claude/rules/` — exists if CLAUDE.md is over 100 lines?
+8. Check spec workflow: `docs/superpowers/specs/` directory exists?
 8. Check UI harness (frontend stack only): `DESIGN.md` exists?
 
 Build two lists: **already in place** and **gaps**.

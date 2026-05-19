@@ -211,16 +211,24 @@ Apply these to every implementation decision:
 </important>
 ```
 
+**Target: 60 lines. Hard ceiling: 200 lines per file.**
+
+If CLAUDE.md grows past 100 lines, move path-specific rules to `.claude/rules/`:
+
+```
+.claude/rules/
+  testing.md      # rules that apply only when editing test files
+  api.md          # rules that apply only to route handlers
+```
+
+Each rules file can carry path frontmatter so it loads only when matching files are opened:
+
+```markdown
+---
+paths:
+  - "src/api/**/*.ts"
 ---
 
-After writing, verify all five principles appear:
-```bash
-grep -c "KISS\|YAGNI\|DRY\|First Principles\|Occam" skills/harness-engineering/helpers/universal-snippets.md
-```
-Expected: 5 or more matches.
-
-Then commit:
-```bash
-git add skills/harness-engineering/helpers/universal-snippets.md
-git commit -m "feat(skill): add universal-snippets.md with hooks, init.sh, CI, and CLAUDE.md template"
+- Auth check must be the first operation
+- Return `{ data: T }` on success, `{ error: string }` on failure
 ```

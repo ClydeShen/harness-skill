@@ -35,8 +35,9 @@ Frontend detected → also check for `DESIGN.md`.
 | No pre-commit hooks | `.husky/` and `.pre-commit-config.yaml` both absent | Style violations reach commit; slow feedback loop |
 | No spec workflow | `docs/superpowers/specs/` absent | Work starts without agreed done criteria |
 | No DESIGN.md (frontend only) | `DESIGN.md` absent, frontend detected | UI work starts without visual language anchor |
-| CLAUDE.md has no `<important if>` tags | Scan file content | Task-specific rules applied universally; foundational rules crowded out |
-| Cross-session memory absent | No `MEMORY.md` or `.memobank/` | Preferences and decisions lost between sessions |
+| CLAUDE.md has no `<important if>` tags or `.claude/rules/` | Scan file content and directory | Task-specific rules applied universally; foundational rules crowded out |
+| No `.claude/rules/` when CLAUDE.md > 100 lines | `.claude/rules/` absent | Path-specific rules bloat the always-loaded context instead of loading on demand |
+| Cross-session memory absent | No `~/.claude/projects/*/memory/MEMORY.md` (native) and no `.memobank/` | Preferences and decisions lost between sessions |
 
 ---
 

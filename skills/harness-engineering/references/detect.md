@@ -17,7 +17,7 @@ Frontend detected → also check for `DESIGN.md`.
 
 ## Gap Classification
 
-> **Note:** `AGENTS.md` is treated as fully equivalent to `CLAUDE.md`. If either is present, the "agent instruction file" gap is closed. Apply all CLAUDE.md quality checks (line count, conditional tags, rules directory) to whichever file is present.
+> **Note:** Claude Code reads both `CLAUDE.md` and `AGENTS.md` natively from the project root — they are equivalent. If either is present, the "agent instruction file" gap is closed. Apply all CLAUDE.md quality checks (line count, conditional tags, rules directory) to whichever file is present. Do NOT recommend creating `CLAUDE.md` when `AGENTS.md` already exists.
 
 ### Major gaps (each counts toward the Q3 threshold)
 

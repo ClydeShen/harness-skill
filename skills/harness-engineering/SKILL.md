@@ -89,7 +89,7 @@ Use this table after the interview to determine what to include or emphasise in 
 |---|---|
 | **Solo** | CI snippet uses `push: branches: [main]` trigger only. Do not recommend branch protection rules, PR review gates, or `pull_request` trigger. |
 | **Team** | CI snippet adds `pull_request: branches: [main]` trigger. Add a note: "Consider adding branch protection on main (require PR + passing CI before merge)." |
-| **Brownfield (inherited codebase)** | Soften pre-commit recommendation: add hooks incrementally rather than fixing all existing violations at once. Suggest a dedicated cleanup commit to baseline lint errors before enabling the hook. |
+| **Brownfield (inherited codebase)** | Do NOT tell the user to fix all existing lint errors before starting. Explain the ratchet approach: run `eslint --fix` (or equivalent) in a single dedicated cleanup commit to reduce noise, then enable the pre-commit hook going forward. Stop hook is still the #1 gap regardless. |
 
 ### Long-task verification discipline (include when Q1 = long/autonomous)
 
@@ -100,7 +100,7 @@ Warn explicitly about these failure modes when surfacing goal structure guidance
 - **Confidence Exit** — Claude's self-declared done is not evidence of done
 - **Planning=Done** — a written plan is not completed work
 
-Recommend: one active task at a time; require observable behavior check before marking any task done; final audit (skeptical re-read of all changes and outputs) before the overall goal is declared complete. Cross-session memory (`MEMORY.md` or memobank) + `init.sh` are the minimum resumption kit.
+Recommend: one active task at a time; require observable end-to-end behavior check (not just tests passing or build succeeding) before marking any task done; final **Judge audit** (skeptical re-read of ALL task outputs and behavior) before the overall goal is declared complete — this is the only valid exit criterion. Cross-session memory (`MEMORY.md` or memobank) + `init.sh` are the minimum resumption kit.
 
 ---
 
@@ -110,7 +110,7 @@ Recommend: one active task at a time; require observable behavior check before m
 |---|---|
 | **Stability gates** (CI and hooks) | Lead with `.claude/settings.json` hooks snippet, then CI. Move CLAUDE.md and init.sh gaps to "lower priority" section. |
 | **Session discipline** (CLAUDE.md and hooks) | Lead with `.claude/settings.json` hooks snippet, then CLAUDE.md template. Move CI and init.sh to "lower priority" section. |
-| **Goal structure** (autonomous tasks) | Lead with init.sh snippet, then add Goal structure guidance (Sprint Contract for <1 day; full goal board for multi-session). Move CI and hooks to "lower priority" section. |
+| **Goal structure** (autonomous tasks) | Lead with init.sh snippet, then add Goal structure guidance: Sprint Contract for <1 day; full goal board for multi-session; and a final **Judge audit** (skeptical re-read of all task outputs and observable behavior) before declaring the overall goal complete. Move CI and hooks to "lower priority" section. |
 
 ---
 
@@ -119,18 +119,21 @@ Recommend: one active task at a time; require observable behavior check before m
 Produce a single response after the interview using this structure:
 
 ```
-## ✓ Already in place
+## Already in place
 - [each detected item, one line each]
 
 ## Harness gaps (priority order)
+<!-- MANDATORY: Gap 1 must be "No Stop hook" if .claude/settings.json is missing or lacks Stop -->
 
-### 1. [Gap name]
-**Why it matters:** [one sentence — the specific failure mode this prevents]
-**Fix:**
-[filename or shell command]
-[complete paste-ready content — no placeholders]
+### 1. No Stop hook  ← always first if missing
+**Why it matters:** Claude declares done without verifying — the most common failure mode.
+**Fix:** `.claude/settings.json`
+[paste-ready JSON with PostToolUse + Stop hooks from references/universal-snippets.md]
 
-### 2. [Next gap]
+### 2. No PostToolUse hook  ← always second if missing (same settings.json fixes both)
+...
+
+### 3. [Next gap in order]
 ...
 
 ## What to do next
@@ -138,12 +141,19 @@ Produce a single response after the interview using this structure:
 ```
 
 **Output rules:**
-- Rank gaps by impact: verification gap > CLAUDE.md quality > CI > pre-commit > memory
+- **Stop hook is ALWAYS gap #1** if missing — never put CLAUDE.md, CI, or any other gap before it. No exceptions.
+- When `.claude/settings.json` is absent: list Stop hook as gap #1 and PostToolUse hook as gap #2. Both fixed by one settings.json — load the snippet from `references/universal-snippets.md`.
+- If `AGENTS.md` is present (with no `CLAUDE.md`): the instruction file gap is **CLOSED** — do NOT suggest creating `CLAUDE.md`. Do NOT explain differences between them. Apply quality checks (line count, conditional tags) to `AGENTS.md` and report other gaps normally.
+- For "No agent instruction file" gap OR when user asks about CLAUDE.md content: output the full CLAUDE.md template from `references/universal-snippets.md` AND add these exclusion rules explicitly:
+  - Code style rules → belong in the linter (ESLint/Prettier), **not** in CLAUDE.md
+  - Resolved bugs, past decisions, ephemeral session notes → **do not include**
+  - Deep specs/docs → reference by file path (`@docs/spec.md`), do not duplicate inline
+  - Task-specific rules → use `<important if="...">` conditional tags or `.claude/rules/`; do not put them in the always-loaded main body
+- For brownfield / inherited codebase: do **NOT** tell the user to fix all existing lint errors. Instead: run `eslint --fix` in a single dedicated cleanup commit to baseline lint noise, then enable the hook going forward. This is the ratchet approach.
+- For long/autonomous tasks: the output MUST include: (1) one-task-at-a-time discipline; (2) at least one verification anti-pattern by name (Fuzzy Done, Proxy Signal, Confidence Exit, Planning=Done); (3) final Judge audit as the required exit criterion before declaring the goal complete.
 - Spec workflow (`docs/superpowers/specs/` absent) is a **minor gap by default** but escalates to **major gap** when Q1 answer is "long / autonomous (>1 hr)"
-- Each snippet is complete and paste-ready — no `YOUR_PROJECT_NAME`; use
-  sensible defaults with inline comments marking what to customise
+- Each snippet is complete and paste-ready — no `YOUR_PROJECT_NAME`; use sensible defaults with inline comments marking what to customise
 - Node/TS and Python: load the relevant helper file for stack-specific snippets
-- Universal gaps: load `references/universal-snippets.md`
 - Maximum 5 gaps shown; if more exist, note them as lower priority at the end
 
 **CLAUDE.md skill substitutions:**

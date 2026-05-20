@@ -33,7 +33,7 @@
       "id": 3,
       "prompt": "I'm setting up a CLAUDE.md for my new project. It's a Next.js app with Supabase and Stripe. What should I include and what should I leave out?",
       "expected_output": "CLAUDE.md guidance: keep it under ~150-200 lines total; include tech stack + key commands + architecture hard boundaries + real gotchas; use conditional tags for task-specific rules; do NOT include code style (linter's job), task-specific guidance, or resolved bugs.",
-      "files": [],
+      "files": ["package.json with next.js supabase stripe deps"],
       "expectations": [
         "Specifies a concrete line or size budget for CLAUDE.md (e.g. ~60 lines target, 200 ceiling, or similar guidance)",
         "States that code style rules belong in the linter (ESLint/Prettier), NOT in CLAUDE.md",

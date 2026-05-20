@@ -144,11 +144,7 @@ Produce a single response after the interview using this structure:
 - **Stop hook is ALWAYS gap #1** if missing — never put CLAUDE.md, CI, or any other gap before it. No exceptions.
 - When `.claude/settings.json` is absent: list Stop hook as gap #1 and PostToolUse hook as gap #2. Both fixed by one settings.json — load the snippet from `references/universal-snippets.md`.
 - If `AGENTS.md` is present (with no `CLAUDE.md`): the instruction file gap is **CLOSED** — do NOT suggest creating `CLAUDE.md`. Do NOT explain differences between them. Apply quality checks (line count, conditional tags) to `AGENTS.md` and report other gaps normally.
-- For "No agent instruction file" gap OR when user asks about CLAUDE.md content: output the full CLAUDE.md template from `references/universal-snippets.md` AND add these exclusion rules explicitly:
-  - Code style rules → belong in the linter (ESLint/Prettier), **not** in CLAUDE.md
-  - Resolved bugs, past decisions, ephemeral session notes → **do not include**
-  - Deep specs/docs → reference by file path (`@docs/spec.md`), do not duplicate inline
-  - Task-specific rules → use `<important if="...">` conditional tags or `.claude/rules/`; do not put them in the always-loaded main body
+- For "No agent instruction file" gap OR when user asks about CLAUDE.md content: output the full CLAUDE.md template from `references/universal-snippets.md` AND apply the **CLAUDE.md Guidance** section (below) — it contains the size budget, include/exclude rules, and conditional-tags example. State all exclusion rules explicitly, not just general advice.
 - For brownfield / inherited codebase: do **NOT** tell the user to fix all existing lint errors. Instead: run `eslint --fix` in a single dedicated cleanup commit to baseline lint noise, then enable the hook going forward. This is the ratchet approach.
 - For long/autonomous tasks: the output MUST include: (1) one-task-at-a-time discipline; (2) at least one verification anti-pattern by name (Fuzzy Done, Proxy Signal, Confidence Exit, Planning=Done); (3) final Judge audit as the required exit criterion before declaring the goal complete.
 - Spec workflow (`docs/superpowers/specs/` absent) is a **minor gap by default** but escalates to **major gap** when Q1 answer is "long / autonomous (>1 hr)"
@@ -175,6 +171,52 @@ For snippet content, read the appropriate reference file:
 - Universal gaps → `references/universal-snippets.md`
 - Node/TS stack → `references/node-snippets.md`
 - Python stack → `references/python-snippets.md`
+
+---
+
+## CLAUDE.md Guidance
+
+Apply this section whenever:
+- The user asks "what should I include / leave out of CLAUDE.md?"
+- The "No agent instruction file" gap is being addressed
+- The user is auditing or writing a CLAUDE.md / AGENTS.md
+
+### Size budget
+
+**Target: 60 lines. Hard ceiling: 200 lines per file.**
+
+If the file grows past 100 lines, move path-specific rules to `.claude/rules/` — files there load only when matching paths are opened, not on every turn.
+
+### What to include
+
+- **Tech stack** — one line (e.g., `Next.js 14 · TypeScript · Supabase · Stripe`)
+- **Key commands** — the exact scripts Claude needs: dev server, build, lint, type-check, test
+- **Architecture boundaries** — 2–3 sentences on key constraints (not a file tree)
+- **Gotchas** — non-obvious traps only; things that would bite an experienced developer who doesn't know this codebase
+
+### What to leave out (tell the user explicitly)
+
+- **Code style** → belongs in the linter (ESLint / Prettier config), **not** in CLAUDE.md. If it's auto-enforceable, it has no place here.
+- **Resolved bugs and past decisions** → delete them. They rot and crowd out the rules Claude actually needs.
+- **Ephemeral session content** → task lists, in-progress notes, PR summaries — none of this belongs in CLAUDE.md.
+- **Deep specs and long docs** → reference by file path (`@docs/api-spec.md`), never duplicate inline. CLAUDE.md is an index, not a copy.
+- **Task-specific rules** → put these in `<important if="...">` conditional tags or `.claude/rules/` files, not in the always-loaded main body. Loading everything every turn crowds out foundational rules.
+
+### Conditional tags — always show this example
+
+Task-specific rules should use conditional tags so they only load when relevant:
+
+```markdown
+<important if="you are writing or modifying tests">
+- Run the full test suite before marking any task done
+- Use existing test helpers — don't invent new patterns
+</important>
+
+<important if="you are editing a route handler or API endpoint">
+- Auth check must be the first operation
+- Return `{ data: T }` on success, `{ error: string }` on failure
+</important>
+```
 
 ---
 

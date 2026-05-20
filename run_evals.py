@@ -135,7 +135,7 @@ def run_skill(prompt: str, project_dir: str, isolated_skill_dir: str) -> str:
             "--dangerously-skip-permissions",
             prompt,
         ],
-        capture_output=True, text=True, timeout=240,
+        capture_output=True, text=True, timeout=240, encoding='utf-8', errors='replace',
         cwd=project_dir,
     )
     if result.returncode != 0 and "session limit" in (result.stdout or "").lower():
@@ -161,7 +161,7 @@ def judge_one(response: str, expectation: str, retries: int = 2) -> bool:
         result = subprocess.run(
             ["claude", "-p", "--model", JUDGE_MODEL,
              "--dangerously-skip-permissions", judge_prompt],
-            capture_output=True, text=True, timeout=60,
+            capture_output=True, text=True, timeout=120,
             cwd=REPO_ROOT,
         )
         verdict = (result.stdout or "").strip().upper()

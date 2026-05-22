@@ -1,13 +1,13 @@
 {
   "name": "harness-engineering",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Detects agent-harness gaps in a project and produces paste-ready config snippets to close them. Covers hooks, CI, pre-commit, CLAUDE.md quality, and session discipline.",
   "author": {
     "name": "Clyde Shen",
     "github": "ClydeShen"
   },
   "verticals": ["productivity", "devops"],
-  "tags": ["claude", "codex", "harness", "ci", "hooks", "claude-md", "session-discipline", "pre-commit"],
+  "tags": ["claude", "codex", "kiro", "gemini", "harness", "ci", "hooks", "claude-md", "session-discipline", "pre-commit", "multi-runtime"],
   "scripts": {
     "setup": ""
   }

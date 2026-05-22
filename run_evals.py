@@ -117,6 +117,12 @@ def scaffold(tmpdir: str, files: list[str]) -> None:
     if "agents.md" in desc:
         (root / "AGENTS.md").write_text(DUMMY_AGENTS_MD_80)
 
+    if ".kiro" in desc:
+        (root / ".kiro").mkdir(exist_ok=True)
+
+    if ".gemini" in desc:
+        (root / ".gemini").mkdir(exist_ok=True)
+
     if "eslint" in desc:
         (root / ".eslintrc.json").write_text('{"extends":"next/core-web-vitals"}')
 
@@ -161,7 +167,7 @@ def judge_one(response: str, expectation: str, retries: int = 2) -> bool:
         result = subprocess.run(
             ["claude", "-p", "--model", JUDGE_MODEL,
              "--dangerously-skip-permissions", judge_prompt],
-            capture_output=True, text=True, timeout=120,
+            capture_output=True, text=True, timeout=240,
             cwd=REPO_ROOT,
         )
         verdict = (result.stdout or "").strip().upper()

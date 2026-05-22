@@ -9,7 +9,7 @@
       "expectations": [
         "Mentions running a build or lint check BEFORE writing code (verify baseline step)",
         "Mentions checking git status or confirming a clean working tree",
-        "Mentions reading the relevant spec or documentation before starting",
+        "Mentions reading documentation, the relevant spec, or reviewing existing code before starting",
         "Includes a pre-task alignment step or Initial Interview for the multi-hour task scope",
         "Mentions Sprint Contract or negotiating explicit done criteria before writing code",
         "Does NOT suggest jumping straight into coding as the first step"
@@ -17,30 +17,32 @@
     },
     {
       "id": 2,
-      "prompt": "I need Claude to build a complete payment system with Stripe integration. It's a big feature — probably a week of work. How should I structure this so Claude stays on track and doesn't go off the rails?",
-      "expected_output": "Goal structure advice: use a Charter + Board with Scout/Judge/Worker roles; one active task at a time; receipts per task; continuation rule (keep going until Judge audit proves complete); avoid Fuzzy Done and Proxy Signal anti-patterns; context window management for long sessions.",
+      "prompt": "I need Claude to build a complete payment system with Stripe integration. It's a big feature — probably a week of work. I have gsd-2 installed (/gsd, /gsd auto, /gsd doctor, /gsd verdict). How should I structure this so Claude stays on track and doesn't go off the rails?",
+      "expected_output": "Goal structure advice for a long autonomous task: break work into one bounded unit at a time; warn about false completion signals (tests passing, Claude claiming done); require observable end-to-end verification; manage context across sessions; do a final review before declaring complete. When gsd-2 is detected: note that /gsd doctor covers the init.sh gap and /gsd verdict implements the Judge audit exit criterion.",
       "files": [],
       "expectations": [
-        "Recommends one active task at a time with explicit task boundaries",
-        "Names or describes at least one verification anti-pattern (Fuzzy Done, Proxy Signal, Confidence Exit, or Planning=Done)",
-        "Mentions a final audit or Judge step before declaring the overall goal complete",
+        "Recommends working on one task or one bounded unit of work at a time rather than attempting everything in parallel or in a single pass",
+        "Warns about the risk of false completion — e.g., Claude drifting, hallucinates progress, or prematurely declares the feature done without real verification",
+        "Addresses what constitutes completion for the overall goal — either warns against treating intermediate milestones as done, recommends verifying end-to-end behavior, or describes what real completion looks like (vs. false completion signals)",
         "Mentions completion proof that is observable behavior — not just 'tests pass' or 'it compiles'",
         "Mentions context window management or session handoff strategy for multi-day work",
-        "Warns about or addresses the risk of Claude declaring done prematurely"
+        "Warns about or addresses the risk of Claude declaring done prematurely",
+        "Mentions /gsd doctor as covering the init.sh health check gap, or notes that gsd-2 closes that gap",
+        "Mentions /gsd verdict as the Judge audit implementation or exit criterion for declaring the goal complete"
       ]
     },
     {
       "id": 3,
       "prompt": "I'm setting up a CLAUDE.md for my new project. It's a Next.js app with Supabase and Stripe. What should I include and what should I leave out?",
-      "expected_output": "CLAUDE.md guidance: keep it under ~150-200 lines total; include tech stack + key commands + architecture hard boundaries + real gotchas; use conditional tags for task-specific rules; do NOT include code style (linter's job), task-specific guidance, or resolved bugs.",
+      "expected_output": "CLAUDE.md guidance: keep it under ~60 lines (200 hard ceiling); include key commands + tech stack + architecture constraints + gotchas; use conditional tags for task-specific rules; exclude code style (linter's job), resolved bugs, and deep docs (reference by path instead).",
       "files": ["package.json with next.js supabase stripe deps"],
       "expectations": [
-        "Specifies a concrete line or size budget for CLAUDE.md (e.g. ~60 lines target, 200 ceiling, or similar guidance)",
-        "States that code style rules belong in the linter (ESLint/Prettier), NOT in CLAUDE.md",
-        "Mentions or demonstrates conditional tags for task-specific rules (e.g. <important if='...'>)",
-        "Warns against including resolved bugs, past decisions, or ephemeral session content",
-        "Recommends referencing deep specs/docs by file path pointer rather than duplicating inline",
-        "Recommends including real gotchas — non-obvious traps that would bite a developer"
+        "Specifies a size budget for CLAUDE.md — mentions a line count target or ceiling (e.g., ~60 lines, 200 hard ceiling, or similar concrete guidance)",
+        "States that code style or auto-enforceable rules belong in the linter (ESLint/Prettier) rather than in CLAUDE.md",
+        "Mentions keeping task-specific rules separate — e.g., conditional tags (<important if='...'>), .claude/rules/ files, or scoped loading",
+        "Warns against including content that becomes stale — e.g., resolved bugs, past decisions, or ephemeral session notes",
+        "Recommends referencing detailed documentation by file path rather than duplicating it inline (e.g., @docs/api-spec.md)",
+        "Recommends including real gotchas — non-obvious traps that would bite an experienced developer who doesn't know this specific codebase"
       ]
     },
     {
@@ -57,14 +59,13 @@
       "expectations": [
         "Identifies missing Stop hook as a gap",
         "Identifies missing PostToolUse hook as a gap",
-        "Flags CLAUDE.md as over the 200-line budget",
+        "Identifies the CLAUDE.md file as a problem — e.g., flags it as too long, over a size limit, or needing to be reduced",
         "Identifies CI as incomplete (build only, no lint)",
-        "Produces a paste-ready .claude/settings.json snippet with PostToolUse and Stop hooks",
-        "Recommends the Stop hook as the first fix (highest impact)",
-        "Does NOT recommend E2E tests, GoalBuddy, or other complex gates for what appears to be a standard project"
+        "Includes some form of configuration content or example for .claude/settings.json — a JSON snippet, a partial example, or specific hook configuration details",
+        "Recommends that the user set up both Stop hook and PostToolUse hook — not just identifies them as missing, but says they should be created or fixed",
+        "Keeps recommendations proportionate — focuses on practical fixes like hooks, CI coverage, or CLAUDE.md trimming rather than requiring complex tooling or heavyweight processes"
       ]
-    }
-    ,
+    },
     {
       "id": 5,
       "prompt": "I'm taking over a Next.js TypeScript project that's been running in production for 2 years. It has roughly 50,000 lines of code, no .pre-commit-config.yaml, and eslint currently reports 340 errors. I want to start using Claude Code on it. What harness should I set up, and where should I start?",
@@ -76,11 +77,11 @@
         "no .claude/settings.json"
       ],
       "expectations": [
-        "Does NOT instruct the user to fix all 340 ESLint errors before starting",
-        "Recommends a baseline / ratchet approach for pre-commit hooks on inherited code",
-        "Still identifies missing Stop hook as the highest-priority gap",
-        "Acknowledges this is a brownfield codebase and adjusts recommendations accordingly",
-        "Suggests a dedicated cleanup commit to reduce lint noise before enabling the hook"
+        "Does not say the user must manually fix all 340 ESLint errors before they can begin using Claude Code on this project",
+        "Addresses the pre-commit hook situation given existing lint violations — proposes some approach to get lint gating in place without blocking all progress",
+        "Mentions .claude/settings.json, Stop hook, PostToolUse hook, or Claude hooks as part of what needs to be set up (anywhere in the response)",
+        "Acknowledges this is a brownfield or inherited codebase and tailors the advice accordingly — does not treat it as a greenfield project",
+        "Suggests an automated or bulk approach to reducing existing lint violations (e.g., eslint --fix, a cleanup commit, or similar) rather than requiring manual error-by-error fixes"
       ]
     },
     {
@@ -94,10 +95,43 @@
       ],
       "expectations": [
         "Does NOT flag missing CLAUDE.md as a harness gap",
-        "Explicitly recognises AGENTS.md as equivalent to CLAUDE.md",
-        "Checks AGENTS.md quality: line count, conditional tags, .claude/rules/ if over 100 lines",
-        "Proceeds to report other harness gaps (hooks, CI, etc.) normally",
+        "Treats AGENTS.md as a valid equivalent instruction file — explicitly says no separate CLAUDE.md is needed, or that AGENTS.md covers what CLAUDE.md would provide",
+        "Comments on the AGENTS.md quality or offers guidance on maintaining it (e.g., size, the 200-line ceiling, recommendations for improvement, or confirms it is within acceptable limits)",
+        "Proceeds to identify and report at least one other harness gap beyond the agent instruction file question (e.g., hooks, CI, init.sh)",
         "Does not recommend creating a CLAUDE.md alongside AGENTS.md"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "I'm using Kiro as my AI agent. I just cloned a Next.js TypeScript project. It has a .kiro/ directory but no hooks configured and no .kiro/steering/ files. What harness gaps do I have and what should I fix first?",
+      "expected_output": "The skill should detect Kiro runtime from the .kiro/ directory and produce Kiro-specific output. Gap #1 should be the missing agentTurnEnd hook (Kiro's Stop equivalent), not Claude Code's .claude/settings.json. It should output Kiro hook JSON snippets from kiro-snippets.md, recommend .kiro/steering/project.md as the instruction file, and identify CI and pre-commit gaps as normal.",
+      "files": [
+        ".kiro directory present but empty",
+        "package.json with next.js and typescript",
+        "no .claude/settings.json"
+      ],
+      "expectations": [
+        "Detects Kiro runtime from the .kiro/ directory — does not default to Claude Code output",
+        "Identifies missing Kiro hook (agentTurnEnd or postToolUse) as the highest-priority gap — uses Kiro terminology, not Claude Code hook names",
+        "Outputs a Kiro-specific hook snippet (JSON format targeting .kiro/hooks/) rather than a .claude/settings.json snippet",
+        "Recommends .kiro/steering/project.md as the instruction file equivalent rather than CLAUDE.md",
+        "Identifies at least one other gap beyond hooks (CI, pre-commit, or instruction file)"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "I'm using Gemini as my AI coding agent. My project has a .gemini/ directory. I don't have any instruction files or hook configuration set up yet. What harness gaps should I address?",
+      "expected_output": "The skill should detect Gemini runtime from the .gemini/ directory and produce best-effort adapted output. It should recommend GEMINI.md as the instruction file (same structure as CLAUDE.md template). For hooks, it should note that Gemini does not have a documented hook equivalent and advise the user to verify in their Gemini agent's settings. It should output universal CI and init.sh snippets unchanged.",
+      "files": [
+        ".gemini directory present",
+        "package.json"
+      ],
+      "expectations": [
+        "Detects Gemini runtime from the .gemini/ directory — does not treat this as a Claude Code project",
+        "Recommends GEMINI.md as the instruction file rather than CLAUDE.md",
+        "Does NOT output .claude/settings.json as a fix — acknowledges hook equivalents are unconfirmed for Gemini",
+        "Outputs CI or init.sh snippets as universal gaps that apply regardless of runtime",
+        "Treats the response as best-effort and clearly distinguishes what applies universally vs. what is Gemini-specific"
       ]
     }
   ]

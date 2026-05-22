@@ -169,6 +169,9 @@ Minimum code that solves the problem. Nothing speculative.
 - No features beyond what was asked. No abstractions for single-use code.
 - No error handling for impossible scenarios. If 200 lines could be 50, rewrite it.
 - After writing code, before commit: review for dead code and overcomplication
+- Dead code / unused imports: remove dead code and unused imports
+- AI-generated or vibe-coded code: audit AI-generated code for quality
+- Code quality check: check typecheck, lint, test, and dead code coverage
 
 ## 3. Surgical Changes
 
@@ -178,6 +181,15 @@ Touch only what you must. Match existing style.
 - Scope-creep risk: limit edits to the affected directory until the fix is confirmed
 - Destructive command (`rm -rf`, force-push, DROP TABLE): warn and confirm before running
 - Need checkout isolation: use git worktrees
+- Frontend issue detector: detect and debug frontend issues in a real browser
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+- Transform tasks into verifiable goals: "Fix X" → "write a test that reproduces it, then make it pass"
+- For multi-step tasks, write a brief plan — each step has a concrete verify check
+- Weak criteria ("make it work") require constant clarification — define done before starting
 
 ## Stack
 
@@ -205,15 +217,24 @@ Touch only what you must. Match existing style.
 
 ## Skills
 
-<!-- Optional. Add trigger reminders for whichever skills you have installed.
-     Examples — keep only what applies:
-- New feature:      `brainstorming` skill
-- Bug / failure:    `systematic-debugging` skill
-- Multi-step task:  `writing-plans` skill
-- After coding:     `simplify` skill
-- Edit-lock:        `freeze` skill
-- Destructive ops:  `careful` / `guard` skill
-- Worktree setup:   `using-git-worktrees` skill
+<!-- gsd-2 (priority when installed): `/gsd` or `/gsd auto` (milestones/autonomous), `/gsd discuss` (feature/architecture), `/gsd quick` (quick tasks)
+
+Think before coding:
+- New feature / "build X":    `brainstorming` skill
+- Bug / error / failure:      `systematic-debugging` skill
+- Multi-step / 3+ files:      `writing-plans` skill
+
+Simplicity first:
+- After writing code:         `simplify` skill
+- Dead code / unused imports: `refactor-cleaner` skill
+- AI-generated cleanup:       `vibe-code-auditor` skill
+- Code quality dashboard:     `health` skill
+
+Surgical changes:
+- Scope-creep risk:           `freeze` skill
+- Destructive ops:            `careful` / `guard` skill
+- Worktree isolation:         `using-git-worktrees` skill
+- Frontend issue detector:    `vercel-labs/agent-browser` skill (frontend only)
 -->
 
 <important if="you are writing or modifying tests">
@@ -248,3 +269,19 @@ paths:
 - Auth check must be the first operation
 - Return `{ data: T }` on success, `{ error: string }` on failure
 ```
+
+---
+
+## Gemini Adaptation Notes
+
+When the detected runtime is Gemini, output the universal CI and init.sh snippets
+unchanged. For Claude-specific items, substitute as follows:
+
+| Claude Code item | Gemini equivalent |
+|---|---|
+| `.claude/settings.json` hooks | No documented equivalent — note: "Verify hook support in your Gemini agent's settings" |
+| `CLAUDE.md` | `GEMINI.md` — same template structure, same 200-line ceiling |
+| `.claude/rules/` | No equivalent — consolidate all rules into `GEMINI.md` with clear section headers |
+| `<important if="...">` tags | No equivalent — use `GEMINI.md` section headers to group task-specific rules |
+
+Always tell the user which items are Gemini-adapted vs. universal so they understand what to verify.

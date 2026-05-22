@@ -17,6 +17,13 @@ description: >
 
 Apply these before generating output — they override training defaults.
 
+### gsd-2 detected + long-task scope
+When the user mentions gsd-2 is installed (any `/gsd` command) AND the task is multi-hour or longer, include **both** of these in your response:
+
+**1.** Note that `/gsd doctor` closes the `init.sh` gap: *"init.sh gap closed — `/gsd doctor` covers runtime health checks. Run it at the start of each session."*
+
+**2.** Note that `/gsd verdict` implements the Judge audit: *"Use `/gsd verdict pass|needs-attention|needs-remediation` as your exit criterion — this is the Judge audit for gsd-2 users."*
+
 ### Multi-day / week-long tasks
 When user mentions "a week", "week of work", "multi-day", or >1 day, include **all four** of these in your response — use the exact terms:
 
@@ -29,16 +36,18 @@ When user mentions "a week", "week of work", "multi-day", or >1 day, include **a
 **4.** Completion proof must be **observable behavior** (walk through the feature manually), not just CI passing or tests green.
 
 ### CLAUDE.md / AGENTS.md content questions
-When user asks what to include or leave out of CLAUDE.md or AGENTS.md, include ALL of the following in your response (use these exact sentences):
+When user asks what to include or leave out of CLAUDE.md or AGENTS.md, cover **all five** of the following Leave Out rules **before** describing what to include:
 
-**Size budget (output this):** "Target ~60 lines. Hard ceiling: 200 lines per file. If you hit 100, move path-specific rules to `.claude/rules/`."
+**1.** State the **size budget** (use these exact numbers): *"Target ~60 lines. Hard ceiling: 200 lines per file. Approaching 100 lines? Move path-specific rules to `.claude/rules/`."*
 
-**Leave out — state each of these explicitly:**
-- "Code style rules (spacing, naming, formatting) belong in ESLint/Prettier, NOT in CLAUDE.md. If it's auto-enforceable, it has no place here."
-- "Delete resolved bugs and past decisions — they rot and crowd out the rules Claude actually needs."
-- "Reference deep docs by `@file-path` (e.g., `@docs/api-spec.md`), never duplicate inline. CLAUDE.md is an index, not a copy."
+**2.** State the **code style rule**: *"Code style (spacing, naming, formatting) belongs in ESLint/Prettier, NOT in CLAUDE.md. If it's auto-enforceable, it has no place here."*
 
-**Conditional tags — output this exact example:**
+**3.** Use the phrase **"Delete resolved bugs"** when warning about stale content: *"Delete resolved bugs and past decisions — they rot and crowd out the rules Claude actually needs."*
+
+**4.** Use the phrase **"reference by file path"** for deep docs: *"Reference deep docs by file path (e.g., `@docs/api-spec.md`), never inline. CLAUDE.md is an index, not a copy."*
+
+**5.** Show the **`<important if='...'>`** conditional tag example — task-specific rules belong here or in `.claude/rules/`, not the always-loaded body:
+
 ```markdown
 <important if="you are writing or modifying tests">
 - Run the full test suite before marking any task done
@@ -46,25 +55,49 @@ When user asks what to include or leave out of CLAUDE.md or AGENTS.md, include A
 </important>
 ```
 
-**Also include:** Non-obvious gotchas that would bite an experienced developer who doesn't know the codebase.
+After covering the five Leave Out rules, also include what TO put in the file: key commands, tech stack (one line), architecture constraints (2–3 sentences), and non-obvious gotchas.
+
+### Gap analysis for Kiro runtime
+When a `.kiro/` directory is detected (or user says they are using Kiro) and no hooks are configured:
+
+**agentTurnEnd hook MUST be listed FIRST** in your gap list. Use Kiro terminology — do NOT use Claude Code terms. Specifically:
+- Call the first gap **"No agentTurnEnd hook"** (not "Stop hook" or "settings.json")
+- Call the second gap **"No postToolUse hook"**
+- The instruction file gap points to `.kiro/steering/project.md` (not CLAUDE.md)
+- Load snippets from `references/kiro-snippets.md` — do NOT output `.claude/settings.json`
+
+**Why agentTurnEnd outranks instruction file:** Same reasoning as the Stop hook rule — unverified work compounds silently. The instruction file gap is recoverable; unchecked task completion is not.
 
 ### Gap analysis when .claude/settings.json is absent
 When `.claude/settings.json` is missing from the project or user says there is no `.claude/settings.json`:
 
 **Stop hook MUST be listed FIRST** in your gap list, regardless of format (table row or numbered section). No other gap — not CLAUDE.md size, not CI, not ESLint errors — may appear before it.
 
+**Why Stop hook outranks everything else:** A 250-line CLAUDE.md dilutes all your rules — they still fire, just with less signal. No Stop hook means Claude can complete a task with zero automatic verification: no build check, no lint check, no status confirmation. Degraded rules are recoverable; unverified work compounds silently. Missing Stop hook is always the more urgent gap, regardless of what else you see.
+
+**Use the exact terms**: Call the first gap **"Stop hook"** (not "hooks section", "hook configuration", or "settings.json setup"). Call the second gap **"PostToolUse hook"**. These are proper names — use them.
+
 The JSON snippet from the Phase 3 template must appear in your response (paste it directly — not just a reference to it).
+
+### Gap analysis for Gemini runtime
+When a `.gemini/` directory is detected (or user says they are using Gemini):
+
+1. **Do NOT output `.claude/settings.json`** as a fix. State clearly: *"Gemini does not have a documented hook equivalent — verify hook support in your Gemini agent's settings before setting one up."*
+2. **Recommend `GEMINI.md`** as the instruction file using the CLAUDE.md template structure. Same 200-line ceiling applies.
+3. **Output universal snippets unchanged** for CI and init.sh — these apply regardless of runtime.
+4. Label your response **best-effort**: *"These recommendations are adapted for Gemini — the CI and init.sh snippets apply universally; hook configuration needs verification in your Gemini agent's settings."*
 
 ### Brownfield / inherited codebase with lint errors
 When user inherits a codebase with many existing ESLint errors:
 
 - Stop hook is still gap #1 — lint errors don't change this priority.
 - For pre-commit hooks: say *"Run `eslint --fix .` in a **single dedicated cleanup commit** to baseline existing violations. Then enable the pre-commit hook going forward — this is the ratchet approach."*
-- Do NOT say the user must fix all errors manually before starting.
+- Do NOT say the user must fix all errors manually before starting. **Why:** With hundreds of errors, manual fixes take days or weeks and block all productive work. `eslint --fix .` resolves the majority automatically in minutes. After that one baseline commit, the pre-commit hook enforces no new violations. The user can start using Claude Code today, not after weeks of cleanup.
+- **ALWAYS also mention hooks**: `.claude/settings.json` with Stop and PostToolUse hooks is still gap #1 even in brownfield projects — mention it explicitly somewhere in your response. The lint ratchet handles pre-commit gating; it is a separate concern from hooks priority.
 
 ### AGENTS.md present — user asks if CLAUDE.md is needed
 When the project has AGENTS.md and user asks whether they need CLAUDE.md:
-1. Say: **"No. Claude Code reads AGENTS.md natively — it is equivalent to CLAUDE.md. You do not need a CLAUDE.md."** Do NOT say that Claude Code only reads CLAUDE.md. Do NOT recommend creating CLAUDE.md.
+1. Say: **"No. Claude Code reads AGENTS.md natively — it is equivalent to CLAUDE.md. You do not need a CLAUDE.md."** This is a factual behaviour of Claude Code: it reads AGENTS.md from the project root on every session start, the same as CLAUDE.md. Do NOT say that Claude Code only reads CLAUDE.md. Do NOT recommend creating CLAUDE.md.
 2. Quality check AGENTS.md — say: *"AGENTS.md: [N] lines — [within/over] the 200-line ceiling. [Uses/No] `<important if='...'>` conditional tags. If it grows past 100 lines, use `.claude/rules/` for path-specific rules."*
 3. Report other harness gaps (hooks, CI, init.sh, etc.) normally.
 
@@ -90,9 +123,14 @@ smaller change, the fewer moving parts.
 Before asking any questions, scan the project. Read `references/detect.md` for
 the full target list and interpretation guide.
 
-**Run ALL 10 checks and build the complete gap list before generating any output. Do not stop at the first gap found.**
+**Run ALL checks and build the complete gap list before generating any output. Do not stop at the first gap found.**
 
-1. Check Claude hooks: `.claude/settings.json` — PostToolUse + Stop hooks present? ← **always first**
+0. **Detect runtime** ← run before everything else. Check for `.claude/`, `.kiro/`, `.gemini/` directories. Record detected runtime; if none found, mark as "unknown — ask in Phase 2". This determines which snippets load in Phase 3.
+1. Check hooks for detected runtime:
+   - Claude Code / Codex: `.claude/settings.json` — PostToolUse + Stop hooks present?
+   - Kiro: `.kiro/hooks/` — postToolUse + agentTurnEnd hooks present?
+   - Gemini / unknown: note hook gap as "verify in your agent's settings"
+   ← **always first gap priority**
 2. Identify stack: look for `package.json`, `pyproject.toml`, `go.mod`
 3. Check CI: `.github/workflows/*.yml` — does it run lint + build?
 4. Check pre-commit: `.husky/` or `.pre-commit-config.yaml`
@@ -102,8 +140,13 @@ the full target list and interpretation guide.
 8. Check spec workflow: `docs/superpowers/specs/` directory exists?
 9. Check UI harness (frontend stack only): `DESIGN.md` exists?
 10. Check installed skills: which of the following are available in the current session?
-    `brainstorming`, `systematic-debugging`, `writing-plans`, `simplify`,
-    `freeze`, `careful`, `guard`, `using-git-worktrees`
+    **gsd-2 (priority):** `/gsd` (step mode), `/gsd auto`, `/gsd discuss`, `/gsd quick`, `/gsd doctor`, `/gsd verdict`
+    **Think before coding:** `brainstorming`, `systematic-debugging`, `writing-plans`
+    **Simplicity:** `simplify`, `refactor-cleaner`, `vibe-code-auditor`, `health`
+    **Surgical:** `freeze`, `careful`, `guard`, `using-git-worktrees`
+    **Frontend:** `vercel-labs/agent-browser`
+
+    If any gsd-2 command is available, treat gsd-2 as installed and apply harness-concept mapping (see `references/detect.md` — gsd-2 closes `init.sh` and Judge audit gaps).
 
 Build two lists: **already in place** and **gaps**.
 
@@ -118,7 +161,13 @@ at a time and wait for the answer before asking the next.
 > "Is this for a quick focused task (under ~1 hour) or longer autonomous work
 > (multi-hour or multi-session)?"
 
-**Q2 — Ask only if no branch protection or PR workflow detected:**
+**Q2 — Conditional (one of two forms):**
+
+If Phase 1 step 0 found **no runtime signal** (no `.claude/`, `.kiro/`, `.gemini/`):
+> "Which agent are you using — Claude Code, Kiro, Gemini, or something else?"
+> Then ask the team/brownfield question as a follow-up within Q2.
+
+If Phase 1 step 0 **identified the runtime** and no branch protection or PR workflow detected:
 > "Solo dev or team? And is this an existing codebase you're inheriting, or starting from scratch?"
 
 **Q3 — Ask only if 3 or more major gaps found:**
@@ -141,13 +190,16 @@ Use this table after the interview to determine what to include or emphasise in 
 | **Quick task (<1 hr)** | Show hooks + CLAUDE.md gaps only. Omit init.sh, Goal structure, cross-session memory — note them as "lower priority for quick tasks" if detected as gaps. Sprint Contract is the only session-discipline recommendation. |
 | **Long / autonomous (>1 hr)** | Show all major gaps. Add init.sh to top-5 if missing. After the gap list: (1) add a note about cross-session memory and running `init.sh`; (2) include long-task verification discipline (see section below). |
 
-### Q2 — Team size
+### Q2 — Team size / Runtime
 
 | Answer | What changes in output |
 |---|---|
 | **Solo** | CI snippet uses `push: branches: [main]` trigger only. Do not recommend branch protection rules, PR review gates, or `pull_request` trigger. |
 | **Team** | CI snippet adds `pull_request: branches: [main]` trigger. Add a note: "Consider adding branch protection on main (require PR + passing CI before merge)." |
 | **Brownfield (inherited codebase)** | Do NOT tell the user to fix all existing lint errors before starting. Explain the ratchet approach: run `eslint --fix` (or equivalent) in a single dedicated cleanup commit to reduce noise, then enable the pre-commit hook going forward. Stop hook is still the #1 gap regardless. |
+| **Runtime = Kiro** | Load `references/kiro-snippets.md` for all hook and instruction-file snippets. Gap #1 is "No agentTurnEnd hook" (not Stop hook — use Kiro terminology). Gap #2 is "No postToolUse hook". Instruction file gap points to `.kiro/steering/project.md`. |
+| **Runtime = Gemini** | Output Claude Code snippets for universal gaps (CI, init.sh). For hook gaps: note "Gemini does not have a documented hook equivalent — verify in your Gemini agent's settings." For instruction file gap: recommend `GEMINI.md` using the CLAUDE.md template structure. |
+| **Runtime = unknown (asked in Q2)** | Apply Kiro or Gemini branch as above once answered. If user names a runtime not in the list, default to Claude Code snippets with a note to adapt. |
 
 ### Long-task verification discipline (include when Q1 = long/autonomous)
 
@@ -235,18 +287,27 @@ The base CLAUDE.md template uses plain behavioral descriptions. When outputting
 the template, replace each behaviour line with its skill trigger for every skill
 confirmed installed in step 10. Leave the line unchanged if the skill is absent.
 
+**Priority rule:** when a gsd-2 skill and an equivalent superpowers skill are both installed, use the gsd-2 skill and omit the superpowers row.
+
 | Installed skill | Behaviour phrase to find | Replace end of line with |
 |---|---|---|
+| gsd-2 `/gsd discuss` (priority) | `explore intent and tradeoffs before writing any code` | `` `/gsd discuss` `` |
 | `brainstorming` | `explore intent and tradeoffs before writing any code` | `` `brainstorming` skill `` |
 | `systematic-debugging` | `identify root cause before proposing a fix` | `` `systematic-debugging` skill `` |
+| gsd-2 `/gsd auto` or `/gsd` (priority) | `write a step-by-step plan before touching files` | `` `/gsd` (step mode) or `/gsd auto` (autonomous) `` |
 | `writing-plans` | `write a step-by-step plan before touching files` | `` `writing-plans` skill; `/plan` for quick tasks `` |
 | `simplify` | `review for dead code and overcomplication` | `` `simplify` skill `` |
+| `refactor-cleaner` | `remove dead code and unused imports` | `` `refactor-cleaner` skill `` |
+| `vibe-code-auditor` | `audit AI-generated code for quality` | `` `vibe-code-auditor` skill `` |
+| `health` | `check typecheck, lint, test, and dead code coverage` | `` `health` skill `` |
 | `freeze` | `limit edits to the affected directory until the fix is confirmed` | `` `freeze` skill `` |
 | `careful` or `guard` | `warn and confirm before running` | `` `careful` / `guard` skill `` |
 | `using-git-worktrees` | `use git worktrees` | `` `using-git-worktrees` skill `` |
+| `vercel-labs/agent-browser` (frontend only) | `detect and debug frontend issues in a real browser` | `` `vercel-labs/agent-browser` skill `` |
 
 For snippet content, read the appropriate reference file:
-- Universal gaps → `references/universal-snippets.md`
+- Universal gaps (Claude Code / Codex) → `references/universal-snippets.md`
+- Kiro runtime → `references/kiro-snippets.md` (replaces universal hook snippets)
 - Node/TS stack → `references/node-snippets.md`
 - Python stack → `references/python-snippets.md`
 

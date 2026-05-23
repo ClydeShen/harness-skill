@@ -1,7 +1,7 @@
 # Harness Engineering Skill Collection — Design Spec
 
 **Date:** 2026-05-24
-**Status:** Approved
+**Status:** Approved — v2 (post-review)
 **Scope:** Full repo refactor — single skill → curated skill collection
 
 ---
@@ -96,16 +96,18 @@ harness-engineering-skill/
 
 ### Skills carried from mattpocock/skills
 
-| Skill | Type | Change |
-|---|---|---|
-| `zoom-out` | Engineering | None — copied verbatim |
-| `caveman` | Productivity | None — copied verbatim |
-| `grill-me` | Productivity | None — copied verbatim |
-| `handoff` | Productivity | None — copied verbatim |
-| `triage` | Engineering | Replace `setup-matt-pocock-skills` reference → `setup-harness-skills` |
-| `to-prd` | Engineering | Replace `setup-matt-pocock-skills` reference → `setup-harness-skills` |
-| `to-issues` | Engineering | Replace `setup-matt-pocock-skills` reference → `setup-harness-skills` |
-| `write-a-skill` | Productivity | Add one checklist item: "Does the skill note its typical context window cost?" |
+**Licensing note:** `mattpocock/skills` does not ship a LICENSE file as of the May 2026 snapshot used for this adaptation. All copied skills include an attribution comment at the top of SKILL.md: `# Adapted from https://github.com/mattpocock/skills`. Verify licensing before any public redistribution.
+
+| Skill | Type | Change | Exact text changed |
+|---|---|---|---|
+| `zoom-out` | Engineering | None — copied verbatim | — |
+| `caveman` | Productivity | None — copied verbatim | — |
+| `grill-me` | Productivity | None — copied verbatim | — |
+| `handoff` | Productivity | None — copied verbatim | — |
+| `triage` | Engineering | One-line replacement | Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not` |
+| `to-prd` | Engineering | One-line replacement | Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not` |
+| `to-issues` | Engineering | One-line replacement | Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not` |
+| `write-a-skill` | Productivity | Add one checklist item | Append to the existing checklist section: `- [ ] Does the skill's description mention its typical context window cost?` |
 
 ### Skills NOT included (out of scope for this collection)
 
@@ -134,6 +136,10 @@ description: >
   appear to be missing context.
 disable-model-invocation: true
 ```
+
+**`disable-model-invocation: true`** — a Claude Code skill metadata field that prevents this skill from being automatically triggered by Claude's skill selection logic. The skill only fires when the user explicitly types `/setup-harness-skills`. This is the correct behavior for a one-time gateway — accidental auto-triggering would overwrite user-edited config files. (Confirmed present in `mattpocock/skills` for `setup-matt-pocock-skills` and `zoom-out`.)
+
+**Interaction style:** `setup-harness-skills` is a **dedicated setup session**, not a task skill. The 3-question limit in `harness-engineering` Phase 2 applies to diagnostic skills that must complete quickly during a working session. `setup-harness-skills` is intentionally invoked on its own — analogous to `npm init` or `gh repo create`. The five sections are: one question each, with a confirm-before-write gate at the end. Total interaction is 6–8 exchanges, which is appropriate for a one-time setup command.
 
 **Interaction flow (one section at a time, never dump all at once):**
 
@@ -191,10 +197,12 @@ argument-hint: "What will the next session focus on?"
 ```
 
 **Phase detection (in priority order):**
-1. Read `.claude/session.json` → `current_phase`
-2. If absent: read active GitHub issue labels — label `phase:design / phase:product / phase:execution / phase:testing` maps to phase
-3. If no label: read issue title/body, infer from task type (e.g. "write PRD" → product, "implement" → execution)
-4. If still unknown: default to `execution`, note uncertainty in handoff doc
+1. Read `.claude/session.json` → `current_phase` field. Use this if the file exists AND `current_phase` is non-null.
+2. **Fallback** (session.json absent OR `current_phase` is null/missing): read active GitHub issue labels → `phase:design / phase:product / phase:execution / phase:testing` maps directly.
+3. **Fallback** (no phase label): read issue title and body, infer from task keywords ("write PRD", "design" → product; "implement", "build", "fix" → execution; "test", "QA", "verify" → testing; "design", "spec", "ADR" → design).
+4. **Fallback** (still unknown): default to `execution`, note "phase inferred by default" in handoff doc.
+
+The session.json is the authoritative source because it is written by this collection's own skills and reflects the user's declared intent. GitHub issue labels are a human-readable secondary source that the onboarding skill (`setup-harness-skills`) documents in `docs/agents/`. The two are not in conflict — session.json is writable by agents, labels by humans — but session.json takes precedence when present.
 
 **Execution sequence:**
 
@@ -220,11 +228,42 @@ argument-hint: "What will the next session focus on?"
    → Update session.json: last_handover, next_session_hint
 
 4. Output to user
-   → "Handover complete. Handoff doc: [path]. Next session: /session-start"
-   → Trigger /compact
+   → "Handover complete. Handoff doc: [path]."
+   → Print: "**Start your next session with `/session-start`.**"
+   → Print: "**To compact this session now, type `/compact`.**"
+   → Do NOT programmatically invoke `/compact` — it is a user-invoked built-in slash command. The skill instructs the user to invoke it. The user is always in control of when context is cleared.
 ```
 
-**Reference file:** `phase-budgets.md` — defines what each phase's handoff focuses on. Kept separate from SKILL.md to stay under 500-line limit.
+**Handoff doc path:** Use the OS-appropriate temp directory:
+- macOS/Linux: `$TMPDIR/harness-handoff-YYYY-MM-DD-HHmm.md` (fallback: `/tmp/`)
+- Windows: `$env:TEMP/harness-handoff-YYYY-MM-DD-HHmm.md`
+- Cross-platform resolution: `python -c "import tempfile; print(tempfile.gettempdir())"` — use this in the skill if writing via script, or document it in the SKILL.md so Claude resolves it per OS.
+
+**Graceful degradation of `context-handover`:**
+- No `docs/agents/` config: skip GitHub issue update step; still write handoff doc and update session.json
+- No session.json: use phase fallback chain (see Phase detection above); create session.json from inferred values
+- No GitHub remote: skip issue update silently; note "no issue tracker configured — run /setup-harness-skills"
+- No memobank installed and no MEMORY.md: write a brief memory note inline in the handoff doc under "Key decisions"
+
+**Reference file:** `context-handover/phase-budgets.md` — defines what each phase's handoff focuses on AND the budget percentage tables (same tables used by `session-start`). Content schema:
+
+```markdown
+# Phase Budgets
+
+## [Phase name]
+
+### Session budget
+| Activity | Budget |
+|---|---|
+| Reading prior context | <N% |
+| ... | ... |
+
+### Handoff focuses on
+- [item 1]
+- [item 2]
+```
+
+Four phases: Design, Product, Execution, Testing. Full table values defined in Section 5.3 of this spec.
 
 ---
 
@@ -290,7 +329,9 @@ elif [ "$USAGE_PCT" -ge 80 ]; then
 fi
 ```
 
-**Note:** `$CLAUDE_CONTEXT_USAGE_PCT` is the env var name to verify against Claude's hook documentation at implementation time. If unavailable, the hook reads token counts from the hook event payload.
+**`$CLAUDE_CONTEXT_USAGE_PCT` verification:** This env var name must be confirmed against Claude Code's hook runtime at implementation time. The hook event payload (available as stdin JSON in PostToolUse hooks) includes token usage data — the exact field name is `context_tokens_used` and `context_tokens_max` per Claude Code hook documentation. If the percentage env var is unavailable, compute: `USAGE_PCT = $(echo "$HOOK_PAYLOAD" | python -c "import json,sys; d=json.load(sys.stdin); print(int(d['context_tokens_used']/d['context_tokens_max']*100))")`. Implementation task: verify field names against the actual hook payload in a test run before shipping.
+
+**Hook matcher:** Use an empty matcher (or omit the `matcher` field) so the hook fires on every tool use. This is intentional — context usage changes after any tool. Performance cost: one bash process per tool use. Acceptable for a monitoring hook; the script exits in <50ms when below threshold.
 
 ---
 
@@ -312,6 +353,13 @@ fi
 }
 ```
 
+**Optional fields:**
+- `active_task.github_issue` — null/absent if using local markdown tracker
+- `active_task.github_project_item_id` — null/absent if no GitHub Projects v2 board configured or if using local/other tracker
+- `context_budget_used_pct` — null/absent if hook has not fired yet this session
+
+Skills read these fields with null-safety: if `github_issue` is null, skip GitHub update steps silently.
+
 Written by: `session-start` (initializes), `context-handover` (updates).
 Read by: `context-monitor.sh` hook, `session-start`, `context-handover`, `harness-engineering`.
 
@@ -319,11 +367,42 @@ Read by: `context-monitor.sh` hook, `session-start`, `context-handover`, `harnes
 
 ## 6. Enhanced `harness-engineering` Skill
 
-One addition to Phase 1 detection (step after runtime detection):
+**Exact change to SKILL.md** — add as step 11 in Phase 1 detection:
 
-> Check `docs/agents/` — if present: note `setup-harness-skills` has been run and load context. If absent: after gap analysis, add: *"Consider running `/setup-harness-skills` to configure the full harness toolchain for this project."*
+```
+11. Check onboarding config: `docs/agents/` directory — exists with harness skill config files?
+    → If yes: mark as "setup-harness-skills has been run" in the Already in Place list.
+    → If no: after the main gap list, append:
+      "**Optional:** Run `/setup-harness-skills` to configure GitHub Project integration,
+       session state tracking, and context handover — this extends the harness to cover
+       long-running multi-session work."
+```
 
-This means `harness-engineering` degrades gracefully — it still works without `docs/agents/`, but rewards users who've run the onboarding.
+**No other changes to SKILL.md.** The suggestion is appended after the prioritized gap list, so it never displaces Stop hook as gap #1. The existing evals (IDs 1–6) are not affected.
+
+**Two new evals added to `harness-engineering/evals/evals.json`:**
+
+```json
+{
+  "id": 7,
+  "prompt": "Check the harness for my project. It has docs/agents/ with issue-tracker.md, triage-labels.md, domain.md, github-project.md, and session-config.md.",
+  "scaffold": { "has_docs_agents": true, "all_five_agent_docs": true, "no_claude_settings": false },
+  "expectations": [
+    "Lists 'setup-harness-skills configured' in the Already in Place section",
+    "Does NOT suggest running /setup-harness-skills (already done)"
+  ]
+},
+{
+  "id": 8,
+  "prompt": "Set up harness for my project.",
+  "scaffold": { "no_docs_agents": true, "no_claude_settings": true },
+  "expectations": [
+    "Stop hook is still gap #1",
+    "After the main gap list, suggests running /setup-harness-skills as an optional step",
+    "The suggestion does NOT appear before gap #1"
+  ]
+}
+```
 
 ---
 
@@ -344,33 +423,137 @@ All skills in this collection follow these rules (derived from Anthropic best pr
 
 ## 8. Eval Strategy
 
-### Per-skill evals (minimum 3 each)
+### Eval file architecture
 
-**`setup-harness-skills`**
-1. Happy path: runs setup on fresh repo, writes all 5 `docs/agents/` files, adds `## Agent skills` block to CLAUDE.md
-2. Existing config: partial `docs/agents/` present — updates in-place, does not overwrite user edits
-3. No instruction file: neither CLAUDE.md nor AGENTS.md exists — asks user which to create
+Each skill directory that has evals ships its own `evals/evals.json`. This is consistent with the current `harness-engineering/evals/evals.json` pattern. No shared top-level evals file.
 
-**`context-handover`**
-1. Happy path: 80% usage signal, phase inferred from session.json, handoff doc written, GitHub issue updated
-2. No session state: session.json absent — phase inferred from issue labels, handoff still written
-3. Handoff references: handoff doc uses issue URL + artifact paths, never inlines content
+`run_evals.py` is enhanced to:
+- Accept `--skill <name>` flag: loads `skills/*/<name>/evals/evals.json` and runs only those evals
+- Default (no flag): discovers all `skills/*/*/evals/evals.json` files and runs them all, grouped by skill name in output
+- The eval runner's existing `--evals N[,N]` flag applies within the selected skill's evals only
 
-**`session-start`**
-1. Happy path: reads session.json + handoff doc, outputs correct phase briefing with budget table
-2. Fresh session: no prior session.json or handoff doc — graceful output, infers from GitHub issue
-3. Phase inference: no session.json, issue has `phase:product` label — correctly outputs Product briefing
+### Draft eval content (to be written to `evals/evals.json` per skill at implementation time)
 
-**`harness-engineering` (enhanced)**
-1. Existing: `docs/agents/` present — notes setup already run, uses config in gap analysis
-2. Not set up: no `docs/agents/` — normal gap analysis + suggests running `/setup-harness-skills`
+**`setup-harness-skills` — 3 evals**
 
-### Eval runner enhancement
+```json
+[
+  {
+    "id": 1,
+    "prompt": "I'm starting a new Next.js project and want to use harness skills. Please set up the harness.",
+    "scaffold": { "files": ["package.json"], "github_remote": "owner/my-next-app", "has_claude_md": true, "has_agents_md": false },
+    "expectations": [
+      "Asks about issue tracker before writing any files",
+      "Asks each of the five sections one at a time, not all at once",
+      "Writes docs/agents/issue-tracker.md",
+      "Writes docs/agents/triage-labels.md",
+      "Writes docs/agents/domain.md",
+      "Writes docs/agents/github-project.md",
+      "Writes docs/agents/session-config.md",
+      "Adds ## Agent skills block to CLAUDE.md (not AGENTS.md)",
+      "Does NOT create AGENTS.md when CLAUDE.md exists"
+    ]
+  },
+  {
+    "id": 2,
+    "prompt": "I want to update the harness setup. docs/agents/issue-tracker.md already exists.",
+    "scaffold": { "has_docs_agents": true, "existing_issue_tracker_md": true, "has_claude_md": true },
+    "expectations": [
+      "Detects existing docs/agents/ config and notes it",
+      "Updates in-place rather than overwriting with defaults",
+      "Does not re-ask questions that are already answered in existing config"
+    ]
+  },
+  {
+    "id": 3,
+    "prompt": "Set up harness skills for this project. There's no CLAUDE.md or AGENTS.md yet.",
+    "scaffold": { "has_claude_md": false, "has_agents_md": false },
+    "expectations": [
+      "Asks the user which instruction file to create (CLAUDE.md or AGENTS.md)",
+      "Does NOT make the choice unilaterally",
+      "Creates only the file the user specifies"
+    ]
+  }
+]
+```
 
-`run_evals.py` currently runs 6 evals for one skill. Enhance to:
-- Accept `--skill <name>` flag to run evals for a specific skill
-- Default (no flag): run all skills' evals
-- Results grouped by skill in output
+**`context-handover` — 3 evals**
+
+```json
+[
+  {
+    "id": 1,
+    "prompt": "WARNING: Context at 82%. Run /context-handover before continuing.",
+    "scaffold": { "session_json": { "current_phase": "execution", "active_task": { "github_issue": 42, "title": "Add auth middleware" } }, "has_github_remote": true },
+    "expectations": [
+      "Identifies current phase as 'execution' from session.json",
+      "Writes a handoff doc to the OS temp directory",
+      "Handoff doc references the GitHub issue by number/URL, not by inlining issue body",
+      "Updates .claude/session.json with last_handover timestamp",
+      "Instructs user to start a new session with /session-start"
+    ]
+  },
+  {
+    "id": 2,
+    "prompt": "Please do a context handover. I'm getting close to the limit.",
+    "scaffold": { "no_session_json": true, "github_issue_labels": ["phase:product"], "github_issue_title": "Write PRD for user auth" },
+    "expectations": [
+      "Detects no session.json and falls back to GitHub issue label",
+      "Correctly identifies phase as 'product' from label",
+      "Still writes a handoff doc successfully",
+      "Does NOT error or refuse due to missing session.json"
+    ]
+  },
+  {
+    "id": 3,
+    "prompt": "Context handover — next session will focus on writing tests.",
+    "scaffold": { "session_json": { "current_phase": "execution" }, "has_memory_md": true },
+    "expectations": [
+      "Handoff doc does not inline the content of MEMORY.md or any code files",
+      "Handoff doc references MEMORY.md by path only",
+      "next_session_hint in session.json reflects the user's stated focus ('writing tests')"
+    ]
+  }
+]
+```
+
+**`session-start` — 3 evals**
+
+```json
+[
+  {
+    "id": 1,
+    "prompt": "/session-start",
+    "scaffold": { "session_json": { "current_phase": "execution", "active_task": { "github_issue": 7, "title": "Implement login flow", "effort_estimate": 1 }, "next_session_hint": "Continue from UserService.login()" }, "handoff_doc_in_temp": true },
+    "expectations": [
+      "Outputs a structured session briefing",
+      "Briefing includes: phase, active task, effort estimate, next step from handoff doc",
+      "Includes the execution-phase budget table",
+      "Does not start writing code immediately without briefing the user first"
+    ]
+  },
+  {
+    "id": 2,
+    "prompt": "/session-start",
+    "scaffold": { "no_session_json": true, "no_handoff_doc": true },
+    "expectations": [
+      "Does not error or refuse",
+      "Outputs a briefing noting no prior session state was found",
+      "Asks user what they want to work on, or suggests running /setup-harness-skills"
+    ]
+  },
+  {
+    "id": 3,
+    "prompt": "/session-start",
+    "scaffold": { "no_session_json": true, "github_issue_labels": ["phase:product"], "github_issue_title": "Break down auth epic into stories" },
+    "expectations": [
+      "Infers phase as 'product' from GitHub issue label",
+      "Outputs the product-phase budget table",
+      "Does not output the execution-phase budget table"
+    ]
+  }
+]
+```
 
 ---
 

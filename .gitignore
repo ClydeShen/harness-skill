@@ -1,0 +1,12 @@
+# Agent session state — never commit (written by context-handover / session-start)
+.claude/handoff.md
+.claude/session.json
+
+# Python eval runner artifacts
+__pycache__/
+*.pyc
+*.pyo
+
+# Roam codebase indexing tool
+.roam/
+.roamignore

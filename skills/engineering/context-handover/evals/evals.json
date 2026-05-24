@@ -1,0 +1,47 @@
+{
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "My context is at 82%. Please run context-handover. I'm working on issue #42 'Add auth middleware', execution phase.",
+      "files": [
+        ".claude/session.json with execution phase and github issue 42",
+        "CLAUDE.md"
+      ],
+      "expectations": [
+        "Identifies current phase as execution from session.json",
+        "Writes handoff doc to .claude/handoff.md — not a timestamped path or OS temp dir",
+        "Handoff doc references the GitHub issue by number, not by inlining its body",
+        "Includes 'Last updated' timestamp at the top of the handoff doc",
+        "Instructs user to type /compact — does NOT invoke /compact programmatically",
+        "Instructs user to start next session with /session-start"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Please do a context handover. I'm getting close to the limit.",
+      "files": [
+        "package.json"
+      ],
+      "expectations": [
+        "Detects no session.json and uses the phase fallback chain",
+        "Still writes a handoff doc to .claude/handoff.md despite missing session.json",
+        "Does NOT error or refuse because session.json is absent",
+        "Notes somewhere that phase was inferred (not from session.json)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Context handover — next session will focus on writing tests.",
+      "files": [
+        "CLAUDE.md",
+        "MEMORY.md"
+      ],
+      "expectations": [
+        "Handoff doc does not inline the content of MEMORY.md or any source files",
+        "Handoff doc references MEMORY.md by path only",
+        "next_session_hint reflects the user's stated focus on writing tests",
+        "Instructs user to type /compact"
+      ]
+    }
+  ]
+}

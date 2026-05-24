@@ -4,6 +4,8 @@
   "description": "Harness engineering skill collection — setup, context handover, session management, and adapted mattpocock/skills for compound engineering workflows.",
   "skills": [
     "skills/engineering/harness-engineering",
-    "skills/engineering/setup-harness-skills"
+    "skills/engineering/setup-harness-skills",
+    "skills/engineering/context-handover",
+    "skills/engineering/session-start"
   ]
 }

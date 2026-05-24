@@ -7,8 +7,8 @@ project setup, phase management, context handover, issue lifecycle, and harness 
 |---|---|---|
 | `harness-engineering` | Detect harness gaps and output paste-ready fix snippets | Implemented |
 | `setup-harness-skills` | One-time gateway: configure GitHub, labels, session state | Implemented |
-| `context-handover` | End-of-context-window session transition | Plan 3 |
-| `session-start` | Phase detection and session briefing | Plan 3 |
+| `context-handover` | End-of-context-window session transition | Implemented |
+| `session-start` | Phase detection and session briefing | Implemented |
 | `triage` | Issue triage state machine | Plan 4 |
 | `to-prd` | Convert conversation to PRD with Technical Constraints | Plan 4 |
 | `to-issues` | Break PRD into vertical-slice user stories | Plan 4 |

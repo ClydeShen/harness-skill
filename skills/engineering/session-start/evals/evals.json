@@ -1,0 +1,46 @@
+{
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/session-start",
+      "files": [
+        ".claude/session.json with execution phase and github issue 7 effort 1",
+        ".claude/handoff.md",
+        "CLAUDE.md"
+      ],
+      "expectations": [
+        "Outputs a structured session briefing before doing anything else",
+        "Briefing includes phase, active task number, effort estimate, and pick-up point",
+        "Includes the execution-phase budget table or references phase-budgets.md",
+        "Mentions running /context-handover when approaching 80% usage",
+        "Does not start writing code or taking actions before outputting the briefing"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/session-start",
+      "files": [
+        "package.json"
+      ],
+      "expectations": [
+        "Does not error or refuse when no session state exists",
+        "Outputs a briefing noting no prior session state was found",
+        "Suggests running /setup-harness-skills or asks user what to work on",
+        "Does NOT default to any phase without evidence"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/session-start",
+      "files": [
+        "package.json",
+        "CLAUDE.md"
+      ],
+      "expectations": [
+        "Reads available project state before asking any questions",
+        "Does not ask questions that could be answered by reading .claude/ files or git config",
+        "If phase cannot be determined from artifacts, explains what was found and asks the user"
+      ]
+    }
+  ]
+}

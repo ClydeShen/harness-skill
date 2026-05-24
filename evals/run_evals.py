@@ -35,6 +35,13 @@ JUDGE_MODEL    = "haiku"
 OPENCODE_RESPONSE_MODEL = "llama-cpp/Qwen3.6-35B-A3B-UD-Q5_K_M.gguf"
 OPENCODE_JUDGE_MODEL    = "llama-cpp/Qwen3.6-35B-A3B-UD-Q5_K_M.gguf"
 
+# Pi backend models (pi uses llamacpp/<model-name> format)
+PI_RESPONSE_MODEL = "llamacpp/qwen3.6-35b-a3b-ud-q5_k_m"
+PI_JUDGE_MODEL    = "llamacpp/qwen3.6-35b-a3b-ud-q5_k_m"
+
+# Resolve pi executable (on Windows pi ships as pi.cmd — shutil.which handles this)
+_PI_EXE: str = shutil.which("pi") or shutil.which("pi.cmd") or "pi"
+
 _ANSI_RE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 
@@ -292,6 +299,53 @@ def judge_one_opencode(response: str, expectation: str, retries: int = 2) -> boo
 
 
 # ---------------------------------------------------------------------------
+# Pi backend  (pi -p --skill <dir> — closest to claude --plugin-dir)
+# ---------------------------------------------------------------------------
+
+def run_skill_pi(prompt: str, project_dir: str, isolated_skill_dir: str) -> str:
+    """Run skill via pi -p --skill <dir>. Output is plain text, no stripping needed."""
+    result = subprocess.run(
+        [
+            _PI_EXE, "-p",
+            "--model", PI_RESPONSE_MODEL,
+            "--skill", isolated_skill_dir,
+            "--no-context-files",
+            prompt,
+        ],
+        capture_output=True, text=True, timeout=300,
+        encoding="utf-8", errors="replace",
+        cwd=project_dir,
+    )
+    if result.returncode != 0:
+        print(f"  [WARN] pi exit {result.returncode}: {result.stderr[:200]}", file=sys.stderr)
+    return (result.stdout or "").strip()
+
+
+def judge_one_pi(response: str, expectation: str, retries: int = 2) -> bool:
+    judge_prompt = (
+        "You are a strict evaluator. Respond with exactly PASS or FAIL — no other text.\n\n"
+        f"EXPECTATION: {expectation}\n\n"
+        f"RESPONSE:\n{response[:4000]}\n\n"
+        "Verdict (PASS or FAIL):"
+    )
+    for attempt in range(retries + 1):
+        result = subprocess.run(
+            [_PI_EXE, "-p", "--model", PI_JUDGE_MODEL, "--no-context-files", judge_prompt],
+            capture_output=True, text=True, timeout=120,
+            encoding="utf-8", errors="replace",
+            cwd=REPO_ROOT,
+        )
+        verdict = (result.stdout or "").strip().upper()
+        if verdict.startswith("PASS"):
+            return True
+        if verdict.startswith("FAIL"):
+            return False
+        if attempt < retries:
+            time.sleep(2)
+    return False
+
+
+# ---------------------------------------------------------------------------
 # Skill discovery
 # ---------------------------------------------------------------------------
 
@@ -331,13 +385,16 @@ def main():
                         help="Run evals for one skill only (e.g. harness-engineering)")
     parser.add_argument("--evals", metavar="N[,N]",
                         help="Comma-separated eval IDs within the selected skill")
-    parser.add_argument("--backend", choices=["claude", "opencode"], default="claude",
-                        help="Model backend: claude (default) or opencode (local model)")
+    parser.add_argument("--backend", choices=["claude", "opencode", "pi"], default="claude",
+                        help="Model backend: claude (default), opencode, or pi (local model)")
     args = parser.parse_args()
 
     use_opencode = args.backend == "opencode"
+    use_pi       = args.backend == "pi"
     if use_opencode:
         print(f"Backend: opencode  response={OPENCODE_RESPONSE_MODEL}  judge={OPENCODE_JUDGE_MODEL}")
+    elif use_pi:
+        print(f"Backend: pi  response={PI_RESPONSE_MODEL}  judge={PI_JUDGE_MODEL}")
     else:
         print(f"Backend: claude  response={RESPONSE_MODEL}  judge={JUDGE_MODEL}")
 
@@ -391,6 +448,8 @@ def main():
                     print("  Running skill... ", end="", flush=True)
                     if use_opencode:
                         response = run_skill_opencode(prompt, project_dir, isolated_skill)
+                    elif use_pi:
+                        response = run_skill_pi(prompt, project_dir, isolated_skill)
                     else:
                         response = run_skill(prompt, project_dir, isolated_skill)
                     print(f"({len(response)} chars)")
@@ -403,7 +462,12 @@ def main():
 
                 all_passed = True
                 for exp in expectations:
-                    passed = judge_one_opencode(response, exp) if use_opencode else judge_one(response, exp)
+                    if use_opencode:
+                        passed = judge_one_opencode(response, exp)
+                    elif use_pi:
+                        passed = judge_one_pi(response, exp)
+                    else:
+                        passed = judge_one(response, exp)
                     status = "PASS" if passed else "FAIL"
                     if passed:
                         total_pass += 1; grand_pass += 1

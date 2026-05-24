@@ -106,7 +106,7 @@ harness-engineering-skill/
 | `triage` | Engineering | One-line replacement | Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not` |
 | `to-prd` | Engineering | Medium adaptation | (1) Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not`. (2) Replace PRD template section "Implementation Decisions" with "Technical Constraints" (see below). |
 | `to-issues` | Engineering | One-line + BA format additions | (1) Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not`. (2) Append BA user story format instructions (see below). |
-| `write-a-skill` | Productivity | Add one checklist item | Append to the existing checklist section: `- [ ] Does the skill's description mention its typical context window cost?` |
+| `write-a-skill` | Productivity | Add four checklist items | Append to the existing checklist section (see below). |
 
 #### `to-prd` — WHAT/HOW separation enforcement
 
@@ -185,6 +185,22 @@ The agent prefers AFK classification where the story is fully specified. HITL is
 1. **Estimable gate:** A story that cannot be estimated must be refined before the issue is created.
 2. **Size gate:** A story estimated at >8 context windows must be split. 8 windows is the upper limit; above this, scope is too large to track and hand over reliably.
 3. **Vertical slice gate (first principle):** Every issue must deliver a **demoable user-facing outcome**. Ask: *"Can this story be demonstrated to a stakeholder end-to-end without implementing any other story first?"* If no → it is a horizontal slice (e.g. "implement the database schema for auth") and must be restructured into a vertical slice before creation. This is not a process rule — it is the first principle from which all slicing decisions derive.
+
+#### `write-a-skill` — harness checklist additions
+
+The adapted `write-a-skill` SKILL.md appends four items to mattpocock's existing checklist:
+
+```
+- [ ] Does the skill's description mention its typical context window cost?
+      (e.g. "typically consumes <5% of a context window")
+- [ ] If the skill reads setup config (issue tracker, labels, GitHub board), does it
+      include "run /setup-harness-skills if missing context"?
+- [ ] If the skill posts any comment or body to the issue tracker, does every post
+      end with the AI-generated footer ("🤖 Posted by /[skill-name] (AI-generated)")?
+- [ ] If the skill creates issues, does it enforce all three creation gates:
+      (1) Estimable, (2) ≤8 context windows, (3) demoable user-facing outcome?
+      (Gate 3 only applies if the skill creates issues.)
+```
 
 ### Skills NOT included (out of scope for this collection)
 

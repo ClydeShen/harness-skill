@@ -130,7 +130,7 @@ The four label categories used across all issues in the system:
 |---|---|
 | `status:` | `triage` / `needs-prd` / `ready-for-agent` / `in-progress` / `done` |
 | `phase:` | `design` / `product` / `execution` / `testing` |
-| `type:` | `feature` / `bug` / `chore` / `task` |
+| `type:` | `feature` / `bug` / `chore` / `task` / `spike` |
 | `priority:` | `p1` / `p2` / `p3` |
 
 `phase:` is **categorical** (what kind of issue this is), not temporal (what phase the project is currently in). A `phase:execution` issue and a `phase:testing` issue can coexist on the board. The current project phase is canonical in `session.json`; the agent processes only issues matching `phase:<current-phase>` + `status:ready-for-agent`.
@@ -176,6 +176,9 @@ The unified context handover document at `.claude/handoff.md` in the user's proj
 
 ### session.json
 The dynamic session state file at `.claude/session.json` in the user's project. **Gitignored** (agent working file — changes every session). Tracks: current phase, active task (GitHub issue number, title, effort estimate, project board item ID), last handover timestamp, and next session hint. Written by `session-start` (initialize) and `context-handover` (update). Read by `session-start`, `context-handover`, and `harness-engineering`. Distinct from `harness.json` (version-controlled team config) and `handoff.md` (human-readable continuity document).
+
+### Spike
+A `type:spike` issue — a throwaway implementation task that validates the core assumption of a PRD before full story breakdown. Time-boxed to 1 context window, explicitly discarded after the question is answered. Its output is a decision (proceed / pivot / split), not shippable code. Recommended by `to-prd` when solution uncertainty is detected. Inspired by the prototype-first principle: validate with something runnable rather than speculating in the PRD. Always AFK (the Execution agent can attempt it autonomously). Distinct from `type:feature` (shippable) and `type:chore` (maintenance).
 
 ### HITL / AFK (Issue Categorization)
 Two categories applied to every issue created by `to-issues`, adopted from mattpocock/skills:

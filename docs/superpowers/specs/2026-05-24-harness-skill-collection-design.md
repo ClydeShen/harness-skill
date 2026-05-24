@@ -131,6 +131,8 @@ The adapted `to-prd` SKILL.md replaces mattpocock's "Implementation Decisions" P
 
 These belong to the Execution agent's own technical plan, not the PRD. The Execution agent's autonomy over HOW is the design invariant — a PRD that bleeds into HOW territory will cause agents to treat implementation decisions as requirements.
 
+**Spike recommendation (prototype-first principle):** If the solution approach is uncertain after writing the PRD, `to-prd` appends: *"Solution uncertainty detected — recommend creating a `type:spike` issue (1 context window, AFK, throwaway) to validate the approach before breaking down into implementation stories."* The spike's output is a decision (proceed / pivot / split), not shippable code.
+
 #### `to-issues` — BA user story format additions
 
 The adapted `to-issues` SKILL.md appends the following instructions after the existing mattpocock content:
@@ -587,8 +589,10 @@ Read by: `session-start`, `context-handover`, `harness-engineering`.
 |---|---|
 | `status:` | `triage` / `needs-prd` / `ready-for-agent` / `in-progress` / `done` |
 | `phase:` | `design` / `product` / `execution` / `testing` |
-| `type:` | `feature` / `bug` / `chore` / `task` |
+| `type:` | `feature` / `bug` / `chore` / `task` / `spike` |
 | `priority:` | `p1` / `p2` / `p3` |
+
+**`type:spike`** — a throwaway implementation task that validates the core assumption of a PRD before full story breakdown. A spike is AFK, time-boxed to 1 context window, and explicitly discarded after the question is answered. Its output is a decision (proceed / pivot / split), not shippable code. Inspired by the "prototype-first" principle: when the solution approach is uncertain, validate with a runnable spike rather than speculating in the PRD. `to-prd` recommends a spike when it detects high solution uncertainty.
 
 `phase:` is **categorical** — it describes what kind of issue this is, not what phase the project is currently in. A `phase:execution` issue and a `phase:testing` issue can coexist on the board. The canonical current project phase is `session.json.current_phase`; the agent processes only issues matching `phase:<current-phase>` + `status:ready-for-agent`.
 

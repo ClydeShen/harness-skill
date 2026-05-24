@@ -1,58 +1,60 @@
 ---
 name: harness-engineering
-description: Detects agent-harness gaps in a project and outputs paste-ready config snippets to close them. Covers Stop and PostToolUse hooks, CI, pre-commit, CLAUDE.md/AGENTS.md quality, init.sh, and session discipline. Use when starting a coding session, setting up quality gates, auditing CLAUDE.md, beginning long autonomous work, or after a session left in broken state. Triggers on: "start session", "set up harness", "CI pipeline", "pre-commit hooks", "writing CLAUDE.md", "goal structure", "verification gap", "health check", "harness setup", "project setup", "agent discipline".
+description: Scans a project for agent-harness gaps and outputs a prioritised list with paste-ready config snippets to close them. Covers hooks, CI, pre-commit, instruction file quality, init.sh, and session discipline. Use when starting a new project, auditing an existing harness, writing or reviewing CLAUDE.md/AGENTS.md, setting up CI gates, beginning multi-day autonomous work, or when user says "set up harness", "health check", "agent discipline", "project setup", "pre-commit hooks", "stop hook", "verification gap".
 ---
 
 # Harness Engineering
 
-Scan → Interview → Output. Build the complete gap list before generating **any** output.
+Scan → Interview → Output. Build the complete gap list before generating any output.
 
-Read `references/scenarios.md` now — it contains scenario-specific behavioral overrides (gsd-2, CLAUDE.md guidance, brownfield, multi-day scope, Kiro/Gemini) that apply before Phase 1.
+Read `references/scenarios.md` first — it contains scenario-specific rules (CLAUDE.md guidance, brownfield, multi-day scope, Kiro/Gemini, gsd-2) that override defaults.
 
 ## Phase 1 — Detect
 
-Read `references/detect.md` for the full target list and interpretation guide. Run **all** checks before producing any output.
+See `references/detect.md` for the full checklist. Run **all** checks before producing output.
 
-1. **Runtime** (run first): `.claude/` → Claude Code; `.kiro/` → Kiro; `.gemini/` → Gemini; none → ask in Phase 2
-2. **Hooks**: `.claude/settings.json` Stop + PostToolUse — **always gap #1 if missing**
-3. **Stack**: `package.json`, `pyproject.toml`, `go.mod`
+1. **Runtime** (run first): `.claude/` → Claude Code · `.kiro/` → Kiro · `.gemini/` → Gemini · none → ask in Phase 2
+2. **Hooks**: `.claude/settings.json` — Stop + PostToolUse present? **Always gap #1 if missing.**
+3. **Stack**: `package.json` / `pyproject.toml` / `go.mod`
 4. **CI**: `.github/workflows/*.yml` — runs lint + build?
 5. **Pre-commit**: `.husky/` or `.pre-commit-config.yaml`
 6. **Health script**: `init.sh` at root — exists and executable?
-7. **Instruction file**: `CLAUDE.md` or `AGENTS.md` (equivalent — never flag CLAUDE.md missing when AGENTS.md present)
-8. **Rules dir**: `.claude/rules/` — exists if instruction file is over 100 lines?
-9. **Spec workflow**: `docs/superpowers/specs/` directory exists?
+7. **Instruction file**: `CLAUDE.md` or `AGENTS.md` — treat as equivalent; never flag one missing when the other exists
+8. **Rules dir**: `.claude/rules/` — present if instruction file exceeds 100 lines?
+9. **Spec workflow**: `docs/superpowers/specs/` exists?
 10. **Installed skills**: gsd-2, brainstorming, systematic-debugging, writing-plans, simplify, vercel-labs/agent-browser
 
-Build two lists: **already in place** and **gaps**.
+Build two lists: **Already in place** · **Gaps**
 
 ## Phase 2 — Interview
 
-Max 3 questions, one at a time. Wait for each answer before asking the next.
+Max 3 questions. Ask one at a time; wait for each answer.
 
-**Q1 (always):** "Is this for a quick focused task (under ~1 hr) or longer autonomous work (multi-hour or multi-session)?"
+**Q1 (always):** "Quick focused task (<1 hr) or longer autonomous work (multi-hour / multi-session)?"
 
 **Q2 (conditional):**
-- No runtime detected → "Which agent are you using — Claude Code, Kiro, Gemini, or something else?" + "Solo or team? Greenfield or brownfield?"
-- Runtime detected → "Solo dev or team? And is this an existing codebase you're inheriting, or starting from scratch?"
+- No runtime detected → "Which agent — Claude Code, Kiro, Gemini, other?" + "Solo or team? Greenfield or brownfield?"
+- Runtime detected → "Solo or team? Existing codebase or starting fresh?"
 
-**Q3 (only if 3+ major gaps):** "What matters most right now: stability gates (CI and hooks), session discipline (CLAUDE.md and hooks), or goal structure (for autonomous tasks)?"
+**Q3 (only if 3+ major gaps):** "What matters most: stability gates (CI + hooks), session discipline (CLAUDE.md + hooks), or goal structure (autonomous tasks)?"
 
 ## Phase 3 — Output
 
-**Invariants — never violate:**
-- **Stop hook is always gap #1** when `.claude/settings.json` absent. No other gap may precede it.
-- **AGENTS.md = CLAUDE.md** — never flag CLAUDE.md missing when AGENTS.md present.
-- **Brownfield**: never tell user to fix all lint errors manually. Recommend `eslint --fix .` in a single cleanup commit (ratchet approach).
-- **Multi-day scope**: output MUST include "one active task at a time", at least one anti-pattern by name (Fuzzy Done / Proxy Signal / Confidence Exit / Planning=Done), and a Judge audit as the exit criterion.
-- **Max 5 gaps** shown; note extras as lower priority.
+**Rules — never violate:**
+- Stop hook is **always gap #1** when `.claude/settings.json` absent. Nothing precedes it.
+- AGENTS.md = CLAUDE.md — never flag CLAUDE.md missing when AGENTS.md present; apply quality checks to whichever exists.
+- Brownfield: recommend `eslint --fix .` in one cleanup commit (ratchet) — never tell user to fix all errors manually.
+- Multi-day scope: must include "one active task at a time", one anti-pattern by name (Fuzzy Done / Proxy Signal / Confidence Exit / Planning=Done), and a Judge audit as exit criterion.
+- Max 5 gaps shown; note extras as lower priority.
 
-**Output structure:**
+**Structure:**
 ```
 ## Already in place
 ## Harness gaps (priority order)
-  ### 1. No Stop hook  ← mandatory first when .claude/settings.json absent
-  ### 2–5. [remaining gaps]
+### 1. [Gap name]
+**Why it matters:** [failure mode — one sentence]
+**Fix:** [paste-ready snippet]
+...
 ## What to do next
 ```
 

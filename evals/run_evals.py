@@ -317,7 +317,11 @@ def run_skill_pi(prompt: str, project_dir: str, isolated_skill_dir: str) -> str:
         cwd=project_dir,
     )
     if result.returncode != 0:
-        print(f"  [WARN] pi exit {result.returncode}: {result.stderr[:200]}", file=sys.stderr)
+        stderr = result.stderr or ""
+        if "context size has been exceeded" in stderr.lower() or "context size" in (result.stdout or "").lower():
+            print(f"  [CONTEXT OVERFLOW] pi 32.8K limit exceeded — eval skipped", file=sys.stderr)
+            return ""
+        print(f"  [WARN] pi exit {result.returncode}: {stderr[:200]}", file=sys.stderr)
     return (result.stdout or "").strip()
 
 
@@ -379,6 +383,10 @@ def discover_skills(skill_name: str | None = None) -> list[tuple[str, Path]]:
 # ---------------------------------------------------------------------------
 
 def main():
+    # Force UTF-8 stdout on Windows to handle emoji in model responses
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
     import argparse
     parser = argparse.ArgumentParser(description="Run skill evals")
     parser.add_argument("--skill", metavar="NAME",

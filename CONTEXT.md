@@ -166,6 +166,8 @@ As a [role], I want [capability], so that [benefit].
 
 **INVEST criteria applied:** Stories must be Independent (can be worked in any order within a phase), Negotiable (scope can be adjusted), Valuable (delivers user-facing benefit), Estimable (effort is knowable), Small (fits within 1–2 context windows), Testable (AC are verifiable).
 
+**Vertical slice (first principle):** Every story must deliver a **demoable user-facing outcome** — a thin end-to-end cut through all layers (schema, API, UI, tests) that can be demonstrated to a stakeholder without any other story being implemented first. Horizontal slices ("implement the database schema for auth") violate this principle and must be restructured before the issue is created. This is the first-principles derivation of the vertical slice rule, not a process convention.
+
 ### harness.json
 The static project configuration file, written by `setup-harness-skills` to `.claude/harness.json` in the user's project. **Version-controlled (committed)** — shared team config analogous to `package.json`. Separates static config (what the project is) from dynamic session state (what is happening right now — see `session.json`). Contains: GitHub owner, repo, default branch, Project v2 board ID, docs_agents_dir, specs_dir, and issue_tracker type. All skills read this file with null-safety. Updated only when the user re-runs `setup-harness-skills` to change a setting.
 

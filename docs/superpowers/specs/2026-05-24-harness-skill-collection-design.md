@@ -157,9 +157,11 @@ implementation details, file paths, or code snippets to this story.
 
 The agent prefers AFK classification where the story is fully specified. HITL is used only when a genuine human decision is unresolved. This gives humans immediate board-level visibility into which issues an agent can pick up now versus which ones still need input.
 
-**INVEST criteria enforced at creation time:** `to-issues` checks each story before writing the issue. Two gates apply:
-- A story that cannot be estimated (Estimable) must be refined before the issue is created.
-- A story estimated at **>8 context windows must be split** into smaller issues before creation. 8 windows is the upper limit for a single issue; above this, the scope is too large to track and hand over reliably.
+**Three gates enforced at creation time:** `to-issues` checks each story before writing the issue.
+
+1. **Estimable gate:** A story that cannot be estimated must be refined before the issue is created.
+2. **Size gate:** A story estimated at >8 context windows must be split. 8 windows is the upper limit; above this, scope is too large to track and hand over reliably.
+3. **Vertical slice gate (first principle):** Every issue must deliver a **demoable user-facing outcome**. Ask: *"Can this story be demonstrated to a stakeholder end-to-end without implementing any other story first?"* If no → it is a horizontal slice (e.g. "implement the database schema for auth") and must be restructured into a vertical slice before creation. This is not a process rule — it is the first principle from which all slicing decisions derive.
 
 ### Skills NOT included (out of scope for this collection)
 

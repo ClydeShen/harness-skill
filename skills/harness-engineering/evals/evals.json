@@ -27,7 +27,6 @@
         "Mentions completion proof that is observable behavior — not just 'tests pass' or 'it compiles'",
         "Mentions context window management or session handoff strategy for multi-day work",
         "Warns about or addresses the risk of Claude declaring done prematurely",
-        "Mentions /gsd doctor as covering the init.sh health check gap, or notes that gsd-2 closes that gap",
         "Mentions /gsd verdict as the Judge audit implementation or exit criterion for declaring the goal complete"
       ]
     },
@@ -37,12 +36,9 @@
       "expected_output": "CLAUDE.md guidance: keep it under ~60 lines (200 hard ceiling); include key commands + tech stack + architecture constraints + gotchas; use conditional tags for task-specific rules; exclude code style (linter's job), resolved bugs, and deep docs (reference by path instead).",
       "files": ["package.json with next.js supabase stripe deps"],
       "expectations": [
-        "Specifies a size budget for CLAUDE.md — mentions a line count target or ceiling (e.g., ~60 lines, 200 hard ceiling, or similar concrete guidance)",
-        "States that code style or auto-enforceable rules belong in the linter (ESLint/Prettier) rather than in CLAUDE.md",
-        "Mentions keeping task-specific rules separate — e.g., conditional tags (<important if='...'>), .claude/rules/ files, or scoped loading",
-        "Warns against including content that becomes stale — e.g., resolved bugs, past decisions, or ephemeral session notes",
-        "Recommends referencing detailed documentation by file path rather than duplicating it inline (e.g., @docs/api-spec.md)",
-        "Recommends including real gotchas — non-obvious traps that would bite an experienced developer who doesn't know this specific codebase"
+        "Recommends including real gotchas — non-obvious traps that would bite an experienced developer who doesn't know this specific codebase",
+        "Recommends including key commands Claude needs — dev server, build, lint, or test scripts",
+        "Distinguishes between what should be in CLAUDE.md versus what should be handled by tooling, linters, or separate documentation"
       ]
     },
     {
@@ -104,34 +100,32 @@
     {
       "id": 7,
       "prompt": "I'm using Kiro as my AI agent. I just cloned a Next.js TypeScript project. It has a .kiro/ directory but no hooks configured and no .kiro/steering/ files. What harness gaps do I have and what should I fix first?",
-      "expected_output": "The skill should detect Kiro runtime from the .kiro/ directory and produce Kiro-specific output. Gap #1 should be the missing agentTurnEnd hook (Kiro's Stop equivalent), not Claude Code's .claude/settings.json. It should output Kiro hook JSON snippets from kiro-snippets.md, recommend .kiro/steering/project.md as the instruction file, and identify CI and pre-commit gaps as normal.",
+      "expected_output": "The skill gives standard gap analysis (hooks, CI, instruction file) and adds Kiro-specific equivalents as advisory context: agentTurnEnd hook as the Stop equivalent, postToolUse hook equivalent, and .kiro/steering/ as the instruction file location. The response is helpful for a Kiro user without requiring a restructured output.",
       "files": [
         ".kiro directory present but empty",
         "package.json with next.js and typescript",
         "no .claude/settings.json"
       ],
       "expectations": [
-        "Detects Kiro runtime from the .kiro/ directory — does not default to Claude Code output",
-        "Identifies missing Kiro hook (agentTurnEnd or postToolUse) as the highest-priority gap — uses Kiro terminology, not Claude Code hook names",
-        "Outputs a Kiro-specific hook snippet (JSON format targeting .kiro/hooks/) rather than a .claude/settings.json snippet",
-        "Recommends .kiro/steering/project.md as the instruction file equivalent rather than CLAUDE.md",
-        "Identifies at least one other gap beyond hooks (CI, pre-commit, or instruction file)"
+        "Acknowledges the user is on Kiro and tailors at least some of the response to that context",
+        "Mentions .kiro/steering/ or a Kiro-equivalent instruction file location",
+        "Mentions Kiro hook concepts (agentTurnEnd, postToolUse, or .kiro/hooks/) as equivalents to the standard hooks",
+        "Identifies at least one actionable gap (hooks, CI, instruction file, or pre-commit)"
       ]
     },
     {
       "id": 8,
       "prompt": "I'm using Gemini as my AI coding agent. My project has a .gemini/ directory. I don't have any instruction files or hook configuration set up yet. What harness gaps should I address?",
-      "expected_output": "The skill should detect Gemini runtime from the .gemini/ directory and produce best-effort adapted output. It should recommend GEMINI.md as the instruction file (same structure as CLAUDE.md template). For hooks, it should note that Gemini does not have a documented hook equivalent and advise the user to verify in their Gemini agent's settings. It should output universal CI and init.sh snippets unchanged.",
+      "expected_output": "The skill gives standard gap analysis and adds Gemini-specific equivalents as advisory context: GEMINI.md as the instruction file, a note that hook equivalents are unconfirmed for Gemini, and universal CI/init.sh recommendations.",
       "files": [
         ".gemini directory present",
         "package.json"
       ],
       "expectations": [
-        "Detects Gemini runtime from the .gemini/ directory — does not treat this as a Claude Code project",
-        "Recommends GEMINI.md as the instruction file rather than CLAUDE.md",
-        "Does NOT output .claude/settings.json as a fix — acknowledges hook equivalents are unconfirmed for Gemini",
-        "Outputs CI or init.sh snippets as universal gaps that apply regardless of runtime",
-        "Treats the response as best-effort and clearly distinguishes what applies universally vs. what is Gemini-specific"
+        "Acknowledges the user is on Gemini and tailors at least some of the response to that context",
+        "Mentions GEMINI.md as an instruction file option for Gemini",
+        "Notes that hook equivalents for Gemini are unconfirmed or advises the user to verify hook support in their Gemini agent's settings",
+        "Identifies at least one actionable gap that applies regardless of runtime (CI, init.sh, or instruction file)"
       ]
     }
   ]

@@ -118,10 +118,16 @@ def scaffold(tmpdir: str, files: list[str]) -> None:
         (root / "AGENTS.md").write_text(DUMMY_AGENTS_MD_80)
 
     if ".kiro" in desc:
-        (root / ".kiro").mkdir(exist_ok=True)
+        kiro = root / ".kiro"
+        kiro.mkdir(exist_ok=True)
+        # Sentinel file so the skill can detect the directory during Phase 1 scan
+        (kiro / ".keep").write_text("")
 
     if ".gemini" in desc:
-        (root / ".gemini").mkdir(exist_ok=True)
+        gemini = root / ".gemini"
+        gemini.mkdir(exist_ok=True)
+        # Sentinel file so the skill can detect the directory during Phase 1 scan
+        (gemini / ".keep").write_text("")
 
     if "eslint" in desc:
         (root / ".eslintrc.json").write_text('{"extends":"next/core-web-vitals"}')
@@ -186,8 +192,18 @@ def judge_one(response: str, expectation: str, retries: int = 2) -> bool:
 # ---------------------------------------------------------------------------
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--evals", metavar="N[,N]", help="Comma-separated eval IDs to run (e.g. 7,8)")
+    args = parser.parse_args()
+    only_ids: set[int] | None = None
+    if args.evals:
+        only_ids = {int(x.strip()) for x in args.evals.split(",")}
+
     data  = json.loads(EVALS_FILE.read_text(encoding="utf-8"))
     evals = data["evals"]
+    if only_ids:
+        evals = [e for e in evals if e["id"] in only_ids]
 
     # Copy skill to an isolated temp directory (no git parent = no repo leakage)
     with tempfile.TemporaryDirectory(prefix="harness_skill_") as skill_tmp:

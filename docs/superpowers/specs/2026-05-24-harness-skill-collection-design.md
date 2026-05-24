@@ -148,7 +148,9 @@ is determined by the Execution agent when it reads this issue. Do not add techni
 implementation details, file paths, or code snippets to this story.
 ```
 
-**INVEST criteria enforced at creation time:** `to-issues` checks each story before writing the issue. A story that cannot be estimated (Estimable) must be refined before the issue is created. Stories larger than 2 context windows are permitted — the effort estimate is simply set higher, and `context-handover` handles multi-session continuity by appending progress comments to the issue (see section 5.2).
+**INVEST criteria enforced at creation time:** `to-issues` checks each story before writing the issue. Two gates apply:
+- A story that cannot be estimated (Estimable) must be refined before the issue is created.
+- A story estimated at **>8 context windows must be split** into smaller issues before creation. 8 windows is the upper limit for a single issue; above this, the scope is too large to track and hand over reliably.
 
 ### Skills NOT included (out of scope for this collection)
 

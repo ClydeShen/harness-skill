@@ -160,7 +160,7 @@ As a [role], I want [capability], so that [benefit].
 - No regressions in related tests
 - Implementation notes written if agent deviated from spec
 
-**Effort estimate:** Set during Product phase. Unit = context windows. `1` = estimated to complete within one context window. `3` = requires three sessions. There is no upper limit — large stories are permitted; `context-handover` handles multi-session continuity. Used to populate the `Effort (windows)` GitHub Project field.
+**Effort estimate:** Set during Product phase. Unit = context windows. `1` = estimated to complete within one context window. Maximum: `8`. Stories estimated at >8 context windows must be split into smaller issues before creation — above this threshold the scope is too large to track and hand over reliably. Used to populate the `Effort (windows)` GitHub Project field.
 
 **INVEST criteria applied:** Stories must be Independent (can be worked in any order within a phase), Negotiable (scope can be adjusted), Valuable (delivers user-facing benefit), Estimable (effort is knowable), Small (fits within 1–2 context windows), Testable (AC are verifiable).
 

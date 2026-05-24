@@ -6,8 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This repo is a curated skill collection for compound engineering workflows, packaged as a Claude Code / Codex plugin.
 
-Currently implemented: `harness-engineering` — detects agent-harness gaps and outputs paste-ready config snippets.
-Planned (subsequent plans): `setup-harness-skills`, `context-handover`, `session-start` (Plans 2–3); adapted skills from [mattpocock/skills](https://github.com/mattpocock/skills) MIT License (Plans 4+).
+All 13 skills implemented across `skills/engineering/` and `skills/productivity/`. See `skills/engineering/README.md` and `skills/productivity/README.md` for the full list and source attribution.
 
 Install via `bash scripts/link-skills.sh`. Skills live in `skills/engineering/` or `skills/productivity/`.
 
@@ -21,10 +20,10 @@ skills/
       skill.json
       evals/evals.json
       references/
-    (setup-harness-skills/ context-handover/ session-start/ — Plan 2–3, not yet created)
-    (triage/ to-prd/ to-issues/ zoom-out/ — Plan 4, not yet created)
+    setup-harness-skills/  context-handover/  session-start/
+    triage/  to-prd/  to-issues/  zoom-out/  grill-with-docs/
   productivity/
-    (caveman/ grill-me/ handoff/ write-a-skill/ — Plan 4, not yet created)
+    caveman/  grill-me/  handoff/  write-a-skill/
 evals/
   run_evals.py               ← discovers and runs all skill evals
 .claude-plugin/

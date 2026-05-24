@@ -1,0 +1,19 @@
+{
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/zoom-out",
+      "files": [
+        "package.json",
+        "src/index.ts",
+        "src/lib/parser.ts"
+      ],
+      "expectations": [
+        "Produces a map of relevant modules and callers without asking questions",
+        "Goes up a layer of abstraction — does not dig into implementation details",
+        "Uses the project's domain glossary vocabulary where available",
+        "Does not start implementing or suggesting changes"
+      ]
+    }
+  ]
+}

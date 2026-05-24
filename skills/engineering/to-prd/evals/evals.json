@@ -1,0 +1,33 @@
+{
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/to-prd",
+      "files": [
+        "package.json",
+        "CLAUDE.md"
+      ],
+      "expectations": [
+        "Does NOT interview the user — synthesizes from existing context",
+        "Explores the codebase to understand current state before writing",
+        "Sketches major modules and checks with user before writing the full PRD",
+        "Produces a PRD using the template with Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope sections"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/to-prd",
+      "files": [
+        "package.json",
+        "CLAUDE.md",
+        "src/index.ts with existing feature code"
+      ],
+      "expectations": [
+        "Uses domain glossary vocabulary from the project throughout the PRD",
+        "Actively looks for deep modules that can be tested in isolation",
+        "Publishes the PRD to the issue tracker with the ready-for-agent label",
+        "Does not include specific file paths or line numbers in Implementation Decisions"
+      ]
+    }
+  ]
+}

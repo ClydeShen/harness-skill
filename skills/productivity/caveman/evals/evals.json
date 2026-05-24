@@ -1,0 +1,30 @@
+{
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/caveman",
+      "files": [
+        "package.json"
+      ],
+      "expectations": [
+        "Immediately switches to compressed caveman communication mode",
+        "Drops articles, filler words, and pleasantries",
+        "Retains full technical accuracy — code blocks unchanged, errors quoted exact",
+        "Stays in caveman mode for subsequent responses without reverting"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/caveman\n\nExplain how database connection pooling works",
+      "files": [
+        "package.json"
+      ],
+      "expectations": [
+        "Responds in caveman mode throughout — no filler, no articles",
+        "Technical substance is preserved despite compression",
+        "Does not revert to normal mode mid-response",
+        "Uses pattern: [thing] [action] [reason]. [next step]."
+      ]
+    }
+  ]
+}

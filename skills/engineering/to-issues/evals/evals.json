@@ -1,0 +1,33 @@
+{
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/to-issues",
+      "files": [
+        "package.json",
+        "CLAUDE.md",
+        "docs/prd.md with a feature spec"
+      ],
+      "expectations": [
+        "Breaks the plan into vertical slices, not horizontal layers",
+        "Each slice is labeled HITL or AFK",
+        "Presents the breakdown and quizzes the user before publishing",
+        "Asks about granularity, dependencies, and HITL/AFK classification"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/to-issues #5",
+      "files": [
+        "package.json",
+        "CLAUDE.md"
+      ],
+      "expectations": [
+        "Fetches issue #5 from the tracker and reads its full body and comments",
+        "Published issues use the issue body template with Parent, What to build, Acceptance criteria, Blocked by sections",
+        "Publishes issues in dependency order so blockers appear first",
+        "Does not close or modify the parent issue #5"
+      ]
+    }
+  ]
+}

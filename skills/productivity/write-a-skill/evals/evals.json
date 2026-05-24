@@ -1,0 +1,30 @@
+{
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/write-a-skill",
+      "files": [
+        "package.json"
+      ],
+      "expectations": [
+        "Gathers requirements before drafting — asks about task domain, use cases, scripts, and reference materials",
+        "Does not produce a SKILL.md before understanding the requirements",
+        "Asks questions one at a time or as a grouped set before proceeding",
+        "Presents draft for review and asks whether it covers the use cases"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/write-a-skill\n\nI want a skill that helps agents write database migrations safely",
+      "files": [
+        "package.json"
+      ],
+      "expectations": [
+        "Produces SKILL.md under 100 lines",
+        "Description includes 'Use when [specific triggers]' phrasing",
+        "Splits detailed content to reference files if SKILL.md would exceed 100 lines",
+        "Review checklist is satisfied: triggers in description, no time-sensitive info, concrete examples"
+      ]
+    }
+  ]
+}

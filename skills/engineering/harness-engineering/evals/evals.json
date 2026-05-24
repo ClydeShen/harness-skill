@@ -127,6 +127,38 @@
         "Notes that hook equivalents for Gemini are unconfirmed or advises the user to verify hook support in their Gemini agent's settings",
         "Identifies at least one actionable gap that applies regardless of runtime (CI, init.sh, or instruction file)"
       ]
+    },
+    {
+      "id": 9,
+      "prompt": "Check the harness for my project. It has docs/agents/ with issue-tracker.md, triage-labels.md, domain.md, github-project.md, and session-config.md.",
+      "expected_output": "The skill recognises docs/agents/ with all five config files as evidence that setup-harness-skills has been run. It lists 'setup-harness-skills configured' in the Already in Place section and does NOT suggest running /setup-harness-skills.",
+      "files": [
+        "docs/agents/issue-tracker.md",
+        "docs/agents/triage-labels.md",
+        "docs/agents/domain.md",
+        "docs/agents/github-project.md",
+        "docs/agents/session-config.md",
+        ".claude/settings.json with Stop and PostToolUse hooks"
+      ],
+      "expectations": [
+        "Lists 'setup-harness-skills configured' or equivalent in the Already in Place section",
+        "Does NOT suggest running /setup-harness-skills (it has already been run)"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Set up the harness for my new project. It's a Node.js app.",
+      "expected_output": "The skill produces a normal gap analysis. Stop hook is gap #1 (no .claude/settings.json). After the prioritised gap list, it appends an optional suggestion to run /setup-harness-skills. The /setup-harness-skills suggestion does not appear before the Stop hook or displace any gap.",
+      "files": [
+        "package.json",
+        "no .claude/settings.json",
+        "no docs/agents/"
+      ],
+      "expectations": [
+        "Stop hook is gap #1 (first gap listed)",
+        "After the main gap list, suggests running /setup-harness-skills as an optional step for long-running multi-session work",
+        "The /setup-harness-skills suggestion does NOT appear before gap #1 or displace the Stop hook"
+      ]
     }
   ]
 }

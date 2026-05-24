@@ -56,6 +56,8 @@ The structured process executed near the end of a session to preserve state acro
 
 Trigger: context window token usage reaches ≥80% of total capacity. Claude receives this natively via `<system_warning>Token usage: X/Y; Z remaining</system_warning>` after each tool call — no external hook required for detection. The remaining 10-20% is the reserved buffer for executing the handover procedure itself.
 
+For multi-session issues (effort > 1 context window), `context-handover` appends its summary as a comment on the active GitHub issue in addition to writing the local temp file. Issue comments accumulate into a visible progress log for humans. The issue is not closed until all AC pass and the PR is merged — handover comments are progress markers, not completion signals.
+
 Session continuation is manual: the human starts a new session via `/compact` or `/new`. Automation (Desktop tasks, `/loop`) is out of scope — the handoff document quality is the primary continuity mechanism, not automated chaining.
 
 Distinct from subscription quota monitoring (5-hour/7-day billing windows), which is a separate concern unrelated to context handover.
@@ -158,7 +160,7 @@ As a [role], I want [capability], so that [benefit].
 - No regressions in related tests
 - Implementation notes written if agent deviated from spec
 
-**Effort estimate:** Set during Product phase. Unit = context windows. `1` = estimated to complete within one context window. `2` = requires two sessions. Used to populate the `Effort (windows)` GitHub Project field.
+**Effort estimate:** Set during Product phase. Unit = context windows. `1` = estimated to complete within one context window. `3` = requires three sessions. There is no upper limit — large stories are permitted; `context-handover` handles multi-session continuity. Used to populate the `Effort (windows)` GitHub Project field.
 
 **INVEST criteria applied:** Stories must be Independent (can be worked in any order within a phase), Negotiable (scope can be adjusted), Valuable (delivers user-facing benefit), Estimable (effort is knowable), Small (fits within 1–2 context windows), Testable (AC are verifiable).
 

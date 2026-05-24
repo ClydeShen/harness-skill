@@ -148,7 +148,7 @@ is determined by the Execution agent when it reads this issue. Do not add techni
 implementation details, file paths, or code snippets to this story.
 ```
 
-**INVEST criteria enforced at creation time:** `to-issues` checks each story before writing the issue. A story that cannot be estimated (Estimable) or is too large (>2 context windows) must be split before the issue is created.
+**INVEST criteria enforced at creation time:** `to-issues` checks each story before writing the issue. A story that cannot be estimated (Estimable) must be refined before the issue is created. Stories larger than 2 context windows are permitted — the effort estimate is simply set higher, and `context-handover` handles multi-session continuity by appending progress comments to the issue (see section 5.2).
 
 ### Skills NOT included (out of scope for this collection)
 
@@ -270,8 +270,23 @@ The session.json is the authoritative source because it is written by this colle
    Budget: <5% of remaining context
 
 3. Update GitHub issue (if docs/agents/issue-tracker.md exists)
-   → Add comment: status summary + next step
+   → Append handoff content as issue comment (see format below)
    → Update session.json: last_handover, next_session_hint
+
+   **Issue comment format (multi-session progress log):**
+   ```
+   ## Handover — [YYYY-MM-DD HH:mm]
+
+   **Phase:** [execution]
+   **Session summary:** [1–3 sentences on what was done this session]
+   **Next step:** [specific pick-up point for the next session]
+   **Handoff doc:** [path to local temp file, for agent use]
+
+   _[N] of ~[effort_estimate] context window(s) used so far._
+   ```
+   Comments accumulate on the issue across sessions, forming a
+   visible progress log for humans without requiring access to temp files.
+   The issue is only closed when all AC pass and PR is merged — not at handover.
 
 4. Output to user
    → "Handover complete. Handoff doc: [path]."
@@ -342,9 +357,12 @@ Phase skip/revert is logged in the session briefing: *"Phase advanced to Executi
 ```
 1. Read .claude/session.json (if exists) → phase, active task, effort estimate
 2. Read most recent $TEMP/harness-handoff-*.md (glob, sort by mtime)
-3. Read MEMORY.md or top-3 memobank entries relevant to active task
-4. Evaluate artifact evidence → apply phase skip/revert if warranted (see above)
-5. If session.json absent after evaluation: infer phase from GitHub issue state + labels
+3. If active_task.github_issue is set and temp file absent or older than 24h:
+   read most recent "Handover —" comment via `gh issue view <N> --comments`
+   (issue comments are the durable fallback; temp files are session-local)
+4. Read MEMORY.md or top-3 memobank entries relevant to active task
+5. Evaluate artifact evidence → apply phase skip/revert if warranted (see above)
+6. If session.json absent after evaluation: infer phase from GitHub issue state + labels
 7. Output structured briefing:
    ---
    ## Session briefing

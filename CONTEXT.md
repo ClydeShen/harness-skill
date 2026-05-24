@@ -45,8 +45,19 @@ Maturity stages (0–5): 0=manual, 1=chat+copy-paste, 2=agentic+line-review, 3=p
 
 Distinct from **harness engineering**, which is the infrastructure that enables compound engineering to run reliably across sessions.
 
+### SOTA (Design Principle)
+"State of the Art" in this system means **current best practice**: choose patterns that are well-established and widely validated by the community (Anthropic docs, CLAUDE.md conventions, mattpocock/skills patterns). Does NOT mean adopt experimental or cutting-edge techniques. Reject approaches known to be obsolete. Compatible with KISS and YAGNI — the simplest well-validated approach wins.
+_Avoid_: interpreting SOTA as "most novel" or "most sophisticated."
+
 ### Harness Engineering
 The infrastructure layer that allows AI agents to run long-running tasks reliably: hooks, CI, instruction files, session state, context handover. Distinct from **compound engineering**, which is the per-task methodology that runs on top of the harness.
+
+### Memory System
+An external persistent store that survives session boundaries and context compaction. Used to record facts, decisions, and constraints that are not derivable from the codebase, git history, or project documents. The harness framework is **memory-system-agnostic**: any common system (memobank, mem0, letta, etc.) satisfies the interface. Required operations: write a memory, read/query relevant memories, update or remove stale memories. Skills reference "the active memory system" without naming a specific product.
+_Avoid_: treating memobank as the only valid implementation.
+
+### Recovery State
+The minimum information an agent needs after an interruption to resume correctly: (1) **Purpose** — active task, current phase, next step; (2) **Constraints** — project rules (CLAUDE.md), domain config (harness.json), CONTEXT.md glossary. Purpose comes from session.json + handoff.md. Constraints come from version-controlled project files. Both must be reconstructible without human intervention, at any interruption point.
 
 ### Session
 A single continuous Claude Code conversation. Sessions are bounded by context window limits. A **context handover** is the structured transition between sessions, preserving continuity.
@@ -56,9 +67,17 @@ The structured process executed near the end of a session to preserve state acro
 
 Trigger: context window token usage reaches ≥80% of total capacity. Claude receives this natively via `<system_warning>Token usage: X/Y; Z remaining</system_warning>` after each tool call — no external hook required for detection. The remaining 10-20% is the reserved buffer for executing the handover procedure itself.
 
+**Handover trigger — two-tier:**
+1. **Phase-budget warning (proactive):** After each tool call, the agent reads `<system_warning>Token usage: X/Y; Z remaining</system_warning>` and compares remaining tokens to the expected budget for remaining phases. If insufficient to complete Review + Compound for the current phase, trigger handover immediately — do not wait for the global threshold. Per-phase trigger points: Design ≥70% used, Product ≥70% used, Execution ≥70% used.
+2. **Hard threshold (safety net):** If the proactive trigger is missed, ≥80% total usage fires as a fallback. The remaining 20% is reserved for executing the handover procedure.
+
 **Handoff document:** A single unified file at `.claude/handoff.md` in the project root. Overwritten in place on every handover — no timestamped copies. Added to `.gitignore` by `setup-harness-skills`. This is the primary continuity artifact for the next agent session; `session-start` reads it directly. The "Last updated" timestamp inside the file records when it was last written.
 
-**GitHub issue comments:** For multi-session issues (effort > 1 context window), `context-handover` also appends a progress comment to the active GitHub issue. Comments accumulate into a visible progress log for humans. The issue comment is the durable remote record; `.claude/handoff.md` is the primary local record. `session-start` uses `.claude/handoff.md` by default and fetches the last GitHub comment only when the local file is absent, the task has severely deviated, or the user explicitly requests a sync.
+**GitHub issue comments:** Two tiers of mid-session progress comments:
+1. **Per-AC-item comment** (during Execution): posted each time an AC item completes, format: `Progress [timestamp]: Completed AC #N — [one line summary]. Remaining: [list].` This is the durable in-session audit trail — survives mid-session interruptions without a clean handover.
+2. **Handover comment** (at context-handover): full session summary posted at handover time.
+
+`session-start` after a mid-session interruption: reads `session.json` (active task ID) → reads GitHub issue comments (most recent progress comments) + `git log --oneline -20` → reconstructs what was completed and what remains without human intervention.
 
 Session continuation is manual: the human starts a new session via `/compact` or `/new`. Automation (Desktop tasks, `/loop`) is out of scope — the handoff document quality is the primary continuity mechanism, not automated chaining.
 
@@ -72,6 +91,9 @@ Two mechanisms enforce context cleanliness:
 2. **Context handover**: at session end, the context is compacted and the next session starts clean with only the structured handoff artifacts loaded.
 
 Context cleanliness is the primary reason for context handover — not just resource management, but quality preservation.
+
+### Compound Step (Context Handover)
+The first action in every `context-handover` execution. The agent invokes the active memory system's update mechanism — what the memory system does internally (updating long-term memory, optimising CLAUDE.md, classifying facts) is the memory system's responsibility, not the harness's. The harness contract is: "trigger the update before compacting." The memory system is a black box from the harness's perspective.
 
 ### Implementation Notes
 A running artifact (markdown file) maintained during an Execution phase session when the agent makes decisions not covered by the spec. Captures: decisions not in the spec, things changed from the original plan, tradeoffs accepted, and anything the next session or human reviewer should know. Not created for every issue — only when the agent deviated from the spec.
@@ -93,7 +115,7 @@ Phase transitions are criteria-based and agent-declared (not human-initiated). T
 
 **Invariant:** All phase exit criteria must be defined during the Design phase, before any other phase begins. A Design phase that does not produce exit criteria for all subsequent phases is not complete.
 
-**Human gate:** Human approval is required to exit the Design phase only. All other phase transitions (Product → Execution, Execution → Testing, Testing → done) are agent-declared and autonomous. Human observes via GitHub; may veto but does not initiate.
+**Human gate:** Verification and review require human participation — the system is not fully autonomous. Human approval gates: (1) Design phase exit (design-approved label or closed issue); (2) PR merge for Execution phase issues (human merges the PR — this is the Execution exit oracle). Product → Execution and Execution → Testing transitions may be agent-declared only when the human-gated oracles above are satisfied. Human observes all transitions via GitHub; may veto at any point.
 
 ### Phase Exit Criteria
 Machine-verifiable conditions that determine when a phase is complete. Defined during Design phase for all phases. The agent validates these at phase end and posts a transition summary (GitHub comment or issue) before advancing.
@@ -181,11 +203,34 @@ The dynamic session state file at `.claude/session.json` in the user's project. 
 A `type:spike` issue — a throwaway implementation task that validates the core assumption of a PRD before full story breakdown. Time-boxed to 1 context window, explicitly discarded after the question is answered. Its output is a decision (proceed / pivot / split), not shippable code. Recommended by `to-prd` when solution uncertainty is detected. Inspired by the prototype-first principle: validate with something runnable rather than speculating in the PRD. Always AFK (the Execution agent can attempt it autonomously). Distinct from `type:feature` (shippable) and `type:chore` (maintenance).
 
 ### HITL / AFK (Issue Categorization)
-Two categories applied to every issue created by `to-issues`, adopted from mattpocock/skills:
-- **AFK** (away-from-keyboard): Issue is fully specified and can be implemented autonomously by the Execution agent. Maps to `status:ready-for-agent`.
-- **HITL** (human-in-the-loop): Issue requires a human decision, architectural review, or further specification before an agent can proceed. Maps to `status:needs-prd`.
+Two categories applied to every issue created by `to-issues`:
+- **AFK** (away-from-keyboard): Agent is **confident** — every AC item is traceable to a source (spec section, explicit user statement, or established best practice), and the information chain is complete (requirement → AC → DoD with no gaps). Maps to `status:ready-for-agent` directly, no human review required.
+- **HITL** (human-in-the-loop): Agent is **not confident** — at least one AC item is derived from an assumption without a traceable source, or the information chain has a gap, or genuine ambiguity exists. Maps to `status:needs-review` (human validation gate) or `status:needs-prd` (story not yet writable).
 
-The agent prefers AFK where the story is fully specified. HITL is used only when a genuine unresolved human decision exists. Gives humans immediate board-level visibility into which issues are agent-ready.
+The agent must declare its confidence level explicitly in the issue body, citing sources for each AC item. An issue that cannot cite all its sources is always HITL.
+_Avoid_: using HITL as a catch-all for "I'm unsure" — it must cite which specific information is missing.
+
+### Confidence Declaration
+The machine-checkable criteria for an AFK issue. An agent is confident when ALL of the following are true:
+1. **Source-backed**: every AC item traces to a source — one of three valid types: (a) spec section (cite section number), (b) explicit user statement (cite date/session), (c) established best practice (must cite a named reference: URL, named pattern, or line in CLAUDE.md/CONTEXT.md). An uncited "best practice" claim is not valid.
+2. **Chain complete**: requirement → AC → DoD has no gaps (each AC maps to a DoD item; no DoD item is unjustified)
+3. **Unambiguous**: no more than one valid interpretation of any AC item exists
+
+A single unmet criterion makes the issue HITL → `status:needs-review`.
+
+### GitHub Kanban Columns (Project Board)
+Six columns mapping the full issue lifecycle with two human gates:
+
+| Column | Moved by | Human action? | Condition |
+|---|---|---|---|
+| Triage | Agent | No | New issue, needs classification |
+| Needs PRD | Agent | No | Story not yet writable |
+| Needs Review | Agent | **Yes — human validates** | Agent not confident (HITL) |
+| Ready for Agent | Human or Agent | Triggers execution | AFK: agent confident |
+| In Progress | Agent | No | Agent actively working |
+| Done | GitHub (PR merged) | **Yes — human merges PR** | Execution oracle |
+
+`status:needs-review` is a new label. Human moves from Needs Review → Ready for Agent by relabeling. Agent moves directly to Ready for Agent when confident.
 
 ### Design Phase Tracking Issue
 A single GitHub issue created at project start (before any design work begins). Labelled `phase:design`. Serves as the task anchor for all Design phase sessions. The agent comments on this issue at each session end (progress, decisions made, next design document). Human approval is signalled by applying a label (e.g. `design-approved`) or by the human closing the issue. All subsequent phase tracking may use separate issues or milestones.

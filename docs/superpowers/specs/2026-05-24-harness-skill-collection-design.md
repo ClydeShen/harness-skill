@@ -1,7 +1,7 @@
 # Harness Engineering Skill Collection — Design Spec
 
 **Date:** 2026-05-24
-**Status:** Approved — v3 (post-grill)
+**Status:** Approved — v5 (post-grill-3)
 **Scope:** Full repo refactor — single skill → curated skill collection
 
 ---
@@ -105,7 +105,7 @@ harness-engineering-skill/
 | `handoff` | Productivity | None — copied verbatim | — |
 | `triage` | Engineering | One-line replacement | Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not` |
 | `to-prd` | Engineering | Medium adaptation | (1) Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not`. (2) Replace PRD template section "Implementation Decisions" with "Technical Constraints" (see below). |
-| `to-issues` | Engineering | One-line + BA format additions | (1) Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not`. (2) Append BA user story format instructions (see below). |
+| `to-issues` | Engineering | Medium adaptation | (1) Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not`. (2) Append BA user story format instructions (see below). (3) Add Confidence Declaration requirement + enforced template with Source column. (4) Conditional routing: confident (AFK) → `status:ready-for-agent` directly; not confident (HITL) → `status:needs-review`. |
 | `write-a-skill` | Productivity | Add four checklist items | Append to the existing checklist section (see below). |
 
 #### `to-prd` — WHAT/HOW separation enforcement
@@ -173,14 +173,56 @@ is determined by the Execution agent when it reads this issue. Do not add techni
 implementation details, file paths, or code snippets to this story.
 ```
 
-**HITL/AFK categorization (from mattpocock/skills `to-issues`):** Before creating each issue, the agent classifies it:
+**HITL/AFK categorization — confidence-based routing:**
 
-| Category | Meaning | `status:` label applied |
+| Category | Definition | `status:` label applied |
 |---|---|---|
-| **AFK** (away-from-keyboard) | Can be implemented and merged autonomously by the Execution agent | `status:ready-for-agent` |
-| **HITL** (human-in-the-loop) | Requires architectural decision, design review, or human input before agent can proceed | `status:needs-prd` |
+| **AFK** (away-from-keyboard) | Agent is **confident**: every AC item is traceable to a cited source (spec section, explicit user statement, or named best practice), and the requirement → AC → DoD chain has no gaps | `status:ready-for-agent` (directly, no human review) |
+| **HITL** (human-in-the-loop) | Agent is **not confident**: at least one AC item is derived from an assumption without a traceable source, or the information chain has a gap, or genuine ambiguity exists | `status:needs-review` (human validation gate) or `status:needs-prd` (story not yet writable) |
 
-The agent prefers AFK classification where the story is fully specified. HITL is used only when a genuine human decision is unresolved. This gives humans immediate board-level visibility into which issues an agent can pick up now versus which ones still need input.
+`needs-review` vs. `needs-prd`: use `needs-prd` when the story cannot be written yet (requirements missing). Use `needs-review` when the story is written but the agent lacks confidence in at least one AC item.
+
+**Confidence declaration — enforced in every issue body:**
+
+The `## Confidence` section must appear in every issue. An agent that cannot populate the Source column for every AC row must classify the issue as HITL.
+
+Valid source types (exactly three — no others accepted):
+1. **Spec section** — cite section number (e.g., "Spec §3.2")
+2. **Explicit user statement** — cite session date (e.g., "User statement 2026-05-24")
+3. **Named best practice** — cite a named reference: URL, named pattern, or specific line in CLAUDE.md/CONTEXT.md. An uncited "best practice" claim is not valid.
+
+**Enforced issue template** (every issue created by `to-issues` must follow this structure):
+
+```markdown
+## Story
+As a [role], I want [capability], so that [benefit].
+
+## Confidence: AFK ✓ / HITL ⚠
+> Agent confidence: **AFK** — all sources cited below.
+> (or: **HITL** — missing: [specific gap description])
+
+## Acceptance Criteria
+| # | Criterion | Type | Source |
+|---|---|---|---|
+| 1 | Given X, when Y, then Z | happy path | Spec §N.N |
+| 2 | Given X, when error, then W | sad path | User statement YYYY-MM-DD |
+
+## Definition of Done
+- [ ] All AC pass (verified by agent or CI)
+- [ ] PR merged to main
+- [ ] No regressions in related tests
+- [ ] Implementation notes written if agent deviated from spec
+
+## Effort
+Estimate: **N context window(s)**
+
+## Dependencies
+Blocked by: #NNN / None
+```
+
+**Mid-session execution rules** (Execution phase agents reading this issue must follow):
+1. **Commit after each AC item completes** — the git log is the durable in-session progress record.
+2. **Post a progress comment after each AC item completes** — format: `Progress [timestamp]: Completed AC #N — [one line summary]. Remaining: [list].` This survives mid-session interruptions without a clean handover.
 
 **Three gates enforced at creation time:** `to-issues` checks each story before writing the issue.
 
@@ -274,7 +316,7 @@ Do NOT make this choice unilaterally. Wait for the user's answer before proceedi
 2. Write block to whichever of CLAUDE.md / AGENTS.md exists (never create the other)
    - **Idempotent write:** if `## Agent skills` already exists, replace the existing block in-place; never append a second copy
 3. Write `.claude/harness.json` with GitHub owner, repo, project board ID, branch, and paths confirmed in Sections A–E (idempotent — merge over existing values if file already exists)
-4. Create GitHub labels via `gh label create` (all four categories — idempotent)
+4. Create GitHub labels via `gh label create` (all four categories — idempotent). The `status:needs-review` label is required and must be created: it is the Product exit human gate — issues written by `to-issues` with HITL classification land here for human validation before transitioning to `ready-for-agent`.
 5. Create GitHub Milestones via `gh api` (user-confirmed names from Section D)
 6. Create GitHub Project v2 board if user opted in (Section D), with `Effort (windows)` field; write `project_v2_id` back to `harness.json`
 7. Configure branch protection via `gh api` (graceful degradation on permission failure)
@@ -300,7 +342,7 @@ Do NOT make this choice unilaterally. Wait for the user's answer before proceedi
 - `issue-tracker-github-projects.md`
 - `triage-labels.md`
 - `domain.md`
-- `github-project.md` — default columns: `Backlog`, `In Progress`, `Done`; default effort field: `Effort (windows)`
+- `github-project.md` — default columns: `Triage`, `Needs PRD`, `Needs Review`, `Ready for Agent`, `In Progress`, `Done`; default effort field: `Effort (windows)`
 - `session-config.md` — session.json schema documentation
 
 ---
@@ -311,13 +353,12 @@ Do NOT make this choice unilaterally. Wait for the user's answer before proceedi
 ```yaml
 name: context-handover
 description: >
-  End-of-context-window session transition: saves memory, overwrites
-  .claude/handoff.md, posts a progress comment to the active GitHub issue,
-  and instructs the user to /compact so a fresh main session can resume
-  seamlessly. Invoke when approaching 80% context window usage (Claude
-  reports this natively). Distinct from /handoff, which is a lightweight
-  intra-session summary for briefing subagents — use /handoff when spawning
-  a subagent mid-task, /context-handover when the main session is ending.
+  End-of-context-window session transition: invokes the active memory system,
+  overwrites .claude/handoff.md, posts a handover comment to the active GitHub
+  issue, and instructs the user to /compact so a fresh main session can resume
+  seamlessly. Two-tier trigger: (1) proactive when remaining tokens are
+  insufficient for remaining phase budget; (2) safety net at 80% total usage.
+  Distinct from /handoff (lightweight subagent briefing — no GitHub, no /compact).
 argument-hint: "What will the next session focus on?"
 ```
 
@@ -340,12 +381,18 @@ argument-hint: "What will the next session focus on?"
 
 The session.json is the authoritative source because it is written by this collection's own skills and reflects the user's declared intent. GitHub issue labels are a human-readable secondary source that the onboarding skill (`setup-harness-skills`) documents in `docs/agents/`. The two are not in conflict — session.json is writable by agents, labels by humans — but session.json takes precedence when present.
 
+**Two-tier handover trigger** (governs when to invoke this skill):
+1. **Phase-budget warning (proactive):** After each tool call, read `<system_warning>Token usage: X/Y; Z remaining</system_warning>`. Compare remaining tokens against the expected budget for remaining phases. Trigger immediately if insufficient to complete Review + Compound for the current phase. Per-phase thresholds: Design ≥70%, Product ≥70%, Execution ≥70% total used.
+2. **Hard threshold (safety net):** ≥80% total usage — fires if proactive trigger was missed.
+
 **Execution sequence:**
 
 ```
-1. Save memory
-   → Invoke memobank skill if installed
-   → Write key decisions to MEMORY.md if memobank absent
+1. Invoke the active memory system
+   → Call the memory system's update mechanism (mem0, memobank, letta, or equivalent).
+   → The memory system is a black box: how it classifies facts, updates CLAUDE.md,
+     or manages long-term vs. short-term memory is its own responsibility.
+   → Harness contract: trigger the update before compacting. Nothing more.
    Budget: <5% of remaining context
 
 2. Update unified handoff doc
@@ -362,10 +409,12 @@ The session.json is the authoritative source because it is written by this colle
    Budget: <5% of remaining context
 
 3. Update GitHub issue (if docs/agents/issue-tracker.md exists AND active task has a GitHub issue)
-   → Append handoff content as issue comment (see format below)
+   → Append **handover comment** to the issue (see format below)
    → Update session.json: last_handover, next_session_hint
    → GitHub issue comment is the **durable remote record** for humans;
      `.claude/handoff.md` is the **primary local record** for the next agent session.
+
+   Note: **per-AC-item progress comments** (format: `Progress [timestamp]: Completed AC #N — [summary]. Remaining: [list].`) are posted by the Execution agent during the session, NOT by this skill. Those comments form the mid-session audit trail that survives interruptions without a clean handover. This skill posts only the end-of-session handover comment.
 
    **Issue comment format (multi-session progress log):**
    ```
@@ -466,17 +515,24 @@ Phase skip/revert is logged in the session briefing: *"Phase advanced to Executi
    - docs/superpowers/specs/ → any spec files (phase skip signal)
    - MEMORY.md or top-3 memobank entries relevant to active task
 
-2. RESUME CONTEXT — handoff doc is PRIMARY:
-   a. Use `.claude/handoff.md` read in step 1 (fixed path — no glob needed)
-   b. Fetch last GitHub issue comment ONLY when `.claude/handoff.md` is absent,
+2. RESUME CONTEXT — four-tier recovery chain:
+   a. `.claude/handoff.md` (PRIMARY) — fixed path, read in step 1. Use if present.
+   b. **Mid-session interruption recovery** (handoff.md is stale or from previous session):
+      - Read `git log --oneline -20` → reconstructs what code was committed this session
+      - Fetch recent GitHub issue progress comments (format: "Progress [timestamp]: Completed AC #N…")
+        Command: `gh api repos/{owner}/{repo}/issues/<N>/comments --jq '[.[] | select(.body | startswith("Progress"))] | .[-5:]'`
+        (last 5 progress comments only)
+      Together, git log + progress comments reconstruct what was completed and what remains
+      after an unclean interruption, without human intervention.
+   c. Fetch last GitHub handover comment ONLY when `.claude/handoff.md` is absent,
       AND any of the following is true:
         - local project context is completely lost (handoff file deleted or project re-cloned)
         - severe task deviation: active_task in session.json doesn't match current GitHub
           `in-progress` issue (different issue number)
         - user explicitly requests a GitHub sync ("sync from GitHub", "what's on the issue")
-      Command: gh api repos/{owner}/{repo}/issues/<N>/comments --jq '.[-1]'
+      Command: `gh api repos/{owner}/{repo}/issues/<N>/comments --jq '.[-1]'`
       (fetches the single last comment only — never full comment history)
-   c. Full comment history: NEVER loaded automatically. Load only if user explicitly requests.
+   d. Full comment history: NEVER loaded automatically. Load only if user explicitly requests.
 
 3. EVALUATE — apply phase skip/revert based on artifact evidence (see table above)
 
@@ -523,7 +579,9 @@ Claude Sonnet 4.6 / 4.5 and Haiku 4.5 receive native context awareness via `<sys
 
 A PostToolUse hook that reads `$CLAUDE_CONTEXT_USAGE_PCT` was considered and rejected: the env var name is unverified in Claude Code's hook runtime, and the GitHub OAuth endpoint (`/api/usage`) returns subscription quota (5-hour/7-day billing windows), not context window usage — making external monitoring unreliable. Native awareness is more accurate and requires zero infrastructure.
 
-**`setup-harness-skills` does not write any context-monitoring hook.** The `context-handover` SKILL.md instructs Claude to invoke `/context-handover` when it detects the native 80% warning.
+**`setup-harness-skills` does not write any context-monitoring hook.** The `context-handover` SKILL.md instructs Claude to use a **two-tier trigger**:
+1. **Proactive (phase-budget):** After each tool call, compare `Z remaining` against the expected budget for remaining phases. If insufficient to complete Review + Compound for the current phase, trigger immediately. Per-phase thresholds: Design/Product/Execution all at ≥70% total used.
+2. **Safety net:** ≥80% total usage — if the proactive trigger was missed.
 
 ---
 
@@ -587,7 +645,7 @@ Read by: `session-start`, `context-handover`, `harness-engineering`.
 
 | Category | Values |
 |---|---|
-| `status:` | `triage` / `needs-prd` / `ready-for-agent` / `in-progress` / `done` |
+| `status:` | `triage` / `needs-prd` / `needs-review` / `ready-for-agent` / `in-progress` / `done` |
 | `phase:` | `design` / `product` / `execution` / `testing` |
 | `type:` | `feature` / `bug` / `chore` / `task` / `spike` |
 | `priority:` | `p1` / `p2` / `p3` |
@@ -598,25 +656,39 @@ Read by: `session-start`, `context-handover`, `harness-engineering`.
 
 **`setup-harness-skills` creates all labels** via `gh label create`. If a label already exists, the command is skipped (idempotent).
 
-**Status flow (mirrors mattpocock/skills):**
+**Status flow:**
 ```
-triage → needs-prd → ready-for-agent → in-progress → done
+triage → needs-prd → [needs-review | ready-for-agent] → in-progress → done
 ```
-Agent moves issues forward. Human can move backward (e.g., `ready-for-agent` → `needs-prd` to signal rework needed).
+- `needs-review`: HITL stories land here. **Human validates** AC sources and confidence declaration, then relabels to `ready-for-agent` to unblock execution. This is the Product phase exit human gate.
+- `ready-for-agent`: AFK stories go here directly (agent confident). Also where human moves stories from `needs-review` after approval.
+
+Agent moves issues forward. Human moves issues from `needs-review` → `ready-for-agent` (approval) or backward to `needs-prd` (rework needed).
 
 **GitHub Milestones** — native GitHub grouping containers, not issue types. Created by `setup-harness-skills` at project start. Suggested defaults: `Design`, `MVP`, `v1.0`. Issues are assigned to milestones during the Product phase breakdown. Milestones give humans a progress view per release on the GitHub Project board. Not represented as labels — use `gh milestone create` and `gh issue edit --milestone`.
 
 **GitHub Project v2 board** — created by `setup-harness-skills` via GraphQL API if user opts in during Section D:
-- Default columns: `Backlog` / `In Progress` / `Done`
+- **Six columns** (Option A — two human gates):
+
+| Column | Status label | Who moves here | Human action? |
+|---|---|---|---|
+| Triage | `status:triage` | Agent | No |
+| Needs PRD | `status:needs-prd` | Agent | No |
+| Needs Review | `status:needs-review` | Agent (HITL stories) | **Yes — human validates AC + sources** |
+| Ready for Agent | `status:ready-for-agent` | Human (from Needs Review) or Agent (AFK) | Triggers execution |
+| In Progress | `status:in-progress` | Agent (`session-start`) | No |
+| Done | `status:done` | GitHub (PR merged) | **Yes — human merges PR** |
+
 - Custom field: `Effort (windows)` — number field, agent-estimated context windows to complete per issue
 - Issues are added to the board at creation; column matches `status:` label
+- Section D interaction must ask about column names; these six are the defaults (user may rename)
 
 **Phase Exit Criteria oracles:**
 
 | Phase | Oracle |
 |---|---|
 | Design | Design Phase Tracking Issue (`phase:design`) has label `design-approved` or is closed by human |
-| Product | All `phase:execution` issues created from breakdown have `status:ready-for-agent` |
+| Product | All `phase:execution` issues have `status:ready-for-agent` (none remain in `needs-review` — human has approved all HITL stories) |
 | Execution | All `phase:execution` issues are closed via merged PRs (`Closes #NNN` in PR body) |
 | Testing | All `phase:testing` issues are `status:done`; no open `p1` bugs remain |
 
@@ -845,7 +917,7 @@ Each skill directory that has evals ships its own `evals/evals.json`. This is co
 | 1 | Repo restructure | Clean foundation — move files, create `.claude-plugin/`, update `plugin.json` |
 | 2 | `setup-harness-skills` | Gateway — needed by everything else |
 | 3 | `context-handover` + `session-start` | Core new value |
-| 4 | Adapt mattpocock skills | Variable effort: `triage` (one-line), `to-prd` (medium — replace Implementation Decisions section), `to-issues` (medium — add BA format + HITL/AFK + three gates), `write-a-skill` (four checklist items), `zoom-out` / `caveman` / `grill-me` / `handoff` (zero changes) |
+| 4 | Adapt mattpocock skills | Variable effort: `triage` (one-line), `to-prd` (medium — replace Implementation Decisions section), `to-issues` (medium — add BA format + confidence declaration + enforced template + conditional HITL/AFK routing + three gates), `write-a-skill` (four checklist items), `zoom-out` / `caveman` / `grill-me` / `handoff` (zero changes) |
 | 5 | Enhance `harness-engineering` | Read `docs/agents/` config |
 | 6 | Eval runner + new evals | Verify all skills pass |
 

@@ -131,5 +131,36 @@ The four label categories used across all issues in the system:
 
 `phase:` is **categorical** (what kind of issue this is), not temporal (what phase the project is currently in). A `phase:execution` issue and a `phase:testing` issue can coexist on the board. The current project phase is canonical in `session.json`; the agent processes only issues matching `phase:<current-phase>` + `status:ready-for-agent`.
 
+### GitHub Milestone
+GitHub's native issue-grouping container. Used in this system as a release or phase container — not an issue type. Created by `setup-harness-skills` at project start (e.g., `Design`, `MVP`, `v1.0`). Issues are assigned to milestones during the Product phase breakdown. Milestones are visible on the GitHub Project board and give humans a progress view per release. Distinct from `type:` labels, which describe the nature of an individual issue.
+
+### User Story
+The unit of work produced by the Product phase. Written in BA (Business Analyst) format and assigned to `phase:execution` issues. A user story describes **what** the system should do from the user's perspective — never **how** to implement it. Technical decisions belong to the Execution phase agent.
+
+**Format:**
+```
+As a [role], I want [capability], so that [benefit].
+```
+
+**Acceptance Criteria (AC):** Written in Given/When/Then (BDD) style or as a verifiable checklist. Must include at least:
+- 1 happy path (normal successful flow)
+- 1 sad path (error or edge case)
+
+**Definition of Ready (DoR):** Criteria that must be true before an Execution agent can start:
+- Story has a clear role, capability, and benefit
+- All AC are written and unambiguous
+- Dependencies on other issues are identified
+- Effort estimate (context windows) is set
+
+**Definition of Done (DoD):** Criteria that must be true for the issue to close:
+- All AC pass (verified by the agent or CI)
+- PR merged to main
+- No regressions in related tests
+- Implementation notes written if agent deviated from spec
+
+**Effort estimate:** Set during Product phase. Unit = context windows. `1` = estimated to complete within one context window. `2` = requires two sessions. Used to populate the `Effort (windows)` GitHub Project field.
+
+**INVEST criteria applied:** Stories must be Independent (can be worked in any order within a phase), Negotiable (scope can be adjusted), Valuable (delivers user-facing benefit), Estimable (effort is knowable), Small (fits within 1–2 context windows), Testable (AC are verifiable).
+
 ### Design Phase Tracking Issue
 A single GitHub issue created at project start (before any design work begins). Labelled `phase:design`. Serves as the task anchor for all Design phase sessions. The agent comments on this issue at each session end (progress, decisions made, next design document). Human approval is signalled by applying a label (e.g. `design-approved`) or by the human closing the issue. All subsequent phase tracking may use separate issues or milestones.

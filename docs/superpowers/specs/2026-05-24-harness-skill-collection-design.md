@@ -26,6 +26,7 @@ This spec defines a refactor into a complete skill collection modeled on `mattpo
 | **Gateway pattern** | `setup-harness-skills` runs once per project and writes all config that other skills read. |
 | **Graceful degradation** | Every skill works without `docs/agents/` config — it just asks instead of reading. |
 | **YAGNI** | No abstract phase-routing engine. Phase detection is a few `if` conditions in the skill. |
+| **WHAT / HOW separation** | Product phase writes behavioral user stories (WHAT). Execution phase agent produces its own technical plan (HOW). User stories never contain file paths, implementation details, or code. |
 | **One level deep** | Reference files link directly from SKILL.md, never nested. |
 
 ---
@@ -104,8 +105,50 @@ harness-engineering-skill/
 | `handoff` | Productivity | None — copied verbatim | — |
 | `triage` | Engineering | One-line replacement | Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not` |
 | `to-prd` | Engineering | One-line replacement | Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not` |
-| `to-issues` | Engineering | One-line replacement | Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not` |
+| `to-issues` | Engineering | One-line + BA format additions | (1) Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not`. (2) Append BA user story format instructions (see below). |
 | `write-a-skill` | Productivity | Add one checklist item | Append to the existing checklist section: `- [ ] Does the skill's description mention its typical context window cost?` |
+
+#### `to-issues` — BA user story format additions
+
+The adapted `to-issues` SKILL.md appends the following instructions after the existing mattpocock content:
+
+```
+## User story format (appended for this collection)
+
+Each issue produced by /to-issues must follow BA best practices:
+
+**Title:** [type]: short imperative description (e.g. "feature: user can reset password via email")
+
+**Body structure:**
+As a [role], I want [capability], so that [benefit].
+
+### Acceptance Criteria
+- [ ] Happy path: Given [context], when [action], then [outcome]
+- [ ] Sad path: Given [context], when [error condition], then [expected error behaviour]
+(add more AC rows as needed — minimum 1 happy + 1 sad)
+
+### Definition of Ready
+- [ ] Role, capability, and benefit are unambiguous
+- [ ] All AC are written and testable
+- [ ] Dependencies on other issues noted (link them)
+- [ ] Effort estimate set in `Effort (windows)` field
+
+### Definition of Done
+- [ ] All AC pass
+- [ ] PR merged to main
+- [ ] No regressions in related tests
+- [ ] Implementation notes written if agent deviated from spec
+
+### Effort estimate
+_Set by the Product phase agent. Unit = context windows (1 = fits in one session)._
+
+---
+**What vs. How:** This story describes WHAT the system should do. HOW to implement it
+is determined by the Execution agent when it reads this issue. Do not add technical
+implementation details, file paths, or code snippets to this story.
+```
+
+**INVEST criteria enforced at creation time:** `to-issues` checks each story before writing the issue. A story that cannot be estimated (Estimable) or is too large (>2 context windows) must be split before the issue is created.
 
 ### Skills NOT included (out of scope for this collection)
 
@@ -154,8 +197,8 @@ disable-model-invocation: true
 **Section C — Domain docs**
 > Explainer: Single-context (one CONTEXT.md + docs/adr/) or multi-context (CONTEXT-MAP.md for monorepos)?
 
-**Section D — GitHub Project board** *(new, not in mattpocock/skills)*
-> Explainer: The `context-handover` and `session-start` skills track long-running tasks on a GitHub Project board. Which board? What are your column names for Backlog / In Progress / Done?
+**Section D — GitHub Project board + Milestones** *(new, not in mattpocock/skills)*
+> Explainer: The `context-handover` and `session-start` skills track long-running tasks on a GitHub Project board. Which board? What are your column names for Backlog / In Progress / Done? Also: what Milestones should be created? (Defaults: `Design`, `MVP`, `v1.0` — override or skip.)
 
 **Section E — Session state location** *(new)*
 > Explainer: `.claude/session.json` tracks the active phase and task across sessions. Confirm this location or override it.
@@ -164,7 +207,12 @@ disable-model-invocation: true
 
 1. Confirm draft of `## Agent skills` block with user before writing
 2. Write block to whichever of CLAUDE.md / AGENTS.md exists (never create the other)
-3. Write seed files to `docs/agents/`:
+3. Create GitHub labels via `gh label create` (all four categories — idempotent)
+4. Create GitHub Milestones via `gh api` (user-confirmed names from Section D)
+5. Create GitHub Project v2 board if user opted in (Section D), with `Effort (windows)` field
+6. Configure branch protection via `gh api` (graceful degradation on permission failure)
+7. Scaffold `.github/workflows/ci.yml` (stack-specific)
+8. Write seed files to `docs/agents/`:
    - `issue-tracker.md` — from bundled template per tracker type
    - `triage-labels.md` — from bundled template
    - `domain.md` — from bundled template
@@ -381,9 +429,11 @@ triage → needs-prd → ready-for-agent → in-progress → done
 ```
 Agent moves issues forward. Human can move backward (e.g., `ready-for-agent` → `needs-prd` to signal rework needed).
 
+**GitHub Milestones** — native GitHub grouping containers, not issue types. Created by `setup-harness-skills` at project start. Suggested defaults: `Design`, `MVP`, `v1.0`. Issues are assigned to milestones during the Product phase breakdown. Milestones give humans a progress view per release on the GitHub Project board. Not represented as labels — use `gh milestone create` and `gh issue edit --milestone`.
+
 **GitHub Project v2 board** — created by `setup-harness-skills` via GraphQL API if user opts in during Section D:
 - Default columns: `Backlog` / `In Progress` / `Done`
-- Custom field: `Effort (windows)` — number field, agent-estimated context windows to complete
+- Custom field: `Effort (windows)` — number field, agent-estimated context windows to complete per issue
 - Issues are added to the board at creation; column matches `status:` label
 
 **Phase Exit Criteria oracles:**

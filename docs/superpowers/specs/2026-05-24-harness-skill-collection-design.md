@@ -104,9 +104,32 @@ harness-engineering-skill/
 | `grill-me` | Productivity | None — copied verbatim | — |
 | `handoff` | Productivity | None — copied verbatim | — |
 | `triage` | Engineering | One-line replacement | Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not` |
-| `to-prd` | Engineering | One-line replacement | Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not` |
+| `to-prd` | Engineering | Medium adaptation | (1) Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not`. (2) Replace PRD template section "Implementation Decisions" with "Technical Constraints" (see below). |
 | `to-issues` | Engineering | One-line + BA format additions | (1) Replace: `run \`/setup-matt-pocock-skills\` if not` → `run \`/setup-harness-skills\` if not`. (2) Append BA user story format instructions (see below). |
 | `write-a-skill` | Productivity | Add one checklist item | Append to the existing checklist section: `- [ ] Does the skill's description mention its typical context window cost?` |
+
+#### `to-prd` — WHAT/HOW separation enforcement
+
+The adapted `to-prd` SKILL.md replaces mattpocock's "Implementation Decisions" PRD section with **"Technical Constraints"**:
+
+```
+## Technical Constraints
+<!-- WHAT the system must respect — NOT how to build it.
+     The Execution agent reads these as non-negotiables and makes its own implementation decisions. -->
+
+- [External integration constraints: e.g. "Must integrate with OAuth provider at /auth/callback"]
+- [Compliance/regulatory constraints: e.g. "Session data must not be persisted to disk (GDPR)"]
+- [Performance SLAs: e.g. "API response must be <200ms at p99"]
+- [Existing system boundaries: e.g. "Must use the existing PostgreSQL instance — no new datastores"]
+```
+
+**What is NOT allowed in "Technical Constraints":**
+- Module names, class names, or file paths ("use UserService", "add to auth.ts")
+- Schema decisions ("users table with uuid pk")
+- Technology choices ("use Redis for caching")
+- Architectural patterns ("implement as a saga")
+
+These belong to the Execution agent's own technical plan, not the PRD. The Execution agent's autonomy over HOW is the design invariant — a PRD that bleeds into HOW territory will cause agents to treat implementation decisions as requirements.
 
 #### `to-issues` — BA user story format additions
 

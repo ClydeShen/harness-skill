@@ -95,7 +95,7 @@ harness-engineering-skill/
 
 ### Skills carried from mattpocock/skills
 
-**Licensing note:** `mattpocock/skills` does not ship a LICENSE file as of the May 2026 snapshot used for this adaptation. All copied skills include an attribution comment at the top of SKILL.md: `# Adapted from https://github.com/mattpocock/skills`. Verify licensing before any public redistribution.
+**Licensing note:** `mattpocock/skills` ships an MIT License (copyright Matt Pocock, 2026). Use, adaptation, and redistribution are permitted provided the copyright notice is preserved. All copied skills include an attribution comment at the top of SKILL.md: `# Adapted from https://github.com/mattpocock/skills (MIT License)`. Adapted skills append this attribution before any added content.
 
 | Skill | Type | Change | Exact text changed |
 |---|---|---|---|
@@ -723,7 +723,8 @@ Each skill directory that has evals ships its own `evals/evals.json`. This is co
     "prompt": "I'm starting a new Next.js project and want to use harness skills. Please set up the harness.",
     "scaffold": { "files": ["package.json"], "github_remote": "owner/my-next-app", "has_claude_md": true, "has_agents_md": false },
     "expectations": [
-      "Asks about issue tracker before writing any files",
+      "Explores project state first (.git/config, existing instruction files, docs/agents/) before asking any questions",
+      "Presents a one-line summary of what it found before proceeding to questions",
       "Asks each of the five sections one at a time, not all at once",
       "Writes docs/agents/issue-tracker.md",
       "Writes docs/agents/triage-labels.md",
@@ -844,7 +845,7 @@ Each skill directory that has evals ships its own `evals/evals.json`. This is co
 | 1 | Repo restructure | Clean foundation — move files, create `.claude-plugin/`, update `plugin.json` |
 | 2 | `setup-harness-skills` | Gateway — needed by everything else |
 | 3 | `context-handover` + `session-start` | Core new value |
-| 4 | Adapt mattpocock skills | Low-effort: one-line change each |
+| 4 | Adapt mattpocock skills | Variable effort: `triage` (one-line), `to-prd` (medium — replace Implementation Decisions section), `to-issues` (medium — add BA format + HITL/AFK + three gates), `write-a-skill` (four checklist items), `zoom-out` / `caveman` / `grill-me` / `handoff` (zero changes) |
 | 5 | Enhance `harness-engineering` | Read `docs/agents/` config |
 | 6 | Eval runner + new evals | Verify all skills pass |
 

@@ -193,6 +193,12 @@ disable-model-invocation: true
 - Local markdown (`.scratch/<feature>/`)
 - Other (user describes in prose)
 
+**Section A.5 — Instruction file (runs only when neither CLAUDE.md nor AGENTS.md exists)**
+> "No instruction file found. Which would you like to create?"
+- `CLAUDE.md` — standard for Claude Code projects
+- `AGENTS.md` — use when the project targets multiple AI agents (Codex, Kiro, Gemini, etc.)
+Do NOT make this choice unilaterally. Wait for the user's answer before proceeding.
+
 **Section B — Triage label vocabulary**
 > Explainer: Five canonical roles: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. Override if your repo uses different strings.
 
@@ -208,13 +214,17 @@ disable-model-invocation: true
 **Output after all five sections:**
 
 1. Confirm draft of `## Agent skills` block with user before writing
+   - If an `## Agent skills` section already exists in CLAUDE.md / AGENTS.md: show diff (old block → new block), not just the new block
+   - If not found: show new block and confirm append
 2. Write block to whichever of CLAUDE.md / AGENTS.md exists (never create the other)
-3. Create GitHub labels via `gh label create` (all four categories — idempotent)
-4. Create GitHub Milestones via `gh api` (user-confirmed names from Section D)
-5. Create GitHub Project v2 board if user opted in (Section D), with `Effort (windows)` field
-6. Configure branch protection via `gh api` (graceful degradation on permission failure)
-7. Scaffold `.github/workflows/ci.yml` (stack-specific)
-8. Write seed files to `docs/agents/`:
+   - **Idempotent write:** if `## Agent skills` already exists, replace the existing block in-place; never append a second copy
+3. Write `.claude/harness.json` with GitHub owner, repo, project board ID, branch, and paths confirmed in Sections A–E (idempotent — merge over existing values if file already exists)
+4. Create GitHub labels via `gh label create` (all four categories — idempotent)
+5. Create GitHub Milestones via `gh api` (user-confirmed names from Section D)
+6. Create GitHub Project v2 board if user opted in (Section D), with `Effort (windows)` field; write `project_v2_id` back to `harness.json`
+7. Configure branch protection via `gh api` (graceful degradation on permission failure)
+8. Scaffold `.github/workflows/ci.yml` (stack-specific)
+9. Write seed files to `docs/agents/`:
    - `issue-tracker.md` — from bundled template per tracker type
    - `triage-labels.md` — from bundled template
    - `domain.md` — from bundled template
@@ -260,8 +270,9 @@ The session.json is the authoritative source because it is written by this colle
    → Write key decisions to MEMORY.md if memobank absent
    Budget: <5% of remaining context
 
-2. Write handoff doc
-   → Path: $TEMP/harness-handoff-YYYY-MM-DD-HHmm.md
+2. Update unified handoff doc
+   → Path: `.claude/handoff.md` (project-local; added to .gitignore by setup-harness-skills)
+   → This is a **single, unified file** — overwritten in place on every handover. No timestamps in the path.
    → Content per phase (see phase-budgets.md):
       Design: decisions made, open questions, next doc to write
       Product: stories broken down, next story, effort remaining
@@ -269,11 +280,14 @@ The session.json is the authoritative source because it is written by this colle
       Testing: issues found, root causes, next test case
    → Reference artifacts by path/URL only — never inline content
    → Include "Suggested skills" section
+   → Always include "Last updated: [YYYY-MM-DD HH:mm]" at the top
    Budget: <5% of remaining context
 
-3. Update GitHub issue (if docs/agents/issue-tracker.md exists)
+3. Update GitHub issue (if docs/agents/issue-tracker.md exists AND active task has a GitHub issue)
    → Append handoff content as issue comment (see format below)
    → Update session.json: last_handover, next_session_hint
+   → GitHub issue comment is the **durable remote record** for humans;
+     `.claude/handoff.md` is the **primary local record** for the next agent session.
 
    **Issue comment format (multi-session progress log):**
    ```
@@ -282,25 +296,26 @@ The session.json is the authoritative source because it is written by this colle
    **Phase:** [execution]
    **Session summary:** [1–3 sentences on what was done this session]
    **Next step:** [specific pick-up point for the next session]
-   **Handoff doc:** [path to local temp file, for agent use]
+   **Handoff doc:** `.claude/handoff.md`
 
    _[N] of ~[effort_estimate] context window(s) used so far._
    ```
    Comments accumulate on the issue across sessions, forming a
-   visible progress log for humans without requiring access to temp files.
+   visible progress log for humans.
    The issue is only closed when all AC pass and PR is merged — not at handover.
 
 4. Output to user
-   → "Handover complete. Handoff doc: [path]."
+   → "Handover complete. Handoff doc: `.claude/handoff.md`."
    → Print: "**Start your next session with `/session-start`.**"
    → Print: "**To compact this session now, type `/compact`.**"
    → Do NOT programmatically invoke `/compact` — it is a user-invoked built-in slash command. The skill instructs the user to invoke it. The user is always in control of when context is cleared.
 ```
 
-**Handoff doc path:** Use the OS-appropriate temp directory:
-- macOS/Linux: `$TMPDIR/harness-handoff-YYYY-MM-DD-HHmm.md` (fallback: `/tmp/`)
-- Windows: `$env:TEMP/harness-handoff-YYYY-MM-DD-HHmm.md`
-- Cross-platform resolution: `python -c "import tempfile; print(tempfile.gettempdir())"` — use this in the skill if writing via script, or document it in the SKILL.md so Claude resolves it per OS.
+**Handoff doc path:** `.claude/handoff.md` — fixed, project-local, overwritten each handover.
+- Eliminates cross-platform temp dir resolution.
+- Added to `.gitignore` by `setup-harness-skills` so it is never committed.
+- Accessible across restarts (unlike OS temp dirs that may be cleared).
+- `session-start` reads this path directly — no glob needed.
 
 **Graceful degradation of `context-handover`:**
 - No `docs/agents/` config: skip GitHub issue update step; still write handoff doc and update session.json
@@ -345,24 +360,36 @@ description: >
 
 `session-start` evaluates existing artifacts to determine the appropriate starting phase, overriding `session.json.current_phase` when the evidence warrants it:
 
-| Condition | Action |
-|---|---|
-| A spec doc exists in `docs/superpowers/specs/` | Skip Design — set phase to Product (or Execution if issues also exist) |
-| `phase:execution` issues already exist with `status:ready-for-agent` | Skip Design + Product — set phase to Execution |
-| Agent detects missing spec / insufficient requirements | Revert to Design — update `session.json.current_phase`, comment on Design Phase Tracking Issue explaining why |
-| Agent detects missing breakdown issues for an approved spec | Revert to Product |
+All conditions are **artifact-observable only** — phase revert is never triggered by the agent's subjective quality judgment about artifact content. If an artifact exists but seems thin, proceed and note the concern in the issue comment.
 
-Phase skip/revert is logged in the session briefing: *"Phase advanced to Execution — found 3 ready-for-agent issues and an approved spec."* or *"Phase reverted to Design — spec not found; cannot proceed to Product without it."*
+| Condition (observable check) | Action |
+|---|---|
+| At least one `.md` file exists in `docs/superpowers/specs/` | Skip Design — set phase to Product |
+| `phase:execution` issues exist with `status:ready-for-agent` (and spec exists) | Skip Design + Product — set phase to Execution |
+| No `.md` file in `docs/superpowers/specs/` | Revert to Design — update `session.json.current_phase`, comment on Design Phase Tracking Issue |
+| `current_phase == "product"` but no `phase:design` issue is closed or labelled `design-approved` | Revert to Design — design approval gate not passed |
+| `current_phase == "execution"` but `gh issue list --label "phase:execution,status:ready-for-agent"` returns 0 issues | Revert to Product — no ready issues to execute |
+
+Phase skip/revert is logged in the session briefing: *"Phase advanced to Execution — found 3 ready-for-agent issues and an approved spec."* or *"Phase reverted to Design — no spec found in docs/superpowers/specs/."*
 
 **Execution sequence:**
 
 ```
-1. Read .claude/session.json (if exists) → phase, active task, effort estimate
-2. Read most recent $TEMP/harness-handoff-*.md (glob, sort by mtime)
-3. If active_task.github_issue is set and temp file absent or older than 24h:
-   read most recent "Handover —" comment via `gh issue view <N> --comments`
-   (issue comments are the durable fallback; temp files are session-local)
-4. Read MEMORY.md or top-3 memobank entries relevant to active task
+1. Read .claude/harness.json → GitHub owner, repo, project board ID, default branch
+   Read .claude/session.json (if exists) → phase, active task, effort estimate
+2. Resume context — handoff doc is PRIMARY:
+   a. Read `.claude/handoff.md` (fixed path — no glob needed)
+   b. Fetch last GitHub issue comment ONLY when `.claude/handoff.md` is absent,
+      AND any of the following is true:
+        - local project context is completely lost (handoff file deleted or project re-cloned)
+        - severe task deviation detected: active_task in session.json doesn't match the current
+          GitHub `in-progress` issue (different issue number)
+        - user explicitly requests a GitHub sync ("sync from GitHub", "what's on the issue", etc.)
+      Command: gh api repos/{owner}/{repo}/issues/<N>/comments --jq '.[-1]'
+      (fetches the single last comment only — never the full comment history)
+   c. Full comment history: NEVER loaded automatically. Load only if user explicitly requests
+      ("show me all handover history for this issue").
+3. Read MEMORY.md or top-3 memobank entries relevant to active task
 5. Evaluate artifact evidence → apply phase skip/revert if warranted (see above)
 6. If session.json absent after evaluation: infer phase from GitHub issue state + labels
 7. Output structured briefing:
@@ -401,7 +428,34 @@ A PostToolUse hook that reads `$CLAUDE_CONTEXT_USAGE_PCT` was considered and rej
 
 ---
 
-### 5.5 `.claude/session.json` Schema
+### 5.5 `.claude/harness.json` — Static Project Config
+
+Separates static project configuration (what this project is) from dynamic session state (what is happening right now). Written by `setup-harness-skills` once at project start; updated only when the user re-runs setup to change a setting.
+
+```json
+{
+  "schema_version": 1,
+  "github": {
+    "owner": "my-org",
+    "repo": "my-project",
+    "default_branch": "main",
+    "project_v2_id": "PVT_xxxx",
+    "project_board_name": "My Project Board"
+  },
+  "docs_agents_dir": "docs/agents",
+  "specs_dir": "docs/superpowers/specs",
+  "issue_tracker": "github"
+}
+```
+
+**All fields populated by `setup-harness-skills`.** Skills read this file with null-safety: if `github.project_v2_id` is null, skip Project board update steps silently.
+
+Written by: `setup-harness-skills`.
+Read by: `session-start`, `context-handover`, `harness-engineering`, `to-issues`.
+
+---
+
+### 5.6 `.claude/session.json` — Dynamic Session State
 
 ```json
 {
@@ -428,7 +482,7 @@ Read by: `session-start`, `context-handover`, `harness-engineering`.
 
 ---
 
-### 5.6 GitHub Data Model
+### 5.7 GitHub Data Model
 
 **Label schema** — four categories applied to all issues:
 
@@ -606,7 +660,7 @@ Each skill directory that has evals ships its own `evals/evals.json`. This is co
     "scaffold": { "session_json": { "current_phase": "execution", "active_task": { "github_issue": 42, "title": "Add auth middleware" } }, "has_github_remote": true },
     "expectations": [
       "Identifies current phase as 'execution' from session.json",
-      "Writes a handoff doc to the OS temp directory",
+      "Writes handoff doc to .claude/handoff.md (not a timestamped temp file)",
       "Handoff doc references the GitHub issue by number/URL, not by inlining issue body",
       "Updates .claude/session.json with last_handover timestamp",
       "Instructs user to start a new session with /session-start"
@@ -643,7 +697,7 @@ Each skill directory that has evals ships its own `evals/evals.json`. This is co
   {
     "id": 1,
     "prompt": "/session-start",
-    "scaffold": { "session_json": { "current_phase": "execution", "active_task": { "github_issue": 7, "title": "Implement login flow", "effort_estimate": 1 }, "next_session_hint": "Continue from UserService.login()" }, "handoff_doc_in_temp": true },
+    "scaffold": { "session_json": { "current_phase": "execution", "active_task": { "github_issue": 7, "title": "Implement login flow", "effort_estimate": 1 }, "next_session_hint": "Continue from UserService.login()" }, "handoff_doc": ".claude/handoff.md" },
     "expectations": [
       "Outputs a structured session briefing",
       "Briefing includes: phase, active task, effort estimate, next step from handoff doc",

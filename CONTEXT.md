@@ -52,11 +52,13 @@ The infrastructure layer that allows AI agents to run long-running tasks reliabl
 A single continuous Claude Code conversation. Sessions are bounded by context window limits. A **context handover** is the structured transition between sessions, preserving continuity.
 
 ### Context Handover
-The structured process executed near the end of a session to preserve state across sessions. Produces: updated memory (MEMORY.md or memobank), a handoff document, updated GitHub issue status, and an implementation notes artifact. Distinct from the built-in `/compact` command, which compresses conversation history without preserving structured state.
+The structured process executed near the end of a session to preserve state across sessions. Produces: updated memory (MEMORY.md or memobank), an updated handoff document, updated GitHub issue status, and an implementation notes artifact. Distinct from the built-in `/compact` command, which compresses conversation history without preserving structured state.
 
 Trigger: context window token usage reaches ≥80% of total capacity. Claude receives this natively via `<system_warning>Token usage: X/Y; Z remaining</system_warning>` after each tool call — no external hook required for detection. The remaining 10-20% is the reserved buffer for executing the handover procedure itself.
 
-For multi-session issues (effort > 1 context window), `context-handover` appends its summary as a comment on the active GitHub issue in addition to writing the local temp file. Issue comments accumulate into a visible progress log for humans. The issue is not closed until all AC pass and the PR is merged — handover comments are progress markers, not completion signals.
+**Handoff document:** A single unified file at `.claude/handoff.md` in the project root. Overwritten in place on every handover — no timestamped copies. Added to `.gitignore` by `setup-harness-skills`. This is the primary continuity artifact for the next agent session; `session-start` reads it directly. The "Last updated" timestamp inside the file records when it was last written.
+
+**GitHub issue comments:** For multi-session issues (effort > 1 context window), `context-handover` also appends a progress comment to the active GitHub issue. Comments accumulate into a visible progress log for humans. The issue comment is the durable remote record; `.claude/handoff.md` is the primary local record. `session-start` uses `.claude/handoff.md` by default and fetches the last GitHub comment only when the local file is absent, the task has severely deviated, or the user explicitly requests a sync.
 
 Session continuation is manual: the human starts a new session via `/compact` or `/new`. Automation (Desktop tasks, `/loop`) is out of scope — the handoff document quality is the primary continuity mechanism, not automated chaining.
 
@@ -80,7 +82,7 @@ Path: `docs/implementation-notes/YYYY-MM-DD-issue-NNN.md` (version controlled, p
 One of four project-level phases: Design, Product, Execution, Testing. The default order is Design → Product → Execution → Testing, but phases can be **skipped** or **reversed** based on existing artifacts:
 
 - **Skip (A)**: `session-start` evaluates what artifacts already exist. If a spec exists, skip Design. If issues already exist in GitHub, skip Product. Entry condition is artifact presence, not human declaration.
-- **Reverse (B)**: Agent detects insufficient information to proceed (missing spec, ambiguous requirements) and sets `session.json.phase` back to the appropriate earlier phase, commenting on the Design Phase Tracking Issue to explain. Human observes on GitHub.
+- **Reverse (B)**: Agent detects a specific artifact absence and sets `session.json.current_phase` back to the appropriate earlier phase, commenting on the Design Phase Tracking Issue to explain. Revert is triggered **only by observable artifact absence** — never by the agent's subjective quality judgment about artifacts. Concrete triggers: (1) revert to Design when no `.md` file exists in `docs/superpowers/specs/`; (2) revert to Design when `current_phase == "product"` but no `phase:design` issue is closed or labelled `design-approved`; (3) revert to Product when `current_phase == "execution"` but `gh issue list --label "phase:execution,status:ready-for-agent"` returns 0 issues. If the spec file exists but is thin in quality, the agent proceeds and notes the quality concern in the issue comment — not revert. Human observes on GitHub.
 - **Parallel phases**: Out of scope (YAGNI).
 
 Distinct from the per-task **compound engineering cycle** (Plan/Work/Review/Compound), which repeats within each project phase. A project phase may span multiple sessions; a compound cycle maps to one task.
@@ -163,6 +165,15 @@ As a [role], I want [capability], so that [benefit].
 **Effort estimate:** Set during Product phase. Unit = context windows. `1` = estimated to complete within one context window. Maximum: `8`. Stories estimated at >8 context windows must be split into smaller issues before creation — above this threshold the scope is too large to track and hand over reliably. Used to populate the `Effort (windows)` GitHub Project field.
 
 **INVEST criteria applied:** Stories must be Independent (can be worked in any order within a phase), Negotiable (scope can be adjusted), Valuable (delivers user-facing benefit), Estimable (effort is knowable), Small (fits within 1–2 context windows), Testable (AC are verifiable).
+
+### harness.json
+The static project configuration file, written by `setup-harness-skills` to `.claude/harness.json` in the user's project. Separates static config (what the project is) from dynamic session state (what is happening right now — see `session.json`). Contains: GitHub owner, repo, default branch, Project v2 board ID, docs_agents_dir, specs_dir, and issue_tracker type. All skills read this file with null-safety. Updated only when the user re-runs `setup-harness-skills` to change a setting.
+
+### handoff.md
+The unified context handover document at `.claude/handoff.md` in the user's project. A single file overwritten in place on every `context-handover` invocation — no timestamped copies. Not version-controlled (added to `.gitignore`). Contains: last-updated timestamp, phase, session summary, next step, artifact references (paths/URLs only, never inlined content), and suggested skills. Read by `session-start` as the primary local continuity artifact. Distinct from the GitHub issue comment (durable remote record for humans) and from `session.json` (machine-readable state).
+
+### session.json
+The dynamic session state file at `.claude/session.json` in the user's project. Tracks: current phase, active task (GitHub issue number, title, effort estimate, project board item ID), last handover timestamp, and next session hint. Written by `session-start` (initialize) and `context-handover` (update). Read by `session-start`, `context-handover`, and `harness-engineering`. Distinct from `harness.json` (static project config) and `handoff.md` (human-readable continuity document).
 
 ### Design Phase Tracking Issue
 A single GitHub issue created at project start (before any design work begins). Labelled `phase:design`. Serves as the task anchor for all Design phase sessions. The agent comments on this issue at each session end (progress, decisions made, next design document). Human approval is signalled by applying a label (e.g. `design-approved`) or by the human closing the issue. All subsequent phase tracking may use separate issues or milestones.

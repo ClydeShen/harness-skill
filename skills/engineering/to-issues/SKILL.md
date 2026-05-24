@@ -81,3 +81,91 @@ Or "None - can start immediately" if no blockers.
 </issue-template>
 
 Do NOT close or modify any parent issue.
+
+---
+
+## User story format
+
+Each issue must follow BA best practices:
+
+**Title:** `[type]: short imperative description` (e.g. `feature: user can reset password via email`)
+
+**Body:** As a [role], I want [capability], so that [benefit].
+
+### Acceptance Criteria
+| # | Criterion | Type | Source |
+|---|---|---|---|
+| 1 | Given X, when Y, then Z | happy path | Spec §N.N |
+| 2 | Given X, when error, then W | sad path | User statement YYYY-MM-DD |
+
+Minimum 1 happy path + 1 sad path per story. Valid source types (exactly three):
+1. **Spec section** — cite section number (e.g. "Spec §3.2")
+2. **Explicit user statement** — cite session date (e.g. "User statement 2026-05-24")
+3. **Named best practice** — cite a named reference: URL, named pattern, or specific line in CLAUDE.md/CONTEXT.md. An uncited "best practice" claim is not valid.
+
+### Definition of Done
+- [ ] All AC pass (verified by agent or CI)
+- [ ] PR merged to main
+- [ ] No regressions in related tests
+- [ ] Implementation notes written if agent deviated from spec
+
+### Effort estimate
+Unit = context windows (1 = fits in one session).
+
+---
+
+**What vs. How:** This story describes WHAT the system should do. HOW to implement it is determined by the Execution agent when it reads this issue. Do not add technical implementation details, file paths, or code snippets.
+
+## Enforced issue template
+
+Every issue created by `/to-issues` must follow this exact structure:
+
+```markdown
+## Story
+As a [role], I want [capability], so that [benefit].
+
+## Confidence: AFK ✓ / HITL ⚠
+> Agent confidence: **AFK** — all sources cited below.
+> (or: **HITL** — missing: [specific gap description])
+
+## Acceptance Criteria
+| # | Criterion | Type | Source |
+|---|---|---|---|
+| 1 | Given X, when Y, then Z | happy path | Spec §N.N |
+| 2 | Given X, when error, then W | sad path | User statement YYYY-MM-DD |
+
+## Definition of Done
+- [ ] All AC pass (verified by agent or CI)
+- [ ] PR merged to main
+- [ ] No regressions in related tests
+- [ ] Implementation notes written if agent deviated from spec
+
+## Effort
+Estimate: **N context window(s)**
+
+## Dependencies
+Blocked by: #NNN / None
+```
+
+## HITL/AFK routing
+
+| Category | Definition | Label applied |
+|---|---|---|
+| **AFK** | Every AC item traces to a cited source; no gaps in the requirement → AC → DoD chain | `status:ready-for-agent` |
+| **HITL** | At least one AC item lacks a traceable source, or the chain has a gap, or genuine ambiguity exists | `status:needs-review` (written but unconfident) or `status:needs-prd` (story not yet writable) |
+
+An agent that cannot populate the Source column for every AC row must classify the issue as HITL.
+
+## Three creation gates
+
+Check each story against all three gates before creating the issue:
+
+1. **Estimable gate:** A story that cannot be estimated must be refined before the issue is created.
+2. **Size gate:** A story estimated at >8 context windows must be split. Above this, scope is too large to track and hand over reliably.
+3. **Vertical slice gate:** Every issue must deliver a **demoable user-facing outcome**. Ask: *"Can this story be demonstrated to a stakeholder end-to-end without implementing any other story first?"* If no → restructure into a vertical slice before creation.
+
+## Mid-session execution rules
+
+Execution phase agents reading these issues must:
+1. **Commit after each AC item completes** — the git log is the durable in-session progress record.
+2. **Post a progress comment after each AC item completes** — format: `Progress [timestamp]: Completed AC #N — [one line summary]. Remaining: [list].` This survives mid-session interruptions without a clean handover.

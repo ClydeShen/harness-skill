@@ -41,21 +41,17 @@ A LONG, numbered list of user stories. Each user story should be in the format o
 
 This list of user stories should be extremely extensive and cover all aspects of the feature.
 
-## Implementation Decisions
+## Technical Constraints
 
-A list of implementation decisions that were made. This can include:
+<!-- WHAT the system must respect — NOT how to build it.
+     The Execution agent reads these as non-negotiables and makes its own implementation decisions. -->
 
-- The modules that will be built/modified
-- The interfaces of those modules that will be modified
-- Technical clarifications from the developer
-- Architectural decisions
-- Schema changes
-- API contracts
-- Specific interactions
+- [External integration constraints: e.g. "Must integrate with OAuth provider at /auth/callback"]
+- [Compliance/regulatory constraints: e.g. "Session data must not be persisted to disk (GDPR)"]
+- [Performance SLAs: e.g. "API response must be <200ms at p99"]
+- [Existing system boundaries: e.g. "Must use the existing PostgreSQL instance — no new datastores"]
 
-Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
-
-Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype. Trim to the decision-rich parts — not a working demo, just the important bits.
+**NOT allowed here:** module names, class names, file paths, schema decisions, technology choices, or architectural patterns. Those belong to the Execution agent's own technical plan.
 
 ## Testing Decisions
 
@@ -74,3 +70,5 @@ A description of the things that are out of scope for this PRD.
 Any further notes about the feature.
 
 </prd-template>
+
+**Spike recommendation:** If the solution approach is uncertain after writing the PRD, append: *"Solution uncertainty detected — recommend creating a `type:spike` issue (1 context window, AFK, throwaway) to validate the approach before breaking down into implementation stories."* The spike's output is a decision (proceed / pivot / split), not shippable code.

@@ -13,3 +13,9 @@ __pycache__/
 
 # Pi session state — never commit (mirrors .claude/session.json)
 .pi/sessions/
+
+# GoalBuddy planning artifacts
+docs/goals/
+
+# Windows NUL device artifact
+nul

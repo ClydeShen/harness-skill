@@ -19,9 +19,7 @@ import textwrap
 import time
 from pathlib import Path
 
-REPO_ROOT  = Path(__file__).parent
-SKILL_DIR  = REPO_ROOT / "skills" / "harness-engineering"
-EVALS_FILE = SKILL_DIR / "evals" / "evals.json"
+REPO_ROOT  = Path(__file__).parent.parent
 RESPONSE_MODEL = "sonnet"
 JUDGE_MODEL    = "haiku"
 
@@ -188,81 +186,131 @@ def judge_one(response: str, expectation: str, retries: int = 2) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Skill discovery
+# ---------------------------------------------------------------------------
+
+def discover_skills(skill_name: str | None = None) -> list[tuple[str, Path]]:
+    """
+    Returns list of (skill_name, evals_json_path) tuples.
+    If skill_name given, returns only that skill. Otherwise discovers all
+    skills/*/*/evals/evals.json files.
+    """
+    if skill_name:
+        matches = list(REPO_ROOT.glob(f"skills/*/{skill_name}/evals/evals.json"))
+        if not matches:
+            print(f"ERROR: No evals found for skill '{skill_name}'", file=sys.stderr)
+            sys.exit(1)
+        return [(skill_name, matches[0])]
+
+    found = []
+    for path in sorted(REPO_ROOT.glob("skills/*/*/evals/evals.json")):
+        # path = skills/<category>/<skill_name>/evals/evals.json
+        name = path.parent.parent.name
+        found.append((name, path))
+
+    if not found:
+        print("ERROR: No evals/evals.json files found under skills/*/*/", file=sys.stderr)
+        sys.exit(1)
+    return found
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--evals", metavar="N[,N]", help="Comma-separated eval IDs to run (e.g. 7,8)")
+    parser = argparse.ArgumentParser(description="Run skill evals")
+    parser.add_argument("--skill", metavar="NAME",
+                        help="Run evals for one skill only (e.g. harness-engineering)")
+    parser.add_argument("--evals", metavar="N[,N]",
+                        help="Comma-separated eval IDs within the selected skill")
     args = parser.parse_args()
+
     only_ids: set[int] | None = None
     if args.evals:
         only_ids = {int(x.strip()) for x in args.evals.split(",")}
 
-    data  = json.loads(EVALS_FILE.read_text(encoding="utf-8"))
-    evals = data["evals"]
-    if only_ids:
-        evals = [e for e in evals if e["id"] in only_ids]
+    skills_to_run = discover_skills(args.skill)
 
-    # Copy skill to an isolated temp directory (no git parent = no repo leakage)
-    with tempfile.TemporaryDirectory(prefix="harness_skill_") as skill_tmp:
-        isolated_skill = str(Path(skill_tmp) / "skill")
-        shutil.copytree(str(SKILL_DIR), isolated_skill)
-        print(f"Skill isolated at: {isolated_skill}\n")
+    grand_pass = grand_fail = 0
+    all_summaries: list[tuple[str, int, bool]] = []
 
-        total_pass = total_fail = 0
-        summary: list[tuple[int, bool]] = []
+    for skill_name, evals_file in skills_to_run:
+        skill_dir = evals_file.parent.parent   # skills/<cat>/<name>/
+        print(f"\n{'#'*70}")
+        print(f"# Skill: {skill_name}")
+        print(f"# Evals: {evals_file.relative_to(REPO_ROOT)}")
+        print(f"{'#'*70}")
 
-        for ev in evals:
-            eid, prompt = ev["id"], ev["prompt"]
-            expectations = ev["expectations"]
-            file_list    = ev.get("files", [])
+        data  = json.loads(evals_file.read_text(encoding="utf-8"))
+        evals = data["evals"]
+        if only_ids:
+            evals = [e for e in evals if e["id"] in only_ids]
 
-            print(f"\n{'='*70}")
-            print(f"Eval {eid}: {prompt[:80]}{'...' if len(prompt) > 80 else ''}")
-            print(f"{'='*70}")
+        with tempfile.TemporaryDirectory(prefix="harness_skill_") as skill_tmp:
+            isolated_skill = str(Path(skill_tmp) / "skill")
+            shutil.copytree(str(skill_dir), isolated_skill)
+            print(f"Skill isolated at: {isolated_skill}\n")
 
-            with tempfile.TemporaryDirectory(prefix="harness_proj_") as project_dir:
-                if file_list:
-                    scaffold(project_dir, file_list)
-                    created = [
-                        str(f.relative_to(project_dir))
-                        for f in Path(project_dir).rglob("*") if f.is_file()
-                    ]
-                    print(f"  Files: {created}")
+            total_pass = total_fail = 0
+            summary: list[tuple[int, bool]] = []
 
-                print("  Running skill... ", end="", flush=True)
-                response = run_skill(prompt, project_dir, isolated_skill)
-                print(f"({len(response)} chars)")
+            for ev in evals:
+                eid, prompt = ev["id"], ev["prompt"]
+                expectations = ev["expectations"]
+                file_list    = ev.get("files", [])
 
-            if not response:
-                print("  [SKIP] No response or rate limited.")
-                continue
+                print(f"\n{'='*70}")
+                print(f"Eval {eid}: {prompt[:80]}{'...' if len(prompt) > 80 else ''}")
+                print(f"{'='*70}")
 
-            print(f"  Preview: {response[:200].replace(chr(10), ' ')[:200]}...\n")
+                with tempfile.TemporaryDirectory(prefix="harness_proj_") as project_dir:
+                    if file_list:
+                        scaffold(project_dir, file_list)
+                        created = [
+                            str(f.relative_to(project_dir))
+                            for f in Path(project_dir).rglob("*") if f.is_file()
+                        ]
+                        print(f"  Files: {created}")
 
-            all_passed = True
-            for exp in expectations:
-                passed = judge_one(response, exp)
-                status = "PASS" if passed else "FAIL"
-                if passed:
-                    total_pass += 1
-                else:
-                    total_fail += 1
-                    all_passed = False
-                print(f"  [{status}] {exp}")
+                    print("  Running skill... ", end="", flush=True)
+                    response = run_skill(prompt, project_dir, isolated_skill)
+                    print(f"({len(response)} chars)")
 
-            print(f"\n  Eval {eid}: {'ALL PASS' if all_passed else 'HAS FAILURES'}")
-            summary.append((eid, all_passed))
+                if not response:
+                    print("  [SKIP] No response or rate limited.")
+                    continue
+
+                print(f"  Preview: {response[:200].replace(chr(10), ' ')[:200]}...\n")
+
+                all_passed = True
+                for exp in expectations:
+                    passed = judge_one(response, exp)
+                    status = "PASS" if passed else "FAIL"
+                    if passed:
+                        total_pass += 1; grand_pass += 1
+                    else:
+                        total_fail += 1; grand_fail += 1
+                        all_passed = False
+                    print(f"  [{status}] {exp}")
+
+                print(f"\n  Eval {eid}: {'ALL PASS' if all_passed else 'HAS FAILURES'}")
+                summary.append((eid, all_passed))
+                all_summaries.append((skill_name, eid, all_passed))
+
+        total = total_pass + total_fail
+        pct = (100 * total_pass // total) if total else 0
+        print(f"\n--- {skill_name}: {total_pass}/{total} ({pct}%) ---")
+        for eid, passed in summary:
+            print(f"  Eval {eid}: {'PASS' if passed else 'FAIL'}")
 
     print(f"\n{'='*70}")
-    total = total_pass + total_fail
-    pct = (100 * total_pass // total) if total else 0
-    print(f"FINAL: {total_pass}/{total} expectations passed ({pct}%)")
-    print()
-    for eid, passed in summary:
-        print(f"  Eval {eid}: {'PASS' if passed else 'FAIL'}")
+    grand_total = grand_pass + grand_fail
+    grand_pct   = (100 * grand_pass // grand_total) if grand_total else 0
+    print(f"GRAND TOTAL: {grand_pass}/{grand_total} expectations passed ({grand_pct}%)\n")
+    for skill_name, eid, passed in all_summaries:
+        print(f"  {skill_name} / Eval {eid}: {'PASS' if passed else 'FAIL'}")
 
 
 if __name__ == "__main__":

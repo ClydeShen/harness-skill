@@ -182,7 +182,10 @@ disable-model-invocation: true
 
 **`disable-model-invocation: true`** — a Claude Code skill metadata field that prevents this skill from being automatically triggered by Claude's skill selection logic. The skill only fires when the user explicitly types `/setup-harness-skills`. This is the correct behavior for a one-time gateway — accidental auto-triggering would overwrite user-edited config files. (Confirmed present in `mattpocock/skills` for `setup-matt-pocock-skills` and `zoom-out`.)
 
-**Interaction style:** `setup-harness-skills` is a **dedicated setup session**, not a task skill. The 3-question limit in `harness-engineering` Phase 2 applies to diagnostic skills that must complete quickly during a working session. `setup-harness-skills` is intentionally invoked on its own — analogous to `npm init` or `gh repo create`. The five sections are: one question each, with a confirm-before-write gate at the end. Total interaction is 6–8 exchanges, which is appropriate for a one-time setup command.
+**Interaction style:** `setup-harness-skills` is a **dedicated setup session**, not a task skill. Follows the mattpocock/skills explore-before-asking pattern: Step 1 is always explore (read existing project state), Step 2 is present findings and ask questions (one section at a time), Step 3 is confirm before writing. Total interaction is 6–8 exchanges, appropriate for a one-time setup command.
+
+**Step 1 — Explore (before asking any questions):**
+Read: `.git/config` (remote origin), `CLAUDE.md` / `AGENTS.md` (existing `## Agent skills` block), `CONTEXT.md` (single vs multi-context), `docs/agents/` (prior setup), `.claude/harness.json` (prior config). Present a one-line summary of what was found before moving to Section A.
 
 **Interaction flow (one section at a time, never dump all at once):**
 
@@ -381,27 +384,44 @@ All conditions are **artifact-observable only** — phase revert is never trigge
 
 Phase skip/revert is logged in the session briefing: *"Phase advanced to Execution — found 3 ready-for-agent issues and an approved spec."* or *"Phase reverted to Design — no spec found in docs/superpowers/specs/."*
 
-**Execution sequence:**
+**Execution sequence (explore-first, matching mattpocock/skills pattern):**
 
 ```
-1. Read .claude/harness.json → GitHub owner, repo, project board ID, default branch
-   Read .claude/session.json (if exists) → phase, active task, effort estimate
-2. Resume context — handoff doc is PRIMARY:
-   a. Read `.claude/handoff.md` (fixed path — no glob needed)
+1. EXPLORE — read project state before asking anything:
+   - .claude/harness.json → GitHub owner, repo, project board ID, branch (if exists)
+   - .claude/session.json → phase, active task, effort estimate (if exists)
+   - .claude/handoff.md → last handover content (if exists)
+   - .git/config → confirm remote origin (owner/repo fallback if harness.json absent)
+   - CLAUDE.md / AGENTS.md → presence of ## Agent skills block (setup indicator)
+   - docs/superpowers/specs/ → any spec files (phase skip signal)
+   - MEMORY.md or top-3 memobank entries relevant to active task
+
+2. RESUME CONTEXT — handoff doc is PRIMARY:
+   a. Use `.claude/handoff.md` read in step 1 (fixed path — no glob needed)
    b. Fetch last GitHub issue comment ONLY when `.claude/handoff.md` is absent,
       AND any of the following is true:
         - local project context is completely lost (handoff file deleted or project re-cloned)
-        - severe task deviation detected: active_task in session.json doesn't match the current
-          GitHub `in-progress` issue (different issue number)
-        - user explicitly requests a GitHub sync ("sync from GitHub", "what's on the issue", etc.)
+        - severe task deviation: active_task in session.json doesn't match current GitHub
+          `in-progress` issue (different issue number)
+        - user explicitly requests a GitHub sync ("sync from GitHub", "what's on the issue")
       Command: gh api repos/{owner}/{repo}/issues/<N>/comments --jq '.[-1]'
-      (fetches the single last comment only — never the full comment history)
-   c. Full comment history: NEVER loaded automatically. Load only if user explicitly requests
-      ("show me all handover history for this issue").
-3. Read MEMORY.md or top-3 memobank entries relevant to active task
-5. Evaluate artifact evidence → apply phase skip/revert if warranted (see above)
-6. If session.json absent after evaluation: infer phase from GitHub issue state + labels
-7. Output structured briefing:
+      (fetches the single last comment only — never full comment history)
+   c. Full comment history: NEVER loaded automatically. Load only if user explicitly requests.
+
+3. EVALUATE — apply phase skip/revert based on artifact evidence (see table above)
+
+4. INFER — if session.json absent after evaluation: infer phase from GitHub issue labels
+
+5. COLD-START PATH — if all of the above yield nothing
+   (no harness.json, no session.json, no handoff.md, no GitHub issues, no spec files):
+   → Output: "No prior session state found."
+   → Present what WAS found (e.g., "Found CLAUDE.md with no ## Agent skills block")
+   → Suggest: "Run /setup-harness-skills to configure the harness, then describe what
+     you'd like to work on."
+   → Do NOT default to any phase. Wait for user input.
+   (Mirrors mattpocock/skills explore-before-asking pattern)
+
+6. OUTPUT structured briefing:
    ---
    ## Session briefing
    Phase: [Design / Product / Execution / Testing]

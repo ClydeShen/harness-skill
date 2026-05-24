@@ -293,12 +293,26 @@ Do NOT make this choice unilaterally. Wait for the user's answer before proceedi
 ```yaml
 name: context-handover
 description: >
-  Save memory, write a handoff document, update the active GitHub issue, and
-  instruct the user to compact the context window so a fresh session can resume
-  seamlessly. Invoke manually with /context-handover [next-session-focus] when
-  approaching 80% context window usage (Claude reports this natively).
+  End-of-context-window session transition: saves memory, overwrites
+  .claude/handoff.md, posts a progress comment to the active GitHub issue,
+  and instructs the user to /compact so a fresh main session can resume
+  seamlessly. Invoke when approaching 80% context window usage (Claude
+  reports this natively). Distinct from /handoff, which is a lightweight
+  intra-session summary for briefing subagents — use /handoff when spawning
+  a subagent mid-task, /context-handover when the main session is ending.
 argument-hint: "What will the next session focus on?"
 ```
+
+**`/handoff` vs `/context-handover` — when to use which:**
+
+| | `/handoff` (mattpocock, copied verbatim) | `/context-handover` (new) |
+|---|---|---|
+| **Trigger** | Any time — no usage threshold | ~80% context window usage |
+| **Audience** | Next subagent in this session | Next main agent session |
+| **Output** | Summary in OS temp dir | `.claude/handoff.md` + `session.json` + GitHub comment |
+| **GitHub integration** | None | Posts handover comment to active issue |
+| **Instructs /compact** | No | Yes |
+| **Typical use** | "Summarize and hand to subagent" | "End this session cleanly" |
 
 **Phase detection (in priority order):**
 1. Read `.claude/session.json` → `current_phase` field. Use this if the file exists AND `current_phase` is non-null.

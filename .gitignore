@@ -10,3 +10,6 @@ __pycache__/
 # Roam codebase indexing tool
 .roam/
 .roamignore
+
+# Pi session state — never commit (mirrors .claude/session.json)
+.pi/sessions/

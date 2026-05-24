@@ -8,9 +8,15 @@ Isolation strategy:
     wrong files in earlier runs).
   - Scaffold minimal project files per eval in a separate temp dir.
   - Use individual haiku calls for judging (reliable, no parsing ambiguity).
+
+Backends:
+  --backend claude    (default) uses `claude -p --plugin-dir`
+  --backend opencode  uses `opencode run --model`; injects skill content
+                      directly into the prompt since opencode has no --plugin-dir
 """
 
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -20,8 +26,16 @@ import time
 from pathlib import Path
 
 REPO_ROOT  = Path(__file__).parent.parent
+
+# Claude backend models
 RESPONSE_MODEL = "sonnet"
 JUDGE_MODEL    = "haiku"
+
+# Opencode backend models
+OPENCODE_RESPONSE_MODEL = "llama-cpp/Qwen3.6-35B-A3B-UD-Q5_K_M.gguf"
+OPENCODE_JUDGE_MODEL    = "llama-cpp/Qwen3.6-35B-A3B-UD-Q5_K_M.gguf"
+
+_ANSI_RE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 
 # ---------------------------------------------------------------------------
@@ -186,6 +200,98 @@ def judge_one(response: str, expectation: str, retries: int = 2) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Opencode backend
+# ---------------------------------------------------------------------------
+
+def _strip_ansi(text: str) -> str:
+    return _ANSI_RE.sub("", text)
+
+
+def _strip_opencode_header(text: str) -> str:
+    """Remove the '> build · model-name' header line opencode prepends."""
+    lines = text.split("\n")
+    lines = [l for l in lines if not (l.startswith(">") and "build" in l)]
+    return "\n".join(lines)
+
+
+def _load_skill_content(skill_dir: str) -> str:
+    """Load SKILL.md + all reference *.md files for prompt injection."""
+    root = Path(skill_dir)
+    parts: list[str] = []
+    skill_md = root / "SKILL.md"
+    if skill_md.exists():
+        parts.append(f"# SKILL.md\n\n{skill_md.read_text(encoding='utf-8')}")
+    refs = root / "references"
+    if refs.exists():
+        for f in sorted(refs.glob("*.md")):
+            parts.append(f"# references/{f.name}\n\n{f.read_text(encoding='utf-8')}")
+    return "\n\n---\n\n".join(parts)
+
+
+def run_skill_opencode(prompt: str, project_dir: str, isolated_skill_dir: str) -> str:
+    # Windows has a ~32KB command-line limit, so write skill content to a temp
+    # file inside project_dir and send a short prompt referencing it.
+    skill_content = _load_skill_content(isolated_skill_dir)
+    skill_file = Path(project_dir) / "__skill_context__.md"
+    skill_file.write_text(
+        "You are executing the following agent skill. Follow its instructions exactly.\n\n"
+        + skill_content,
+        encoding="utf-8",
+    )
+    short_prompt = (
+        f"Read the file __skill_context__.md — it contains your skill instructions. "
+        f"Follow those instructions exactly for this user request: {prompt}"
+    )
+    try:
+        result = subprocess.run(
+            ["opencode", "run", "--model", OPENCODE_RESPONSE_MODEL, short_prompt],
+            capture_output=True, text=True, timeout=300,
+            encoding="utf-8", errors="replace",
+            cwd=project_dir,
+        )
+    finally:
+        skill_file.unlink(missing_ok=True)
+    if result.returncode != 0:
+        print(f"  [WARN] opencode exit {result.returncode}: {result.stderr[:200]}", file=sys.stderr)
+    raw = _strip_ansi(result.stdout or "").strip()
+    return _strip_opencode_header(raw).strip()
+
+
+def judge_one_opencode(response: str, expectation: str, retries: int = 2) -> bool:
+    # Write judge prompt to a temp file to avoid Windows CLI length limit.
+    judge_content = (
+        "You are a strict evaluator. Respond with exactly PASS or FAIL — no other text.\n\n"
+        f"EXPECTATION: {expectation}\n\n"
+        f"RESPONSE:\n{response[:4000]}\n\n"
+        "Verdict (PASS or FAIL):"
+    )
+    judge_file = REPO_ROOT / "__judge_prompt__.md"
+    judge_file.write_text(judge_content, encoding="utf-8")
+    short_prompt = "Read __judge_prompt__.md and output exactly PASS or FAIL based on its instructions."
+    try:
+        for attempt in range(retries + 1):
+            result = subprocess.run(
+                ["opencode", "run", "--model", OPENCODE_JUDGE_MODEL, short_prompt],
+                capture_output=True, text=True, timeout=120,
+                encoding="utf-8", errors="replace",
+                cwd=REPO_ROOT,
+            )
+            raw = _strip_ansi(result.stdout or "").strip()
+            raw = _strip_opencode_header(raw).strip()
+            for line in raw.split("\n"):
+                line = line.strip().upper()
+                if line.startswith("PASS"):
+                    return True
+                if line.startswith("FAIL"):
+                    return False
+            if attempt < retries:
+                time.sleep(2)
+    finally:
+        judge_file.unlink(missing_ok=True)
+    return False
+
+
+# ---------------------------------------------------------------------------
 # Skill discovery
 # ---------------------------------------------------------------------------
 
@@ -225,7 +331,15 @@ def main():
                         help="Run evals for one skill only (e.g. harness-engineering)")
     parser.add_argument("--evals", metavar="N[,N]",
                         help="Comma-separated eval IDs within the selected skill")
+    parser.add_argument("--backend", choices=["claude", "opencode"], default="claude",
+                        help="Model backend: claude (default) or opencode (local model)")
     args = parser.parse_args()
+
+    use_opencode = args.backend == "opencode"
+    if use_opencode:
+        print(f"Backend: opencode  response={OPENCODE_RESPONSE_MODEL}  judge={OPENCODE_JUDGE_MODEL}")
+    else:
+        print(f"Backend: claude  response={RESPONSE_MODEL}  judge={JUDGE_MODEL}")
 
     only_ids: set[int] | None = None
     if args.evals:
@@ -275,7 +389,10 @@ def main():
                         print(f"  Files: {created}")
 
                     print("  Running skill... ", end="", flush=True)
-                    response = run_skill(prompt, project_dir, isolated_skill)
+                    if use_opencode:
+                        response = run_skill_opencode(prompt, project_dir, isolated_skill)
+                    else:
+                        response = run_skill(prompt, project_dir, isolated_skill)
                     print(f"({len(response)} chars)")
 
                 if not response:
@@ -286,7 +403,7 @@ def main():
 
                 all_passed = True
                 for exp in expectations:
-                    passed = judge_one(response, exp)
+                    passed = judge_one_opencode(response, exp) if use_opencode else judge_one(response, exp)
                     status = "PASS" if passed else "FAIL"
                     if passed:
                         total_pass += 1; grand_pass += 1

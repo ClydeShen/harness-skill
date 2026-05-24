@@ -80,6 +80,38 @@ Show counts and a one-line summary per issue. Let the maintainer pick.
 
 If the maintainer says "move #42 to ready-for-agent", trust them and apply the role directly. Confirm what you're about to do (role changes, comment, close), then act. Skip grilling. If moving to `ready-for-agent` without a grilling session, ask whether they want to write an agent brief.
 
+## Agent brief template
+
+```markdown
+## Agent Brief
+
+**Category:** bug / enhancement
+**Type:** AFK / HITL
+**Effort:** N (estimated context windows needed; 1 ≈ under ~1 hr of focused execution)
+**Summary:** one-line description of what needs to happen
+
+**Current behavior:**
+Describe what happens now. For bugs, this is the broken behavior.
+For enhancements, this is the status quo the feature builds on.
+
+**Desired behavior:**
+Describe what should happen after the agent's work is complete.
+Be specific about edge cases and error conditions.
+
+**Key interfaces:**
+- `TypeName` — what needs to change and why
+- Config shape — any new configuration options needed
+
+**Acceptance criteria:**
+- [ ] Specific, testable criterion 1
+- [ ] Specific, testable criterion 2
+
+**Out of scope:**
+- Thing that should NOT be changed or addressed in this issue
+```
+
+Use [AGENT-BRIEF.md](AGENT-BRIEF.md) for detailed guidance and examples.
+
 ## Needs-info template
 
 ```markdown

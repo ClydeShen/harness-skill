@@ -1,7 +1,7 @@
 # Harness Engineering Skill Collection — Design Spec
 
 **Date:** 2026-05-24
-**Status:** Approved — v2 (post-review)
+**Status:** Approved — v3 (post-grill)
 **Scope:** Full repo refactor — single skill → curated skill collection
 
 ---
@@ -62,7 +62,7 @@ harness-engineering-skill/
 │   │   ├── context-handover/            ← NEW (core differentiator)
 │   │   │   ├── SKILL.md
 │   │   │   └── phase-budgets.md
-│   │   ├── session-start/               ← NEW (phase detection + briefing)
+│   │   ├── session-start/               ← NEW (phase detection + phase-skip/revert + briefing)
 │   │   │   └── SKILL.md
 │   │   ├── triage/                      ← ADAPTED (one-line change)
 │   │   │   └── SKILL.md
@@ -78,8 +78,6 @@ harness-engineering-skill/
 │       ├── handoff/                     ← COPIED (zero changes)
 │       └── write-a-skill/              ← ADAPTED (add harness checklist item)
 │           └── SKILL.md
-├── hooks/
-│   └── context-monitor.sh              ← NEW: PostToolUse hook
 ├── scripts/
 │   ├── link-skills.sh
 │   └── list-skills.sh
@@ -190,9 +188,9 @@ disable-model-invocation: true
 name: context-handover
 description: >
   Save memory, write a handoff document, update the active GitHub issue, and
-  compact the context window so a fresh session can resume seamlessly. Invoked
-  automatically by the context-monitor hook at 80% usage, or manually with
-  /context-handover [next-session-focus].
+  instruct the user to compact the context window so a fresh session can resume
+  seamlessly. Invoke manually with /context-handover [next-session-focus] when
+  approaching 80% context window usage (Claude reports this natively).
 argument-hint: "What will the next session focus on?"
 ```
 
@@ -278,14 +276,28 @@ description: >
   briefing. Use at the start of every long-running agent session.
 ```
 
+**Phase skip / revert logic (runs before outputting briefing):**
+
+`session-start` evaluates existing artifacts to determine the appropriate starting phase, overriding `session.json.current_phase` when the evidence warrants it:
+
+| Condition | Action |
+|---|---|
+| A spec doc exists in `docs/superpowers/specs/` | Skip Design — set phase to Product (or Execution if issues also exist) |
+| `phase:execution` issues already exist with `status:ready-for-agent` | Skip Design + Product — set phase to Execution |
+| Agent detects missing spec / insufficient requirements | Revert to Design — update `session.json.current_phase`, comment on Design Phase Tracking Issue explaining why |
+| Agent detects missing breakdown issues for an approved spec | Revert to Product |
+
+Phase skip/revert is logged in the session briefing: *"Phase advanced to Execution — found 3 ready-for-agent issues and an approved spec."* or *"Phase reverted to Design — spec not found; cannot proceed to Product without it."*
+
 **Execution sequence:**
 
 ```
 1. Read .claude/session.json (if exists) → phase, active task, effort estimate
 2. Read most recent $TEMP/harness-handoff-*.md (glob, sort by mtime)
 3. Read MEMORY.md or top-3 memobank entries relevant to active task
-4. If session.json absent: infer phase from GitHub issue state + labels
-5. Output structured briefing:
+4. Evaluate artifact evidence → apply phase skip/revert if warranted (see above)
+5. If session.json absent after evaluation: infer phase from GitHub issue state + labels
+7. Output structured briefing:
    ---
    ## Session briefing
    Phase: [Design / Product / Execution / Testing]
@@ -311,27 +323,13 @@ description: >
 
 ---
 
-### 5.4 Hook: `context-monitor.sh`
+### 5.4 Context window monitoring — no hook required
 
-Registered as `PostToolUse` hook in `.claude/settings.json` (written by `setup-harness-skills`).
+Claude Sonnet 4.6 / 4.5 and Haiku 4.5 receive native context awareness via `<system_warning>Token usage: X/Y; Z remaining</system_warning>` injected after each tool call. No PostToolUse hook is needed to detect 80% usage — Claude receives this signal directly and can invoke `/context-handover` based on it.
 
-```bash
-#!/bin/bash
-# Reads context usage from Claude's environment.
-# Fires after every tool use.
+A PostToolUse hook that reads `$CLAUDE_CONTEXT_USAGE_PCT` was considered and rejected: the env var name is unverified in Claude Code's hook runtime, and the GitHub OAuth endpoint (`/api/usage`) returns subscription quota (5-hour/7-day billing windows), not context window usage — making external monitoring unreliable. Native awareness is more accurate and requires zero infrastructure.
 
-USAGE_PCT=${CLAUDE_CONTEXT_USAGE_PCT:-0}
-
-if [ "$USAGE_PCT" -ge 95 ]; then
-  echo "CRITICAL: Context at ${USAGE_PCT}%. Run /context-handover immediately before continuing any work."
-elif [ "$USAGE_PCT" -ge 80 ]; then
-  echo "WARNING: Context at ${USAGE_PCT}%. Run /context-handover before starting the next task."
-fi
-```
-
-**`$CLAUDE_CONTEXT_USAGE_PCT` verification:** This env var name must be confirmed against Claude Code's hook runtime at implementation time. The hook event payload (available as stdin JSON in PostToolUse hooks) includes token usage data — the exact field name is `context_tokens_used` and `context_tokens_max` per Claude Code hook documentation. If the percentage env var is unavailable, compute: `USAGE_PCT = $(echo "$HOOK_PAYLOAD" | python -c "import json,sys; d=json.load(sys.stdin); print(int(d['context_tokens_used']/d['context_tokens_max']*100))")`. Implementation task: verify field names against the actual hook payload in a test run before shipping.
-
-**Hook matcher:** Use an empty matcher (or omit the `matcher` field) so the hook fires on every tool use. This is intentional — context usage changes after any tool. Performance cost: one bash process per tool use. Acceptable for a monitoring hook; the script exits in <50ms when below threshold.
+**`setup-harness-skills` does not write any context-monitoring hook.** The `context-handover` SKILL.md instructs Claude to invoke `/context-handover` when it detects the native 80% warning.
 
 ---
 
@@ -347,7 +345,6 @@ fi
     "effort_estimate": 1,
     "github_project_item_id": "PVI_xxxx"
   },
-  "context_budget_used_pct": 45,
   "last_handover": "2026-05-24T10:30:00Z",
   "next_session_hint": "Continue from writing context-monitor.sh — bash conditional logic done, need to test with real token env var"
 }
@@ -356,12 +353,64 @@ fi
 **Optional fields:**
 - `active_task.github_issue` — null/absent if using local markdown tracker
 - `active_task.github_project_item_id` — null/absent if no GitHub Projects v2 board configured or if using local/other tracker
-- `context_budget_used_pct` — null/absent if hook has not fired yet this session
-
 Skills read these fields with null-safety: if `github_issue` is null, skip GitHub update steps silently.
 
 Written by: `session-start` (initializes), `context-handover` (updates).
-Read by: `context-monitor.sh` hook, `session-start`, `context-handover`, `harness-engineering`.
+Read by: `session-start`, `context-handover`, `harness-engineering`.
+
+---
+
+### 5.6 GitHub Data Model
+
+**Label schema** — four categories applied to all issues:
+
+| Category | Values |
+|---|---|
+| `status:` | `triage` / `needs-prd` / `ready-for-agent` / `in-progress` / `done` |
+| `phase:` | `design` / `product` / `execution` / `testing` |
+| `type:` | `feature` / `bug` / `chore` / `task` |
+| `priority:` | `p1` / `p2` / `p3` |
+
+`phase:` is **categorical** — it describes what kind of issue this is, not what phase the project is currently in. A `phase:execution` issue and a `phase:testing` issue can coexist on the board. The canonical current project phase is `session.json.current_phase`; the agent processes only issues matching `phase:<current-phase>` + `status:ready-for-agent`.
+
+**`setup-harness-skills` creates all labels** via `gh label create`. If a label already exists, the command is skipped (idempotent).
+
+**Status flow (mirrors mattpocock/skills):**
+```
+triage → needs-prd → ready-for-agent → in-progress → done
+```
+Agent moves issues forward. Human can move backward (e.g., `ready-for-agent` → `needs-prd` to signal rework needed).
+
+**GitHub Project v2 board** — created by `setup-harness-skills` via GraphQL API if user opts in during Section D:
+- Default columns: `Backlog` / `In Progress` / `Done`
+- Custom field: `Effort (windows)` — number field, agent-estimated context windows to complete
+- Issues are added to the board at creation; column matches `status:` label
+
+**Phase Exit Criteria oracles:**
+
+| Phase | Oracle |
+|---|---|
+| Design | Design Phase Tracking Issue (`phase:design`) has label `design-approved` or is closed by human |
+| Product | All `phase:execution` issues created from breakdown have `status:ready-for-agent` |
+| Execution | All `phase:execution` issues are closed via merged PRs (`Closes #NNN` in PR body) |
+| Testing | All `phase:testing` issues are `status:done`; no open `p1` bugs remain |
+
+**Branch protection (Execution oracle prerequisite):**
+
+PR merge is the Execution phase oracle. For it to be unforgeable, `setup-harness-skills` configures branch protection on `main` via `gh api`:
+
+```bash
+gh api repos/{owner}/{repo}/branches/main/protection \
+  --method PUT \
+  --field enforce_admins=true \
+  --field 'required_status_checks={"strict":true,"contexts":["ci"]}' \
+  --field 'required_pull_request_reviews={"required_approving_review_count":0}' \
+  --field restrictions=null
+```
+
+**Graceful degradation:** If this call fails (insufficient token permissions), the failure is recorded as an unresolved gap and printed in the setup summary under "Requires manual action." Other setup steps continue. The required permission is `admin:repo` (or repo admin role).
+
+**GitHub Actions CI workflow** — `setup-harness-skills` scaffolds `.github/workflows/ci.yml` (stack-specific, based on stack detected during setup). This is a hard dependency for branch protection to have a status check to require.
 
 ---
 
@@ -563,7 +612,7 @@ Each skill directory that has evals ships its own `evals/evals.json`. This is co
 |---|---|---|
 | 1 | Repo restructure | Clean foundation — move files, create `.claude-plugin/`, update `plugin.json` |
 | 2 | `setup-harness-skills` | Gateway — needed by everything else |
-| 3 | `context-handover` + `session-start` + `context-monitor.sh` | Core new value |
+| 3 | `context-handover` + `session-start` | Core new value |
 | 4 | Adapt mattpocock skills | Low-effort: one-line change each |
 | 5 | Enhance `harness-engineering` | Read `docs/agents/` config |
 | 6 | Eval runner + new evals | Verify all skills pass |
@@ -577,4 +626,5 @@ Each phase is one implementation plan / spec cycle.
 - `prototype`, `tdd`, `improve-codebase-architecture`, `grill-with-docs`, `diagnose` (use mattpocock/skills)
 - Multi-agent orchestration beyond subagent spawning
 - Non-GitHub issue trackers in the initial version (noted in Section D as extensible)
-- Windows-specific hook scripts (hooks/ targets bash; Windows users use WSL)
+- **Automated session chaining** — Desktop tasks, `/loop`, Routines. Session continuation is manual: user runs `/compact` or `/new`, then `/session-start` to resume. Automation is a future nice-to-have; the handoff document is the primary continuity mechanism.
+- PostToolUse context-monitoring hooks — Claude's native context awareness (`<system_warning>Token usage: X/Y; Z remaining</system_warning>`) replaces this need entirely.

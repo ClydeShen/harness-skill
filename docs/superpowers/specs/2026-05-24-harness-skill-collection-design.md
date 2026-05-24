@@ -224,7 +224,16 @@ Do NOT make this choice unilaterally. Wait for the user's answer before proceedi
 6. Create GitHub Project v2 board if user opted in (Section D), with `Effort (windows)` field; write `project_v2_id` back to `harness.json`
 7. Configure branch protection via `gh api` (graceful degradation on permission failure)
 8. Scaffold `.github/workflows/ci.yml` (stack-specific)
-9. Write seed files to `docs/agents/`:
+9. Append to `.gitignore` (idempotent — skip lines already present):
+   ```
+   .claude/handoff.md      # agent session handoff — never commit
+   .claude/session.json    # agent session state — never commit
+   ```
+   `.claude/harness.json` is NOT gitignored — it is committed as shared team config
+   (analogous to `package.json`). The whole team shares the same GitHub owner, repo,
+   project board ID, and branch via this file.
+
+10. Write seed files to `docs/agents/`:
    - `issue-tracker.md` — from bundled template per tracker type
    - `triage-labels.md` — from bundled template
    - `domain.md` — from bundled template

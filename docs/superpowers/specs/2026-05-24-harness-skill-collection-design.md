@@ -1,7 +1,7 @@
 # Harness Engineering Skill Collection — Design Spec
 
 **Date:** 2026-05-24
-**Status:** Approved — v5 (post-grill-3)
+**Status:** Approved — v6 (post-grill-3, grill-with-docs added)
 **Scope:** Full repo refactor — single skill → curated skill collection
 
 ---
@@ -71,7 +71,9 @@ harness-engineering-skill/
 │   │   │   └── SKILL.md
 │   │   ├── to-issues/                   ← ADAPTED (one-line change)
 │   │   │   └── SKILL.md
-│   │   └── zoom-out/                    ← COPIED (zero changes)
+│   │   ├── zoom-out/                    ← COPIED (zero changes)
+│   │   │   └── SKILL.md
+│   │   └── grill-with-docs/             ← COPIED (zero changes)
 │   │       └── SKILL.md
 │   └── productivity/
 │       ├── caveman/                     ← COPIED (zero changes)
@@ -100,6 +102,7 @@ harness-engineering-skill/
 | Skill | Type | Change | Exact text changed |
 |---|---|---|---|
 | `zoom-out` | Engineering | None — copied verbatim | — |
+| `grill-with-docs` | Engineering | None — copied verbatim | — |
 | `caveman` | Productivity | None — copied verbatim | — |
 | `grill-me` | Productivity | None — copied verbatim | — |
 | `handoff` | Productivity | None — copied verbatim | — |
@@ -248,7 +251,7 @@ The adapted `write-a-skill` SKILL.md appends four items to mattpocock's existing
 
 ### Skills NOT included (out of scope for this collection)
 
-`prototype`, `tdd`, `improve-codebase-architecture`, `grill-with-docs`, `diagnose` — engineering skills too domain-specific for a harness-focused collection. Users install `mattpocock/skills` separately for these.
+`prototype`, `tdd`, `improve-codebase-architecture`, `diagnose` — engineering skills too domain-specific for a harness-focused collection. Users install `mattpocock/skills` separately for these.
 
 ### New skills (designed in this spec)
 
@@ -917,7 +920,7 @@ Each skill directory that has evals ships its own `evals/evals.json`. This is co
 | 1 | Repo restructure | Clean foundation — move files, create `.claude-plugin/`, update `plugin.json` |
 | 2 | `setup-harness-skills` | Gateway — needed by everything else |
 | 3 | `context-handover` + `session-start` | Core new value |
-| 4 | Adapt mattpocock skills | Variable effort: `triage` (one-line), `to-prd` (medium — replace Implementation Decisions section), `to-issues` (medium — add BA format + confidence declaration + enforced template + conditional HITL/AFK routing + three gates), `write-a-skill` (four checklist items), `zoom-out` / `caveman` / `grill-me` / `handoff` (zero changes) |
+| 4 | Adapt mattpocock skills | Variable effort: `triage` (one-line), `to-prd` (medium — replace Implementation Decisions section), `to-issues` (medium — add BA format + confidence declaration + enforced template + conditional HITL/AFK routing + three gates), `write-a-skill` (four checklist items), `zoom-out` / `grill-with-docs` / `caveman` / `grill-me` / `handoff` (zero changes) |
 | 5 | Enhance `harness-engineering` | Read `docs/agents/` config |
 | 6 | Eval runner + new evals | Verify all skills pass |
 
@@ -927,7 +930,7 @@ Each phase is one implementation plan / spec cycle.
 
 ## 10. Out of Scope
 
-- `prototype`, `tdd`, `improve-codebase-architecture`, `grill-with-docs`, `diagnose` (use mattpocock/skills)
+- `prototype`, `tdd`, `improve-codebase-architecture`, `diagnose` (use mattpocock/skills)
 - Multi-agent orchestration beyond subagent spawning
 - Non-GitHub issue trackers in the initial version (noted in Section D as extensible)
 - **Automated session chaining** — Desktop tasks, `/loop`, Routines. Session continuation is manual: user runs `/compact` or `/new`, then `/session-start` to resume. Automation is a future nice-to-have; the handoff document is the primary continuity mechanism.

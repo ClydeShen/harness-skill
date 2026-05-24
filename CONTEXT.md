@@ -175,5 +175,12 @@ The unified context handover document at `.claude/handoff.md` in the user's proj
 ### session.json
 The dynamic session state file at `.claude/session.json` in the user's project. **Gitignored** (agent working file — changes every session). Tracks: current phase, active task (GitHub issue number, title, effort estimate, project board item ID), last handover timestamp, and next session hint. Written by `session-start` (initialize) and `context-handover` (update). Read by `session-start`, `context-handover`, and `harness-engineering`. Distinct from `harness.json` (version-controlled team config) and `handoff.md` (human-readable continuity document).
 
+### HITL / AFK (Issue Categorization)
+Two categories applied to every issue created by `to-issues`, adopted from mattpocock/skills:
+- **AFK** (away-from-keyboard): Issue is fully specified and can be implemented autonomously by the Execution agent. Maps to `status:ready-for-agent`.
+- **HITL** (human-in-the-loop): Issue requires a human decision, architectural review, or further specification before an agent can proceed. Maps to `status:needs-prd`.
+
+The agent prefers AFK where the story is fully specified. HITL is used only when a genuine unresolved human decision exists. Gives humans immediate board-level visibility into which issues are agent-ready.
+
 ### Design Phase Tracking Issue
 A single GitHub issue created at project start (before any design work begins). Labelled `phase:design`. Serves as the task anchor for all Design phase sessions. The agent comments on this issue at each session end (progress, decisions made, next design document). Human approval is signalled by applying a label (e.g. `design-approved`) or by the human closing the issue. All subsequent phase tracking may use separate issues or milestones.

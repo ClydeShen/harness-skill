@@ -148,6 +148,15 @@ is determined by the Execution agent when it reads this issue. Do not add techni
 implementation details, file paths, or code snippets to this story.
 ```
 
+**HITL/AFK categorization (from mattpocock/skills `to-issues`):** Before creating each issue, the agent classifies it:
+
+| Category | Meaning | `status:` label applied |
+|---|---|---|
+| **AFK** (away-from-keyboard) | Can be implemented and merged autonomously by the Execution agent | `status:ready-for-agent` |
+| **HITL** (human-in-the-loop) | Requires architectural decision, design review, or human input before agent can proceed | `status:needs-prd` |
+
+The agent prefers AFK classification where the story is fully specified. HITL is used only when a genuine human decision is unresolved. This gives humans immediate board-level visibility into which issues an agent can pick up now versus which ones still need input.
+
 **INVEST criteria enforced at creation time:** `to-issues` checks each story before writing the issue. Two gates apply:
 - A story that cannot be estimated (Estimable) must be refined before the issue is created.
 - A story estimated at **>8 context windows must be split** into smaller issues before creation. 8 windows is the upper limit for a single issue; above this, the scope is too large to track and hand over reliably.
@@ -311,9 +320,13 @@ The session.json is the authoritative source because it is written by this colle
    **Handoff doc:** `.claude/handoff.md`
 
    _[N] of ~[effort_estimate] context window(s) used so far._
+
+   ---
+   _🤖 Posted by `/context-handover` (AI-generated)_
    ```
    Comments accumulate on the issue across sessions, forming a
-   visible progress log for humans.
+   visible progress log for humans. The AI-generated footer is required on
+   every agent-posted comment (mirrors mattpocock/skills triage disclaimer pattern).
    The issue is only closed when all AC pass and PR is merged — not at handover.
 
 4. Output to user
@@ -620,6 +633,12 @@ All skills in this collection follow these rules (derived from Anthropic best pr
 6. **Consistent terminology:** One term per concept across all files.
 7. **Forward slashes only** in all file paths.
 8. **Context cost note** (new, not in mattpocock): Each skill's description mentions typical context window cost — e.g., "typically consumes <5% of a context window".
+9. **AI-generated footer on all GitHub comments** (mirrors mattpocock/skills triage pattern): Every comment or issue body posted to the issue tracker by any skill must end with:
+   ```
+   ---
+   _🤖 Posted by `/[skill-name]` (AI-generated)_
+   ```
+   This applies to: `context-handover` handover comments, `triage` triage notes, `to-issues` issue bodies, and any other agent-posted tracker content.
 
 ---
 

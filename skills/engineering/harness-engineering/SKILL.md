@@ -22,7 +22,7 @@ See `references/detect.md` for the full checklist. Run **all** checks before pro
 7. **Instruction file**: `CLAUDE.md` or `AGENTS.md` — treat as equivalent; never flag one missing when the other exists
 8. **Rules dir**: `.claude/rules/` — present if instruction file exceeds 100 lines?
 9. **Spec workflow**: `docs/superpowers/specs/` exists?
-10. **Installed skills**: gsd-2, brainstorming, systematic-debugging, writing-plans, simplify, vercel-labs/agent-browser
+10. **Installed skills**: gsd-2 (apply mapping from `references/detect.md`); from this collection: `grill-me`, `grill-with-docs`, `write-a-skill`, `triage`, `to-prd`, `to-issues`, `context-handover`, `session-start`
 11. **Onboarding config**: `docs/agents/` — exists with harness skill config files?
     → If yes: mark as "setup-harness-skills configured" in Already in Place.
     → If no: after the main gap list, append: "**Optional:** Run `/setup-harness-skills` to configure GitHub Project integration, session state tracking, and context handover — this extends the harness to cover long-running multi-session work."

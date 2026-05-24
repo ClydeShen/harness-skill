@@ -123,11 +123,7 @@ When outputting the CLAUDE.md template, replace behavior lines with installed sk
 | Installed skill | Behaviour phrase | Replace with |
 |---|---|---|
 | gsd-2 `/gsd discuss` | `explore intent and tradeoffs before writing any code` | `` `/gsd discuss` `` |
-| `brainstorming` | `explore intent and tradeoffs before writing any code` | `` `brainstorming` skill `` |
-| `systematic-debugging` | `identify root cause before proposing a fix` | `` `systematic-debugging` skill `` |
+| `grill-me` | `explore intent and tradeoffs before writing any code` | `` `/grill-me` skill `` |
 | gsd-2 `/gsd auto` | `write a step-by-step plan before touching files` | `` `/gsd` (step mode) or `/gsd auto` (autonomous) `` |
-| `writing-plans` | `write a step-by-step plan before touching files` | `` `writing-plans` skill `` |
-| `simplify` | `review for dead code and overcomplication` | `` `simplify` skill `` |
-| `vercel-labs/agent-browser` | `detect and debug frontend issues in a real browser` | `` `vercel-labs/agent-browser` skill `` |
 
-When gsd-2 and an equivalent superpowers skill are both installed, use gsd-2 and omit the other row.
+When gsd-2 and `grill-me` are both installed, use gsd-2 and omit the `grill-me` row.

@@ -4,21 +4,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Purpose
 
-This repo maintains the `harness-engineering` skill — an interactive diagnostic tool that detects harness gaps in a project and produces paste-ready config snippets to close them. It is packaged as a Claude Code / Codex marketplace plugin.
+This repo is a curated skill collection for compound engineering workflows, packaged as a Claude Code / Codex plugin.
+
+Currently implemented: `harness-engineering` — detects agent-harness gaps and outputs paste-ready config snippets.
+Planned (subsequent plans): `setup-harness-skills`, `context-handover`, `session-start` (Plans 2–3); adapted skills from [mattpocock/skills](https://github.com/mattpocock/skills) MIT License (Plans 4+).
+
+Install via `bash scripts/link-skills.sh`. Skills live in `skills/engineering/` or `skills/productivity/`.
 
 ## Skill Structure
 
 ```
-skills/harness-engineering/
-  SKILL.md                   ← main skill: detect → interview → output flow
-  skill.json                 ← skill metadata (name, version, tags)
-  evals/
-    evals.json               ← acceptance criteria for all 6 eval prompts
-  references/
-    detect.md                ← gap classification and detection interpretation
-    universal-snippets.md    ← .claude/settings.json, init.sh, CI, CLAUDE.md template
-    node-snippets.md         ← Node/TS paste-ready configs
-    python-snippets.md       ← Python paste-ready configs
+skills/
+  engineering/
+    harness-engineering/      ← detect harness gaps, output snippets
+      SKILL.md
+      skill.json
+      evals/evals.json
+      references/
+    (setup-harness-skills/ context-handover/ session-start/ — Plan 2–3, not yet created)
+    (triage/ to-prd/ to-issues/ zoom-out/ — Plan 4, not yet created)
+  productivity/
+    (caveman/ grill-me/ handoff/ write-a-skill/ — Plan 4, not yet created)
+evals/
+  run_evals.py               ← discovers and runs all skill evals
+.claude-plugin/
+  plugin.json                ← registered skill list
+  link-skills.sh             ← symlinks skills/ into ~/.claude/skills/
+scripts/
+  link-skills.sh             ← same as .claude-plugin/link-skills.sh
+  list-skills.sh             ← lists all skills in collection
 ```
 
 Root `SKILL.md` stays intentionally empty (see README).
@@ -26,7 +40,14 @@ Root `SKILL.md` stays intentionally empty (see README).
 ## Running Evals
 
 ```bash
-python run_evals.py
+# All skills:
+python evals/run_evals.py
+
+# One skill only:
+python evals/run_evals.py --skill harness-engineering
+
+# Specific eval IDs within a skill:
+python evals/run_evals.py --skill harness-engineering --evals 1,2
 ```
 
 Requires `claude` CLI on PATH with an active session. The runner:
@@ -35,9 +56,9 @@ Requires `claude` CLI on PATH with an active session. The runner:
 3. Runs each eval prompt via `claude -p --plugin-dir <isolated> --model sonnet`
 4. Judges each expectation via a separate `claude -p --model haiku` call (PASS/FAIL)
 
-Models: `RESPONSE_MODEL = "sonnet"`, `JUDGE_MODEL = "haiku"` — change at the top of `run_evals.py`.
+Models: `RESPONSE_MODEL = "sonnet"`, `JUDGE_MODEL = "haiku"` — change at the top of `evals/run_evals.py`.
 
-**Before committing any change to a skill file, run evals and confirm all 6 pass.**
+**Before committing any change to a skill file, run `python evals/run_evals.py --skill <name>` and confirm all evals pass.**
 
 ## Skill Flow Architecture
 

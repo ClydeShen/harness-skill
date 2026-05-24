@@ -6,7 +6,7 @@ project setup, phase management, context handover, issue lifecycle, and harness 
 | Skill | Purpose | Status |
 |---|---|---|
 | `harness-engineering` | Detect harness gaps and output paste-ready fix snippets | Implemented |
-| `setup-harness-skills` | One-time gateway: configure GitHub, labels, session state | Plan 2 |
+| `setup-harness-skills` | One-time gateway: configure GitHub, labels, session state | Implemented |
 | `context-handover` | End-of-context-window session transition | Plan 3 |
 | `session-start` | Phase detection and session briefing | Plan 3 |
 | `triage` | Issue triage state machine | Plan 4 |

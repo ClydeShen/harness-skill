@@ -1,0 +1,48 @@
+{
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm starting a new Next.js project and want to use harness skills. Please set up the harness.",
+      "files": [
+        "package.json with next.js",
+        "CLAUDE.md"
+      ],
+      "expectations": [
+        "Explores project state first (reads .git/config, existing instruction files, docs/agents/) before asking any questions",
+        "Presents a one-line summary of what it found before proceeding to questions",
+        "Asks about the issue tracker before asking about labels or domain docs (Section A comes first)",
+        "Does NOT ask all questions at once — questions are asked one section at a time",
+        "Mentions writing docs/agents/ seed files as part of the output steps",
+        "Mentions writing to CLAUDE.md (not AGENTS.md) because CLAUDE.md already exists",
+        "Does NOT propose creating AGENTS.md when CLAUDE.md exists"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I want to update the harness setup. I already ran setup before — docs/agents/ exists with config files.",
+      "files": [
+        "package.json",
+        "CLAUDE.md",
+        "docs/agents/issue-tracker.md with github issues config",
+        "docs/agents/triage-labels.md"
+      ],
+      "expectations": [
+        "Detects existing docs/agents/ config files during the explore step and notes them explicitly",
+        "Does not overwrite existing config with blank defaults without confirming",
+        "References the existing issue tracker config rather than re-asking from scratch"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Set up harness skills for this project. There is no CLAUDE.md or AGENTS.md yet.",
+      "files": [
+        "package.json"
+      ],
+      "expectations": [
+        "Detects that neither CLAUDE.md nor AGENTS.md exists during the explore step",
+        "Asks the user which instruction file to create (CLAUDE.md or AGENTS.md) — presents both options",
+        "Does NOT make the choice unilaterally or default to one without asking"
+      ]
+    }
+  ]
+}

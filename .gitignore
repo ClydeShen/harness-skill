@@ -24,3 +24,6 @@ docs/goals/
 
 # Windows NUL device artifact
 nul
+
+# Eval run results
+evals/run_results.log

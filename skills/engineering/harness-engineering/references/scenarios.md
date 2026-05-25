@@ -62,9 +62,13 @@ Do not restructure gap priority for Kiro.
 
 ## Gemini runtime (`.gemini/` detected)
 
-Output standard Claude Code gap analysis first, then append:
+When `.gemini/` is present, recommend the most likely instruction file equivalent for Gemini (conceptual guidance only — don't invent exact file names or syntax unless certain).
 
-*"Gemini equivalents: `GEMINI.md` at project root replaces CLAUDE.md (same template, same 200-line ceiling). Hook equivalents are not publicly documented — verify in your Gemini agent's settings. CI and init.sh recommendations apply universally."*
+Output standard Claude Code gap analysis first, then append conceptual guidance:
+
+*"Gemini equivalents: likely `GEMINI.md` at project root (same template, same 200-line ceiling). Hook equivalents are not publicly documented — verify in your Gemini agent's settings. CI and init.sh recommendations apply universally."*
+
+Focus on universal gaps (CI, init.sh, session discipline) regardless of platform specifics.**
 
 Do not restructure gap priority for Gemini.
 
@@ -81,9 +85,24 @@ Do not restructure gap priority for Gemini.
 
 ## AGENTS.md present — user asks if CLAUDE.md is needed
 
+**CRITICAL: This rule OVERRIDES all other instruction-file logic.**
+
 1. Say: **"No. Claude Code reads AGENTS.md natively — it is equivalent to CLAUDE.md. You do not need a CLAUDE.md."**
-2. Quality-check AGENTS.md: state line count, whether it's within 200-line ceiling, whether it uses `<important if="...">` tags.
-3. Report other harness gaps normally.
+2. Quality-check AGENTS.md: state line count, whether it's within 200-line ceiling, whether it uses `<important if="...">` tags. This quality comment is REQUIRED — always include at least a brief note about the file's current quality (e.g., "at X lines, it's within the 200-line ceiling — good.").
+3. Report other harness gaps normally (hooks, CI, init.sh, etc.).
+
+**NEVER recommend creating CLAUDE.md alongside AGENTS.md. NEVER say they are different files with different purposes. They are fully equivalent.**
+
+---
+
+## Critical: Always detect BOTH Stop AND PostToolUse hooks
+
+When checking hooks (Phase 1 Step 2), you MUST explicitly evaluate BOTH hooks independently:
+
+1. **Stop hook**: Is `.claude/settings.json` present with a `Stop` entry? If the file doesn't exist → Stop hook is **gap #1**.
+2. **PostToolUse hook**: Is `.claude/settings.json` present with a `PostToolUse` entry covering `Edit` or `Write`? If the file is missing → PostToolUse hook is **also a gap** (not just because Stop is missing).
+
+**DO NOT** skip PostToolUse just because Stop is missing. Both are separate gaps. When `.claude/settings.json` doesn't exist, flag BOTH as missing. The user needs BOTH hooks configured.
 
 ---
 

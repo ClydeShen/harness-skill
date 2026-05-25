@@ -112,26 +112,57 @@ def scaffold(tmpdir: str, files: list[str]) -> None:
     if "ci.yml" in desc or ("github" in desc and "workflow" in desc):
         gha = root / ".github" / "workflows"
         gha.mkdir(parents=True, exist_ok=True)
-        # Intentionally no lint step — this is the gap the skill should catch
-        (gha / "ci.yml").write_text(textwrap.dedent("""\
-            name: CI
-            on:
-              push:
-                branches: [main]
-            jobs:
-              build:
-                runs-on: ubuntu-latest
-                steps:
-                  - uses: actions/checkout@v4
-                  - uses: actions/setup-node@v4
-                    with:
-                      node-version: '20'
-                  - run: npm ci
-                  - run: npm run build
-        """))
+        if "lint and build" in desc or "lint + build" in desc:
+            # Both lint and build — used by evals where CI is already complete
+            (gha / "ci.yml").write_text(textwrap.dedent("""\
+                name: CI
+                on:
+                  push:
+                    branches: [main]
+                jobs:
+                  build:
+                    runs-on: ubuntu-latest
+                    steps:
+                      - uses: actions/checkout@v4
+                      - uses: actions/setup-node@v4
+                        with:
+                          node-version: '20'
+                      - run: npm ci
+                      - run: npm run lint
+                      - run: npm run build
+            """))
+        else:
+            # Intentionally no lint step — this is the gap the skill should catch
+            (gha / "ci.yml").write_text(textwrap.dedent("""\
+                name: CI
+                on:
+                  push:
+                    branches: [main]
+                jobs:
+                  build:
+                    runs-on: ubuntu-latest
+                    steps:
+                      - uses: actions/checkout@v4
+                      - uses: actions/setup-node@v4
+                        with:
+                          node-version: '20'
+                      - run: npm ci
+                      - run: npm run build
+            """))
 
     if "claude.md" in desc and "250 lines" in desc:
         (root / "CLAUDE.md").write_text(DUMMY_CLAUDE_MD_250)
+    elif "claude.md" in desc and "90 lines" in desc:
+        # ~94 lines — within the 200-line ceiling, eval #11
+        (root / "CLAUDE.md").write_text(
+            "# CLAUDE.md\n\n" + "\n".join(
+                f"## Rule {i}\n\nSome guideline about situation {i}.\n"
+                for i in range(1, 20)
+            )
+        )
+
+    if "requirements.txt" in desc:
+        (root / "requirements.txt").write_text("flask\nrequests\npytest\n")
 
     if "agents.md" in desc:
         (root / "AGENTS.md").write_text(DUMMY_AGENTS_MD_80)
@@ -150,6 +181,30 @@ def scaffold(tmpdir: str, files: list[str]) -> None:
 
     if "eslint" in desc:
         (root / ".eslintrc.json").write_text('{"extends":"next/core-web-vitals"}')
+
+    if "posttooluse hook only" in desc or ("posttooluse" in desc and "no stop" in desc):
+        # Eval #12: settings.json with PostToolUse only — Stop hook is missing
+        c = root / ".claude"
+        c.mkdir(exist_ok=True)
+        (c / "settings.json").write_text(textwrap.dedent("""\
+            {
+              "hooks": {
+                "PostToolUse": [{"matcher": {"type": "Write"}, "hooks": [{"prompt": "Run lint after every write."}]}]
+              }
+            }
+        """))
+    elif "stop" in desc or "posttooluse" in desc:
+        # Eval #9 and others: .claude/settings.json with both Stop and PostToolUse hooks
+        c = root / ".claude"
+        c.mkdir(exist_ok=True)
+        (c / "settings.json").write_text(textwrap.dedent("""\
+            {
+              "hooks": {
+                "Stop": [{"prompt": "Before declaring done, verify all tasks are truly complete: check git diff, run lint+build, confirm no regressions."}],
+                "PostToolUse": [{"matcher": {"type": "Write"}, "hooks": [{"prompt": "After every Write: verify the change is correct, run lint+typecheck, commit in logical chunks."}]}]
+              }
+            }
+        """))
 
 
 # ---------------------------------------------------------------------------

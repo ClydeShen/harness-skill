@@ -7,6 +7,11 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Promptfoo eval output
+evals/promptfoo/output.json
+output.json
+node_modules/
+
 # Roam codebase indexing tool
 .roam/
 .roamignore

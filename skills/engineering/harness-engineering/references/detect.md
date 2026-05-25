@@ -15,11 +15,11 @@ identifies which agent is executing the project.
 > **Claude Desktop:** No code-editing harness to detect. Out of scope for gap
 > analysis. If user mentions Claude Desktop, redirect to Claude Code docs.
 
-> **Gemini best-effort:** Output Claude Code snippets for universal gaps (CI,
-> init.sh). For hook gaps, note: "Gemini does not have a documented hook
-> equivalent — verify in your Gemini agent's settings." For the instruction
-> file gap, recommend `GEMINI.md` using the same structure as the CLAUDE.md
-> template.
+> **Gemini best-effort (when `.gemini/` detected):**
+> Apply conceptual gap analysis. Recommend GEMINI.md as the likely instruction file
+> equivalent for Gemini. For hook gaps, note: "Gemini hook equivalents
+> are not publicly documented — verify in your Gemini agent's settings."
+> Always output universal gap recommendations (CI, init.sh) regardless of runtime.
 
 ---
 

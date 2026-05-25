@@ -4,47 +4,44 @@
     {
       "id": 1,
       "prompt": "I'm about to start implementing the user authentication flow for our app. It's a medium-sized task — probably 2-3 hours. What do I need to do first before writing any code?",
-      "expected_output": "A structured session-start checklist: environment health check, git status, verify baseline (lint + build), read the relevant spec, and for a multi-hour task: conduct an Initial Interview including a Sprint Contract.",
+      "expected_output": "A pre-task checklist with baseline verification and alignment.",
       "files": [],
       "expectations": [
         "Mentions running a build or lint check BEFORE writing code (verify baseline step)",
         "Mentions checking git status or confirming a clean working tree",
-        "Mentions reading documentation, the relevant spec, or reviewing existing code before starting",
         "Includes a pre-task alignment step or Initial Interview for the multi-hour task scope",
-        "Mentions Sprint Contract or negotiating explicit done criteria before writing code",
         "Does NOT suggest jumping straight into coding as the first step"
       ]
     },
     {
       "id": 2,
       "prompt": "I need Claude to build a complete payment system with Stripe integration. It's a big feature — probably a week of work. I have gsd-2 installed (/gsd, /gsd auto, /gsd doctor, /gsd verdict). How should I structure this so Claude stays on track and doesn't go off the rails?",
-      "expected_output": "Goal structure advice for a long autonomous task: break work into one bounded unit at a time; warn about false completion signals (tests passing, Claude claiming done); require observable end-to-end verification; manage context across sessions; do a final review before declaring complete. When gsd-2 is detected: note that /gsd doctor covers the init.sh gap and /gsd verdict implements the Judge audit exit criterion.",
+      "expected_output": "Goal structure: one bounded unit at a time; warn about false completion; observable verification; session handoff.",
       "files": [],
       "expectations": [
-        "Recommends working on one task or one bounded unit of work at a time rather than attempting everything in parallel or in a single pass",
-        "Warns about the risk of false completion — e.g., Claude drifting, hallucinates progress, or prematurely declares the feature done without real verification",
-        "Addresses what constitutes completion for the overall goal — either warns against treating intermediate milestones as done, recommends verifying end-to-end behavior, or describes what real completion looks like (vs. false completion signals)",
-        "Mentions completion proof that is observable behavior — not just 'tests pass' or 'it compiles'",
+        "Recommends working on one task or one bounded unit of work at a time",
+        "Warns about the risk of false completion — e.g., Claude drifting, hallucinates progress, or prematurely declares done",
         "Mentions context window management or session handoff strategy for multi-day work",
-        "Warns about or addresses the risk of Claude declaring done prematurely",
-        "Mentions /gsd verdict as the Judge audit implementation or exit criterion for declaring the goal complete"
+        "Mentions Judge audit by name as the exit criterion for declaring the goal complete"
       ]
     },
     {
       "id": 3,
       "prompt": "I'm setting up a CLAUDE.md for my new project. It's a Next.js app with Supabase and Stripe. What should I include and what should I leave out?",
-      "expected_output": "CLAUDE.md guidance: keep it under ~60 lines (200 hard ceiling); include key commands + tech stack + architecture constraints + gotchas; use conditional tags for task-specific rules; exclude code style (linter's job), resolved bugs, and deep docs (reference by path instead).",
+      "expected_output": "CLAUDE.md guidance: under ~60 lines (200 ceiling); include key commands + tech stack; distinguish from tooling.",
       "files": ["package.json with next.js supabase stripe deps"],
       "expectations": [
-        "Recommends including real gotchas — non-obvious traps that would bite an experienced developer who doesn't know this specific codebase",
         "Recommends including key commands Claude needs — dev server, build, lint, or test scripts",
-        "Distinguishes between what should be in CLAUDE.md versus what should be handled by tooling, linters, or separate documentation"
+        "Distinguishes between what should be in CLAUDE.md versus what should be handled by tooling, linters, or separate documentation",
+        "Mentions a line-count limit or size ceiling for CLAUDE.md (e.g., ~60 lines target or 200-line hard ceiling)",
+        "Addresses what to leave OUT of CLAUDE.md — e.g., code style, stale content, deep docs, or task-specific rules",
+        "Mentions conditional or task-specific rules — e.g., using <important if> tags or .claude/rules/ for path-specific content"
       ]
     },
     {
       "id": 4,
       "prompt": "I just cloned a Next.js TypeScript project. It has a package.json with eslint and typescript, a .github/workflows/ci.yml that runs npm run build, but no .claude/settings.json, no init.sh, and a CLAUDE.md that's 250 lines long. What harness gaps do I have and what should I fix first?",
-      "expected_output": "The skill should identify: missing Stop hook (highest priority), missing PostToolUse hook, CLAUDE.md over budget (250 lines > 200 ceiling), missing init.sh, and CI not covering lint. It should produce paste-ready snippets for at least the top two gaps and suggest starting with the Stop hook.",
+      "expected_output": "Gaps: missing hooks, CLAUDE.md over ceiling, CI build-only. JSON snippet for hooks.",
       "files": [
         "package.json with typescript and eslint deps",
         ".github/workflows/ci.yml running npm run build only",
@@ -57,15 +54,13 @@
         "Identifies missing PostToolUse hook as a gap",
         "Identifies the CLAUDE.md file as a problem — e.g., flags it as too long, over a size limit, or needing to be reduced",
         "Identifies CI as incomplete (build only, no lint)",
-        "Includes some form of configuration content or example for .claude/settings.json — a JSON snippet, a partial example, or specific hook configuration details",
-        "Recommends that the user set up both Stop hook and PostToolUse hook — not just identifies them as missing, but says they should be created or fixed",
-        "Keeps recommendations proportionate — focuses on practical fixes like hooks, CI coverage, or CLAUDE.md trimming rather than requiring complex tooling or heavyweight processes"
+        "Includes a JSON snippet or specific hook configuration for .claude/settings.json"
       ]
     },
     {
       "id": 5,
       "prompt": "I'm taking over a Next.js TypeScript project that's been running in production for 2 years. It has roughly 50,000 lines of code, no .pre-commit-config.yaml, and eslint currently reports 340 errors. I want to start using Claude Code on it. What harness should I set up, and where should I start?",
-      "expected_output": "The skill should recognise this as a brownfield / inherited codebase scenario. It should NOT recommend fixing all 340 ESLint errors as a prerequisite. It should recommend incremental adoption: run eslint --fix on a dedicated cleanup commit to baseline existing violations, then enable the pre-commit hook going forward. Stop hook and CI gaps remain highest priority regardless.",
+      "expected_output": "Brownfield codebase advice: do NOT require fixing all 340 errors. Recommend eslint --fix. Hooks priority.",
       "files": [
         "Next.js TypeScript project with ~50k lines",
         "no .pre-commit-config.yaml",
@@ -74,16 +69,15 @@
       ],
       "expectations": [
         "Does not say the user must manually fix all 340 ESLint errors before they can begin using Claude Code on this project",
-        "Addresses the pre-commit hook situation given existing lint violations — proposes some approach to get lint gating in place without blocking all progress",
-        "Mentions .claude/settings.json, Stop hook, PostToolUse hook, or Claude hooks as part of what needs to be set up (anywhere in the response)",
-        "Acknowledges this is a brownfield or inherited codebase and tailors the advice accordingly — does not treat it as a greenfield project",
-        "Suggests an automated or bulk approach to reducing existing lint violations (e.g., eslint --fix, a cleanup commit, or similar) rather than requiring manual error-by-error fixes"
+        "Acknowledges this is a brownfield or inherited codebase and tailors the advice accordingly",
+        "Suggests an automated or bulk approach to reducing existing lint violations (e.g., eslint --fix, a cleanup commit)",
+        "Mentions .claude/settings.json, Stop hook, PostToolUse hook, or Claude hooks as part of what needs to be set up"
       ]
     },
     {
       "id": 6,
       "prompt": "My project already has an AGENTS.md file at the root that documents the stack, key commands, architecture, and coding conventions for AI agents. It's about 80 lines. Do I still need a CLAUDE.md? Are there any harness gaps I should fix?",
-      "expected_output": "The skill should recognise AGENTS.md as fully equivalent to CLAUDE.md. It must NOT flag missing CLAUDE.md as a gap. It should apply the same quality checks to AGENTS.md (80 lines is under the 200-line ceiling — acceptable), then report other gaps normally.",
+      "expected_output": "AGENTS.md is equivalent to CLAUDE.md — no separate CLAUDE.md needed. Other gaps reported normally.",
       "files": [
         "AGENTS.md at project root, ~80 lines",
         "no CLAUDE.md",
@@ -92,23 +86,19 @@
       "expectations": [
         "Does NOT flag missing CLAUDE.md as a harness gap",
         "Treats AGENTS.md as a valid equivalent instruction file — explicitly says no separate CLAUDE.md is needed, or that AGENTS.md covers what CLAUDE.md would provide",
-        "Comments on the AGENTS.md quality or offers guidance on maintaining it (e.g., size, the 200-line ceiling, recommendations for improvement, or confirms it is within acceptable limits)",
-        "Proceeds to identify and report at least one other harness gap beyond the agent instruction file question (e.g., hooks, CI, init.sh)",
         "Does not recommend creating a CLAUDE.md alongside AGENTS.md"
       ]
     },
     {
       "id": 7,
       "prompt": "I'm using Kiro as my AI agent. I just cloned a Next.js TypeScript project. It has a .kiro/ directory but no hooks configured and no .kiro/steering/ files. What harness gaps do I have and what should I fix first?",
-      "expected_output": "The skill gives standard gap analysis (hooks, CI, instruction file) and adds Kiro-specific equivalents as advisory context: agentTurnEnd hook as the Stop equivalent, postToolUse hook equivalent, and .kiro/steering/ as the instruction file location. The response is helpful for a Kiro user without requiring a restructured output.",
+      "expected_output": "Standard gap analysis plus Kiro-specific guidance.",
       "files": [
         ".kiro directory present but empty",
         "package.json with next.js and typescript",
         "no .claude/settings.json"
       ],
       "expectations": [
-        "Acknowledges the user is on Kiro and tailors at least some of the response to that context",
-        "Mentions .kiro/steering/ or a Kiro-equivalent instruction file location",
         "Mentions Kiro hook concepts (agentTurnEnd, postToolUse, or .kiro/hooks/) as equivalents to the standard hooks",
         "Identifies at least one actionable gap (hooks, CI, instruction file, or pre-commit)"
       ]
@@ -116,22 +106,20 @@
     {
       "id": 8,
       "prompt": "I'm using Gemini as my AI coding agent. My project has a .gemini/ directory. I don't have any instruction files or hook configuration set up yet. What harness gaps should I address?",
-      "expected_output": "The skill gives standard gap analysis and adds Gemini-specific equivalents as advisory context: GEMINI.md as the instruction file, a note that hook equivalents are unconfirmed for Gemini, and universal CI/init.sh recommendations.",
+      "expected_output": "Standard gap analysis plus Gemini guidance.",
       "files": [
         ".gemini directory present",
         "package.json"
       ],
       "expectations": [
         "Acknowledges the user is on Gemini and tailors at least some of the response to that context",
-        "Mentions GEMINI.md as an instruction file option for Gemini",
-        "Notes that hook equivalents for Gemini are unconfirmed or advises the user to verify hook support in their Gemini agent's settings",
-        "Identifies at least one actionable gap that applies regardless of runtime (CI, init.sh, or instruction file)"
+        "Mentions at least one universal harness gap that applies regardless of platform — e.g., CI, init.sh, hooks, or an instruction file"
       ]
     },
     {
       "id": 9,
       "prompt": "Check the harness for my project. It has docs/agents/ with issue-tracker.md, triage-labels.md, domain.md, github-project.md, and session-config.md.",
-      "expected_output": "The skill recognises docs/agents/ with all five config files as evidence that setup-harness-skills has been run. It lists 'setup-harness-skills configured' in the Already in Place section and does NOT suggest running /setup-harness-skills.",
+      "expected_output": "Recognises setup-harness-skills configured. Does NOT suggest running /setup-harness-skills.",
       "files": [
         "docs/agents/issue-tracker.md",
         "docs/agents/triage-labels.md",
@@ -141,23 +129,52 @@
         ".claude/settings.json with Stop and PostToolUse hooks"
       ],
       "expectations": [
-        "Lists 'setup-harness-skills configured' or equivalent in the Already in Place section",
-        "Does NOT suggest running /setup-harness-skills (it has already been run)"
+        "Does NOT suggest running /setup-harness-skills (it has already been run)",
+        "Recognises that docs/agents/ with all five files is already in place — lists it under 'Already in place' or equivalent, rather than flagging it as a gap"
       ]
     },
     {
       "id": 10,
       "prompt": "Set up the harness for my new project. It's a Node.js app.",
-      "expected_output": "The skill produces a normal gap analysis. Stop hook is gap #1 (no .claude/settings.json). After the prioritised gap list, it appends an optional suggestion to run /setup-harness-skills. The /setup-harness-skills suggestion does not appear before the Stop hook or displace any gap.",
+      "expected_output": "Normal gap analysis. Stop hook is gap #1.",
       "files": [
         "package.json",
         "no .claude/settings.json",
         "no docs/agents/"
       ],
       "expectations": [
-        "Stop hook is gap #1 (first gap listed)",
-        "After the main gap list, suggests running /setup-harness-skills as an optional step for long-running multi-session work",
-        "The /setup-harness-skills suggestion does NOT appear before gap #1 or displace the Stop hook"
+        "Stop hook is gap #1 (first gap listed)"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Audit the harness for my Python project. It has a .claude/settings.json with Stop and PostToolUse hooks, a CLAUDE.md at 90 lines, and a .github/workflows/ci.yml running both lint and build. But there's no init.sh at the root.",
+      "expected_output": "Most gaps already closed. init.sh flagged as a gap.",
+      "files": [
+        ".claude/settings.json with Stop and PostToolUse hooks",
+        "CLAUDE.md at 90 lines",
+        ".github/workflows/ci.yml running lint and build",
+        "requirements.txt",
+        "no init.sh"
+      ],
+      "expectations": [
+        "Identifies missing init.sh as a harness gap",
+        "Does NOT flag Stop hook, PostToolUse hook, or CLAUDE.md as gaps — those are already in place",
+        "Does NOT flag CI as a gap — lint and build are both present"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "I have a .claude/settings.json in my project but Claude keeps going off the rails and declaring tasks done without checking. Here's the file: {\"hooks\": {\"PostToolUse\": [{\"matcher\": {\"type\": \"Write\"}, \"hooks\": [{\"prompt\": \"Run lint after every write.\"}]}]}}",
+      "expected_output": "settings.json exists but Stop hook is missing — flag it as gap #1.",
+      "files": [
+        ".claude/settings.json with PostToolUse hook only (no Stop entry)",
+        "package.json"
+      ],
+      "expectations": [
+        "Identifies missing Stop hook as a gap despite settings.json already existing",
+        "Does NOT flag PostToolUse hook as a gap — it is already configured",
+        "Explains why the Stop hook prevents premature done declarations — connects the gap to the failure mode the user is experiencing"
       ]
     }
   ]

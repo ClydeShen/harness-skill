@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: harness-engineering skill — promptfoo eval suite
+
+# Single prompt template — actual prompt text lives in each test's vars.
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+# Response provider: direct llamacpp HTTP, injects SKILL.md + references
+# as system prompt. Requires llamacpp-server running on localhost:8080.
+providers:
+  - id: python:provider.py
+    label: llamacpp-skill
+
+# Grader for llm-rubric assertions: llamacpp HTTP, no skill loaded (pure judge).
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000   # 5 min — local model can be slow
+
+outputPath: evals/promptfoo/output.json
+
+tests: file://tests.yaml

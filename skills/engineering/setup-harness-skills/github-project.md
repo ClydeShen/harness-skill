@@ -16,18 +16,18 @@
 
 ## Custom fields
 
-- **Effort (windows):** number field — Product-phase agent's estimate of context windows to complete the issue. Execution agent updates if actual effort differs significantly.
+- **Effort (windows):** number field — plan phase agent's estimate of context windows to complete the issue. execute agent updates if actual effort differs significantly.
 
 ## Human gates
 
-1. **Needs Review → Ready for Agent:** Human validates AC sources and confidence declaration for HITL stories. This is the Product phase exit gate — no issue moves to execution until human approves.
+1. **Needs Review → Ready for Agent:** Human validates AC sources and confidence declaration for HITL stories. This is the plan phase exit gate — no issue moves to execute until human approves.
 2. **In Progress → Done:** Human merges the PR. Branch protection enforces this gate — direct pushes to main are blocked.
 
 ## Phase exit oracles
 
 | Phase | Oracle |
 |---|---|
-| Design | Design Phase Tracking Issue has label `design-approved` or is closed by human |
-| Product | All `phase:execution` issues have `status:ready-for-agent` (none remain in `needs-review`) |
-| Execution | All `phase:execution` issues are closed via merged PRs |
-| Testing | All `phase:testing` issues are `status:done`; no open `priority:p1` bugs remain |
+| discuss | Discuss Phase Tracking Issue has label `discuss-approved` or is closed by human |
+| plan | All `phase:execute` issues have `status:ready-for-agent` (none remain in `needs-review`) |
+| execute | All `phase:execute` issues are closed via merged PRs |
+| verify | All `phase:verify` issues are `status:done`; no open `priority:p1` bugs remain |

@@ -28,13 +28,13 @@ Explore → Evaluate → Brief. Never ask questions before reading available sta
 
   | Condition | Action |
   |---|---|
-  | ≥1 `.md` in `docs/superpowers/specs/` | Skip Design → set phase to Product |
-  | `phase:execution` issues with `status:ready-for-agent` exist (and spec exists) | Skip Design + Product → set phase to Execution |
-  | No `.md` in `docs/superpowers/specs/` | Revert to Design |
-  | `current_phase == "product"` but no `phase:design` issue is closed or labelled `design-approved` | Revert to Design |
-  | `current_phase == "execution"` but `gh issue list --label "phase:execution,status:ready-for-agent"` returns 0 | Revert to Product |
+  | ≥1 `.md` in `docs/superpowers/specs/` | Skip discuss → set phase to plan |
+  | `phase:execute` issues with `status:ready-for-agent` exist (and spec exists) | Skip discuss + plan → set phase to execute |
+  | No `.md` in `docs/superpowers/specs/` | Revert to discuss |
+  | `current_phase == "plan"` but no `phase:discuss` issue is closed or labelled `discuss-approved` | Revert to discuss |
+  | `current_phase == "execute"` but `gh issue list --label "phase:execute,status:ready-for-agent"` returns 0 | Revert to plan |
 
-  Log skip/revert in the briefing: *"Phase advanced to Execution — found 3 ready-for-agent issues and an approved spec."*
+  Log skip/revert in the briefing: *"Phase advanced to execute — found 3 ready-for-agent issues and an approved spec."*
 
 - [ ] **4. INFER** — if `session.json` absent after evaluation: infer phase from GitHub issue labels.
 
@@ -48,7 +48,7 @@ Explore → Evaluate → Brief. Never ask questions before reading available sta
 
   ```
   ## Session briefing
-  Phase: [Design / Product / Execution / Testing]
+  Phase: [discuss / plan / execute / verify]
   Active task: #N — [title]
   Effort remaining: ~N context window(s)
   Pick up from: [specific next step from handoff doc]

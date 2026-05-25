@@ -18,9 +18,9 @@ Do NOT invoke `/compact` programmatically. Instruct the user to type it.
 ## Phase detection (priority order)
 
 1. `.claude/session.json` → `current_phase` — use if present and non-null
-2. Active GitHub issue labels → `phase:design / product / execution / testing`
-3. Issue title/body keywords — "design"/"spec"/"ADR" → design; "PRD"/"story" → product; "implement"/"build"/"fix" → execution; "test"/"QA" → testing
-4. Default to `execution` — note "phase inferred by default" in handoff doc
+2. Active GitHub issue labels → `phase:discuss / plan / execute / verify`
+3. Issue title/body keywords — "design"/"spec"/"ADR" → discuss; "PRD"/"story" → plan; "implement"/"build"/"fix" → execute; "test"/"QA" → verify
+4. Default to `execute` — note "phase inferred by default" in handoff doc
 
 ## Execution sequence
 

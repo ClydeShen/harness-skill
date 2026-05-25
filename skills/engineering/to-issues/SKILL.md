@@ -166,6 +166,6 @@ Check each story against all three gates before creating the issue:
 
 ## Mid-session execution rules
 
-Execution phase agents reading these issues must:
+execute phase agents reading these issues must:
 1. **Commit after each AC item completes** — the git log is the durable in-session progress record.
 2. **Post a progress comment after each AC item completes** — format: `Progress [timestamp]: Completed AC #N — [one line summary]. Remaining: [list].` This survives mid-session interruptions without a clean handover.

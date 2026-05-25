@@ -66,7 +66,7 @@ gh label create "priority:p2" --color "#e4e669"
 gh label create "priority:p3" --color "#cfd3d7"
 ```
 
-`status:needs-review` is required — it is the Product phase exit human gate.
+`status:needs-review` is required — it is the plan phase exit human gate.
 
 ## Step 4 — Create GitHub Milestones
 

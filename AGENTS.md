@@ -43,11 +43,12 @@ python evals/run_evals.py
 # One skill only:
 python evals/run_evals.py --skill harness-engineering
 
-# Specific eval IDs within a skill:
-python evals/run_evals.py --skill harness-engineering --evals 1,2
+# Filter to specific evals (regex matched against description):
+python evals/run_evals.py --skill harness-engineering --filter "#2"
 ```
 
-Requires `claude` CLI on PATH with an active session.
+Requires `promptfoo` on PATH and a llamacpp server running at `localhost:8080`.
+Both the response provider and the LLM judge use the server (see `evals/promptfoo/provider.py` / `grader.py`).
 
 ## Key Invariants
 

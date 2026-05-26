@@ -1,0 +1,13 @@
+{
+  "name": "skill-cleanup",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Interactive skill removal tool for Claude Code and other agent platforms",
+  "scripts": {
+    "start": "node scripts/cleanup.mjs",
+    "dry-run": "node scripts/cleanup.mjs --dry-run"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.0.0"
+  }
+}

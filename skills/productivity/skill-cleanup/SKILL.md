@@ -9,6 +9,32 @@ description: Audit and remove stale, renamed, or duplicate skills across all ins
 
 ---
 
+## Quick start — interactive TUI tool
+
+The fastest path. Run the bundled script for a multi-select TUI that scans all platforms and removes in one flow:
+
+```bash
+# First-time setup (once per machine)
+cd <skills-dir>/skill-cleanup && npm install
+
+# Run the interactive cleanup tool
+node scripts/cleanup.mjs
+
+# Preview only — no files removed
+node scripts/cleanup.mjs --dry-run
+```
+
+The tool:
+1. Scans all installed agent platforms (Claude Code, Kiro, Codex, Windsurf, Gemini, Pi, and more)
+2. Pre-selects stale entries (renamed originals, artifacts, orphaned installs)
+3. Shows a multi-select checklist — toggle any skill, select all with `a`
+4. Asks for final confirmation before removing anything
+5. Removes platform copies first, central store last
+
+Use the manual flow below if you prefer guided step-by-step or need to inspect specific entries.
+
+---
+
 ## Phase 1 — Detect OS and home directory
 
 Run the appropriate probe:

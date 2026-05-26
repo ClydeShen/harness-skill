@@ -32,3 +32,6 @@ nul
 
 # Eval run results
 evals/run_results.log
+
+# Harness session handoff docs — ephemeral, never commit
+.planning/phases/*/.continue-here.md

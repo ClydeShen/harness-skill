@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "project": {
+    "name": "harness-engineering-skill",
+    "repo": "ClydeShen/harness-skill"
+  },
+  "harness": {
+    "issue_tracker": "github_issues",
+    "label_set": "default",
+    "domain": "single-context",
+    "board": "Harness Skill Task Board",
+    "session_state": ".planning/STATE.md"
+  }
+}

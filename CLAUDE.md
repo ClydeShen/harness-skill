@@ -114,3 +114,28 @@ The skill runs in three phases (defined in `SKILL.md`):
 - **DRY** — shared logic in one place. Snippets don't duplicate content across helper files.
 - **First Principles** — every gate must justify itself with a failure mode in one sentence.
 - **Occam's Razor** — when two solutions close the same gap, prefer fewer moving parts.
+
+## Agent skills
+
+Install via `bash scripts/link-skills.sh`. Invoke with `/skill-name`.
+
+### Engineering
+| Skill | Purpose |
+|---|---|
+| `harness-audit` | Detect harness gaps and output paste-ready fix snippets |
+| `setup-harness-skills` | One-time project harness configuration |
+| `context-handover` | Package session context for handoff to next session |
+| `session-start` | Resume from last session state in `.planning/STATE.md` |
+| `triage` | Triage GitHub issues with canonical labels |
+| `to-prd` | Convert conversation context into a PRD issue |
+| `to-issues` | Break a PRD into scoped GitHub issues |
+| `zoom-out` | Step back and reframe current work |
+| `grill-with-docs` | Stress-test a plan against domain docs and ADRs |
+
+### Productivity
+| Skill | Purpose |
+|---|---|
+| `caveman` | Simplify ideas to first principles |
+| `grill-me` | Interview-style plan stress-test |
+| `handoff` | Compact conversation into a handoff document |
+| `write-a-skill` | Create a new agent skill with proper structure |

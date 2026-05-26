@@ -101,29 +101,18 @@ Also check `~/.claude/settings.json` (or equivalent) for `plugins` entries whose
 
 ---
 
-## Phase 4 — Present findings
+## Phase 4 — Interactive selection
 
-Group by stale type and show a numbered table:
+If no stale entries found: state "All installed skills look clean." and stop.
 
-```
-Stale entries found:
+If stale entries found, call `AskUserQuestion` with `multiSelect: true`:
+- One option per unique **skill name** (not per platform entry)
+- **label**: `skill-name  [Platform1, Platform2, ...]` listing every platform it appears in
+- **description**: the stale reason — e.g. `orphaned — not in central store` or `install artifact`
+- `AskUserQuestion` supports max 4 options per call — if more than 4 stale skills, chain a second call for the remainder
+- Do NOT fall back to a text table — the checkbox selector is the required UI for this phase
 
-  #  Name                     Location                        Reason
-  1  harness-engineering      ~/.agents/skills/               renamed → harness-audit (both present)
-  2  harness-engineering      ~/.claude/skills/               renamed → harness-audit (both present)
-  3  harness-engineering      ~/.codex/skills/                renamed → harness-audit (copy)
-  4  harness-engineering.zip  ~/.claude/skills/               install artifact
-  5  old-skill                ~/.kiro/skills/                 orphaned — absent from central store
-
-Nothing to remove? → state "All installed skills look clean."
-```
-
-Wait for user response before any deletion.
-
-User may respond:
-- `all` — remove everything listed
-- `1,3,5` — remove specific numbers
-- `none` / `n` — abort
+The user's checked selections become the confirmed removal list for Phase 5.
 
 ---
 

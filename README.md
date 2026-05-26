@@ -62,3 +62,4 @@ General workflow tools, not code-specific.
 - **[grill-me](./skills/productivity/grill-me/SKILL.md)** — Relentless sequential interview that stress-tests a plan until every decision branch is resolved.
 - **[handoff](./skills/productivity/handoff/SKILL.md)** — Compact the current conversation into a handoff document so another agent can continue the work.
 - **[write-a-skill](./skills/productivity/write-a-skill/SKILL.md)** — Create new skills with proper structure, progressive disclosure, and bundled resources.
+- **[skill-cleanup](./skills/productivity/skill-cleanup/SKILL.md)** — Scan installed skills, detect stale or renamed entries, and guide safe removal with confirmation.

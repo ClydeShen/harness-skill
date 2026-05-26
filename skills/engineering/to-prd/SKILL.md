@@ -17,7 +17,24 @@ A deep module (as opposed to a shallow module) is one which encapsulates a lot o
 
 Check with the user that these modules match their expectations. Check with the user which modules they want tests written for.
 
-3. Write the PRD using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. Write the PRD using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage. For discuss-phase output, use the GSD CONTEXT.md format in the section below instead of the prd-template.
+
+## GSD-compatible output
+
+Write the PRD to `.planning/phases/01-discuss/01-CONTEXT.md` using GSD's 6-section CONTEXT.md format:
+
+| GSD section | Content |
+|---|---|
+| `<domain>` | Phase boundary — what the discuss phase delivers (from user's stated scope) |
+| `<decisions>` | Implementation decisions — WHAT the system must respect (maps to Technical Constraints) |
+| `<canonical_refs>` | ADRs, spec sections, external docs cited during discussion |
+| `<code_context>` | Brownfield: existing patterns, reusable assets, integration points |
+| `<specifics>` | Specific user requirements ("I want it like X") |
+| `<deferred>` | Ideas that came up but belong in other phases |
+
+After writing: "CONTEXT.md written to `.planning/phases/01-discuss/01-CONTEXT.md`. Run `/to-issues` to plan this phase."
+
+**WHAT/HOW invariant:** `<decisions>` contains only WHAT (constraints), never HOW (file paths, class names, schemas).
 
 <prd-template>
 

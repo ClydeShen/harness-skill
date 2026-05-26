@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: to-prd skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-to-prd
+    config:
+      skill_name: to-prd
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-to-prd.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: /to-prd — synthesizes from context, sketches before writing
+  # ---------------------------------------------------------------------------
+  - description: "#1 /to-prd — no interview, explores codebase, sketches first"
+    vars:
+      prompt: "/to-prd"
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Does NOT interview the user — synthesizes from existing context
+      - type: llm-rubric
+        value: Explores the codebase to understand current state before writing
+      - type: llm-rubric
+        value: Sketches major modules and checks with user before writing the full PRD
+      - type: llm-rubric
+        value: Produces a PRD using the template with Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope sections
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: /to-prd — domain glossary, deep modules, publishes to tracker
+  # ---------------------------------------------------------------------------
+  - description: "#2 /to-prd — uses domain glossary, publishes with ready-for-agent"
+    vars:
+      prompt: "/to-prd"
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "src/index.ts with existing feature code"
+    assert:
+      - type: llm-rubric
+        value: Uses domain glossary vocabulary from the project throughout the PRD
+      - type: llm-rubric
+        value: Actively looks for deep modules that can be tested in isolation
+      - type: llm-rubric
+        value: Publishes the PRD to the issue tracker with the ready-for-agent label
+      - type: llm-rubric
+        value: Does not include specific file paths or line numbers in Implementation Decisions

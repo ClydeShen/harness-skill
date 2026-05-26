@@ -5,7 +5,7 @@ project setup, phase management, context handover, issue lifecycle, and harness 
 
 | Skill | Purpose | Source |
 |---|---|---|
-| `harness-engineering` | Detect harness gaps and output paste-ready fix snippets | Original |
+| `harness-audit` | Detect harness gaps and output paste-ready fix snippets | Original |
 | `setup-harness-skills` | One-time gateway: configure GitHub, labels, session state | Original |
 | `context-handover` | End-of-context-window session transition | Original |
 | `session-start` | Phase detection and session briefing | Original |

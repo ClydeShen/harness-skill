@@ -5,7 +5,7 @@ temporary project directory from scaffold_files test vars, and sends a file
 listing + eval prompt as the user message so the model sees realistic context.
 
 Config (set in promptfooconfig per provider):
-  skill_name: name of skill to load, e.g. "harness-engineering".
+  skill_name: name of skill to load, e.g. "harness-audit".
               Resolved to skills/<category>/<skill_name>/ under the repo root.
 """
 
@@ -55,7 +55,7 @@ def _build_file_listing(project_dir: str) -> str:
 
 
 def call_api(prompt: str, options: dict, context: dict) -> dict:
-    skill_name = (options.get("config") or {}).get("skill_name", "harness-engineering")
+    skill_name = (options.get("config") or {}).get("skill_name", "harness-audit")
 
     if skill_name not in _SYSTEM_CACHE:
         try:

@@ -5,7 +5,7 @@ scaffold_files test var creates realistic project context so the skill can
 discover files via tools, matching the isolation strategy in run_evals.py.
 
 Config (set in promptfooconfig per provider):
-  skill_name: name of skill to load, e.g. "harness-engineering".
+  skill_name: name of skill to load, e.g. "harness-audit".
               Resolved to skills/<category>/<skill_name>/ under the repo root.
 """
 
@@ -31,7 +31,7 @@ def _resolve_skill_dir(skill_name: str) -> Path:
 
 
 def call_api(prompt: str, options: dict, context: dict) -> dict:
-    skill_name = (options.get("config") or {}).get("skill_name", "harness-engineering")
+    skill_name = (options.get("config") or {}).get("skill_name", "harness-audit")
 
     try:
         skill_dir = _resolve_skill_dir(skill_name)

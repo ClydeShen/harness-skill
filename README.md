@@ -7,15 +7,15 @@ Agent skills for compound engineering workflows — structured sessions, context
 ## Quickstart
 
 ```bash
-npx skills add ClydeShen/harness-skill@harness-engineering -g
+npx skills add ClydeShen/harness-skill@harness-audit -g
 ```
 
-This installs `harness-engineering` into Claude Code, Codex, Kiro, Pi, and every other detected runtime automatically.
+This installs `harness-audit` into Claude Code, Codex, Kiro, Pi, and every other detected runtime automatically.
 
 Then open your project in Claude Code and run:
 
 ```
-/harness-engineering
+/harness-audit
 ```
 
 It scans for missing harness components, asks up to 3 questions, and outputs a prioritised gap list with paste-ready snippets.
@@ -44,7 +44,7 @@ bash scripts/link-skills.sh
 
 Skills for the full compound engineering lifecycle.
 
-- **[harness-engineering](./skills/engineering/harness-engineering/SKILL.md)** — Detect agent-harness gaps and output paste-ready fix snippets. Run first in any new project.
+- **[harness-audit](./skills/engineering/harness-audit/SKILL.md)** — Detect agent-harness gaps and output paste-ready fix snippets. Run first in any new project.
 - **[setup-harness-skills](./skills/engineering/setup-harness-skills/SKILL.md)** — One-time project setup: GitHub labels, branch protection, `.planning/` state structure.
 - **[session-start](./skills/engineering/session-start/SKILL.md)** — Phase detection, interrupted-session recovery, and session briefing. Run at the start of every work session.
 - **[context-handover](./skills/engineering/context-handover/SKILL.md)** — End-of-context-window session transition. Fires near context limit; preserves state across sessions.

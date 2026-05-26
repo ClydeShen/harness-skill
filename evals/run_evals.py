@@ -3,7 +3,7 @@
 
 Usage:
   python evals/run_evals.py                          # all skills
-  python evals/run_evals.py --skill harness-engineering
+  python evals/run_evals.py --skill harness-audit
   python evals/run_evals.py --skill triage --filter "#2"
 
 Each skill has a dedicated config in evals/promptfoo/<skill-name>.yaml.
@@ -59,7 +59,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Run promptfoo evals via llamacpp")
     parser.add_argument("--skill", metavar="NAME",
-                        help="Run evals for one skill only (e.g. harness-engineering)")
+                        help="Run evals for one skill only (e.g. harness-audit)")
     parser.add_argument("--filter", metavar="DESC",
                         help="Filter tests by description substring (e.g. '#2')")
     args = parser.parse_args()

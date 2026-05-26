@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
-description: harness-engineering skill eval suite
+description: harness-audit skill eval suite
 
 prompts:
   - id: skill-prompt
@@ -7,9 +7,9 @@ prompts:
 
 providers:
   - id: python:provider.py
-    label: llamacpp-harness-engineering
+    label: llamacpp-harness-audit
     config:
-      skill_name: harness-engineering
+      skill_name: harness-audit
 
 defaultTest:
   options:
@@ -18,7 +18,7 @@ defaultTest:
     - type: latency
       threshold: 300000
 
-outputPath: output-harness-engineering.json
+outputPath: output-harness-audit.json
 
 tests:
 
@@ -288,7 +288,7 @@ tests:
   # ---------------------------------------------------------------------------
   - description: "#13 planning config with harness key — GSD-compatible setup in Already in Place"
     vars:
-      prompt: "Please run harness-engineering on this project."
+      prompt: "Please run harness-audit on this project."
       scaffold_files:
         - ".claude/settings.json with stop and posttooluse hooks"
         - "CLAUDE.md"
@@ -304,7 +304,7 @@ tests:
   # ---------------------------------------------------------------------------
   - description: "#14 no memory system — gap listed at rank 4"
     vars:
-      prompt: "Please run harness-engineering on this project."
+      prompt: "Please run harness-audit on this project."
       scaffold_files:
         - "package.json"
         - "CLAUDE.md"

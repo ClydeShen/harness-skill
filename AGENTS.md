@@ -15,7 +15,7 @@ Install via `bash scripts/link-skills.sh`. Skills live under `skills/engineering
 ```
 skills/
   engineering/
-    harness-engineering/      ← detect harness gaps, output snippets
+    harness-audit/      ← detect harness gaps, output snippets
       SKILL.md
       skill.json
       evals/evals.json
@@ -41,10 +41,10 @@ scripts/
 python evals/run_evals.py
 
 # One skill only:
-python evals/run_evals.py --skill harness-engineering
+python evals/run_evals.py --skill harness-audit
 
 # Filter to specific evals (regex matched against description):
-python evals/run_evals.py --skill harness-engineering --filter "#2"
+python evals/run_evals.py --skill harness-audit --filter "#2"
 ```
 
 Requires `promptfoo` on PATH and a llamacpp server running at `localhost:8080`.

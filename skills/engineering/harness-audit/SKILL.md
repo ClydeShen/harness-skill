@@ -1,5 +1,5 @@
 ---
-name: harness-engineering
+name: harness-audit
 description: Scans a project for agent-harness gaps and outputs a prioritised list with paste-ready config snippets to close them. Covers hooks, CI, pre-commit, instruction file quality, init.sh, and session discipline. Use when starting a new project, auditing an existing harness, writing or reviewing CLAUDE.md/AGENTS.md, setting up CI gates, beginning multi-day autonomous work, or when user says "set up harness", "health check", "agent discipline", "project setup", "pre-commit hooks", "stop hook", "verification gap".
 ---
 

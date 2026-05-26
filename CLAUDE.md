@@ -28,7 +28,7 @@ The root `SKILL.md` is absent by design — `npx skills` discovers skills from t
 ```
 skills/
   engineering/
-    harness-engineering/      ← detect harness gaps, output snippets
+    harness-audit/      ← detect harness gaps, output snippets
       SKILL.md
       skill.json
       evals/evals.json
@@ -53,7 +53,7 @@ scripts/
   list-skills.sh             ← lists all skills in collection
 ```
 
-Root `SKILL.md` stays intentionally empty (see README).
+Root `SKILL.md` is absent by design — `npx skills` discovers skills from bucket subfolders.
 
 ## Running Evals
 
@@ -65,13 +65,13 @@ Both the response model and the LLM judge use the server (see `provider.py` / `g
 python evals/run_evals.py
 
 # One skill only:
-python evals/run_evals.py --skill harness-engineering
+python evals/run_evals.py --skill harness-audit
 
 # Filter to specific evals (regex matched against description):
-python evals/run_evals.py --skill harness-engineering --filter "#2"
+python evals/run_evals.py --skill harness-audit --filter "#2"
 
 # Run promptfoo directly for a skill:
-cd evals/promptfoo && promptfoo eval --config harness-engineering.yaml
+cd evals/promptfoo && promptfoo eval --config harness-audit.yaml
 ```
 
 The runner:

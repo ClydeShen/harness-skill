@@ -41,7 +41,7 @@
 
 - `session-start` — determines active phase and task for session briefing
 - `context-handover` — reads current phase for handoff doc and GitHub comment
-- `harness-engineering` — checks for setup as part of gap detection
+- `harness-audit` — checks for setup as part of gap detection
 
 ## harness.json schema
 
@@ -64,4 +64,4 @@
 ```
 
 Written by: `setup-harness-skills`.
-Read by: `session-start`, `context-handover`, `harness-engineering`, `to-issues`.
+Read by: `session-start`, `context-handover`, `harness-audit`, `to-issues`.

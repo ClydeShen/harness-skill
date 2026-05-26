@@ -1,5 +1,5 @@
 {
-  "name": "harness-engineering",
+  "name": "harness-audit",
   "version": "0.3.0",
   "description": "Detects agent-harness gaps in a project and produces paste-ready config snippets to close them. Covers hooks, CI, pre-commit, CLAUDE.md quality, and session discipline.",
   "author": {

@@ -4,9 +4,12 @@
  * Scans all agent platform directories, presents a TUI multi-select,
  * and removes confirmed entries using OS-native methods.
  *
+ * Supports: macOS · Linux · Windows (PowerShell / Windows Terminal)
+ *
  * Usage:
- *   node cleanup.mjs
- *   node cleanup.mjs --dry-run    # show what would be removed, no changes
+ *   node cleanup.mjs              # interactive TUI
+ *   node cleanup.mjs --dry-run    # select and preview, no changes made
+ *   node cleanup.mjs --list       # non-interactive: print all installed skills
  */
 
 import { checkbox, confirm } from '@inquirer/prompts';
@@ -14,30 +17,32 @@ import { existsSync, readdirSync, rmSync, lstatSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir, platform as osPlatform } from 'node:os';
 
-const HOME = homedir();
-const IS_WIN = osPlatform() === 'win32';
+const HOME    = homedir();
+const IS_WIN  = osPlatform() === 'win32';
 const DRY_RUN = process.argv.includes('--dry-run');
+const LIST    = process.argv.includes('--list');
 
-// ── Platform definitions ────────────────────────────────────────────────────
+// ── Platform definitions ─────────────────────────────────────────────────────
+// path.join() is OS-aware: uses \ on Windows, / on macOS/Linux automatically.
 
 const PLATFORMS = [
-  // Central store — source of truth; remove last
-  { id: 'central',          label: 'Central store',    path: join(HOME, '.agents', 'skills'),                    type: 'central' },
-  // Symlink platforms — entries are symlinks/junctions pointing into central store
-  { id: 'claude',           label: 'Claude Code',      path: join(HOME, '.claude', 'skills'),                    type: 'symlink' },
-  { id: 'kiro',             label: 'Kiro CLI',         path: join(HOME, '.kiro', 'skills'),                      type: 'symlink' },
-  { id: 'pi',               label: 'Pi',               path: join(HOME, '.pi', 'agent', 'skills'),               type: 'symlink' },
-  { id: 'kilocode',         label: 'Kilo Code',        path: join(HOME, '.kilocode', 'skills'),                  type: 'symlink' },
-  { id: 'qwen',             label: 'Qwen Code',        path: join(HOME, '.qwen', 'skills'),                      type: 'symlink' },
-  // Copy platforms — independent full copies; remove each separately
-  { id: 'codex',            label: 'Codex',            path: join(HOME, '.codex', 'skills'),                     type: 'copy' },
-  { id: 'windsurf',         label: 'Windsurf',         path: join(HOME, '.codeium', 'windsurf', 'skills'),       type: 'copy' },
-  { id: 'gemini-config',    label: 'Gemini (config)',  path: join(HOME, '.gemini', 'config', 'skills'),          type: 'copy' },
-  { id: 'gemini-ide',       label: 'Gemini (IDE)',     path: join(HOME, '.gemini', 'antigravity-ide', 'skills'), type: 'copy' },
-  { id: 'gemini-backup',    label: 'Gemini (backup)',  path: join(HOME, '.gemini', 'antigravity-backup', 'skills'), type: 'copy' },
+  // Central store — source of truth; always remove last
+  { id: 'central',       label: 'Central store',   path: join(HOME, '.agents', 'skills'),                       type: 'central' },
+  // Symlink platforms — entries are symlinks (macOS/Linux) or junctions (Windows)
+  { id: 'claude',        label: 'Claude Code',     path: join(HOME, '.claude', 'skills'),                       type: 'symlink' },
+  { id: 'kiro',          label: 'Kiro CLI',        path: join(HOME, '.kiro', 'skills'),                         type: 'symlink' },
+  { id: 'pi',            label: 'Pi',              path: join(HOME, '.pi', 'agent', 'skills'),                  type: 'symlink' },
+  { id: 'kilocode',      label: 'Kilo Code',       path: join(HOME, '.kilocode', 'skills'),                     type: 'symlink' },
+  { id: 'qwen',          label: 'Qwen Code',       path: join(HOME, '.qwen', 'skills'),                         type: 'symlink' },
+  // Copy platforms — independent full copies; remove each platform separately
+  { id: 'codex',         label: 'Codex',           path: join(HOME, '.codex', 'skills'),                        type: 'copy' },
+  { id: 'windsurf',      label: 'Windsurf',        path: join(HOME, '.codeium', 'windsurf', 'skills'),          type: 'copy' },
+  { id: 'gemini-config', label: 'Gemini (config)', path: join(HOME, '.gemini', 'config', 'skills'),             type: 'copy' },
+  { id: 'gemini-ide',    label: 'Gemini (IDE)',    path: join(HOME, '.gemini', 'antigravity-ide', 'skills'),    type: 'copy' },
+  { id: 'gemini-backup', label: 'Gemini (backup)', path: join(HOME, '.gemini', 'antigravity-backup', 'skills'), type: 'copy' },
 ];
 
-// ── Scanning ────────────────────────────────────────────────────────────────
+// ── Scanning ─────────────────────────────────────────────────────────────────
 
 function scanPlatform(plat) {
   if (!existsSync(plat.path)) return [];
@@ -52,57 +57,64 @@ function scanPlatform(plat) {
   }
 }
 
-function isBrokenSymlink(fullPath) {
+// ── Broken-link detection ─────────────────────────────────────────────────────
+
+function isBrokenLink(fullPath) {
+  let stat;
   try {
-    const stat = lstatSync(fullPath);
-    if (!stat.isSymbolicLink()) return false;
-    existsSync(fullPath); // throws if target missing on some systems
-    return false;
+    stat = lstatSync(fullPath);
   } catch {
-    return true;
+    return false; // path doesn't exist at all — handled elsewhere
   }
+
+  // macOS / Linux: standard symlink
+  if (stat.isSymbolicLink()) {
+    return !existsSync(fullPath); // existsSync follows the link; false = target missing
+  }
+
+  // Windows: npx skills creates junctions (isSymbolicLink() === false, isDirectory() === true)
+  // A broken junction makes the directory unreadable.
+  if (IS_WIN && stat.isDirectory()) {
+    try {
+      readdirSync(fullPath);
+      return false; // readable → not broken
+    } catch {
+      return true; // unreadable → broken junction
+    }
+  }
+
+  return false;
 }
 
-// ── Staleness detection ─────────────────────────────────────────────────────
+// ── Staleness detection ───────────────────────────────────────────────────────
+
+const ARTIFACT_SUFFIXES = ['.zip', '-workspace', '-backup'];
 
 function detectStale(entries) {
   const centralNames = new Set(
     entries.filter(e => e.platform.type === 'central').map(e => e.skill)
   );
-  const allNames = new Set(entries.map(e => e.skill));
-
-  // Detect renamed pairs: both old and new present in central store
-  // Heuristic: if a name is a prefix-substring of another name that also exists
-  const renames = new Map(); // oldName → newName
-  for (const a of centralNames) {
-    for (const b of centralNames) {
-      if (a !== b && b.startsWith(a) && (b[a.length] === '-' || b[a.length] === '_')) {
-        renames.set(a, b);
-      }
-    }
-  }
 
   return entries.map(entry => {
     const reasons = [];
 
-    if (entry.skill.endsWith('.zip'))
-      reasons.push('install artifact (.zip)');
-    if (entry.skill.endsWith('-workspace'))
-      reasons.push('install artifact (-workspace)');
-    if (entry.skill.endsWith('-backup') && entry.platform.type !== 'central')
-      reasons.push('install artifact (-backup)');
-    if (isBrokenSymlink(entry.fullPath))
-      reasons.push('broken symlink');
+    // Install artifacts (.zip, -workspace, -backup)
+    if (ARTIFACT_SUFFIXES.some(s => entry.skill.endsWith(s)))
+      reasons.push('install artifact');
+
+    // Broken symlink or broken Windows junction
+    if (isBrokenLink(entry.fullPath))
+      reasons.push('broken link');
+
+    // Platform entry that has no matching install in central store
     if (entry.platform.type !== 'central' && !centralNames.has(entry.skill))
       reasons.push('orphaned — not in central store');
-    if (renames.has(entry.skill) && allNames.has(renames.get(entry.skill)))
-      reasons.push(`renamed → ${renames.get(entry.skill)}`);
 
     return { ...entry, reasons, stale: reasons.length > 0 };
   });
 }
 
-// ── Grouping for display ─────────────────────────────────────────────────────
+// ── Display helpers ───────────────────────────────────────────────────────────
 
 function groupBySkill(entries) {
   const map = new Map();
@@ -113,8 +125,6 @@ function groupBySkill(entries) {
   return map;
 }
 
-// ── TUI choices ─────────────────────────────────────────────────────────────
-
 function buildChoices(entries) {
   const grouped = groupBySkill(entries);
   const choices = [];
@@ -123,11 +133,10 @@ function buildChoices(entries) {
     const anyStale  = items.some(i => i.stale);
     const platforms = items.map(i => i.platform.label).join(', ');
     const reasons   = [...new Set(items.flatMap(i => i.reasons))];
-    const tag       = anyStale ? ` ⚠  ${reasons.join(' · ')}` : '';
+    const tag       = anyStale ? `  ! ${reasons.join(' · ')}` : '';
 
-    // One entry per skill — selects all platform entries for that skill
     choices.push({
-      name:    `${skill.padEnd(35)} [${platforms}]${tag}`,
+      name:    `${skill.padEnd(36)}[${platforms}]${tag}`,
       value:   items,
       checked: anyStale,
     });
@@ -136,35 +145,74 @@ function buildChoices(entries) {
   return choices;
 }
 
-// ── Removal ──────────────────────────────────────────────────────────────────
+// ── Non-interactive list mode ─────────────────────────────────────────────────
+
+function printList(entries) {
+  const grouped = groupBySkill(entries);
+  console.log('\nInstalled skills:\n');
+  for (const [skill, items] of [...grouped.entries()].sort()) {
+    const platforms = items.map(i => i.platform.label).join(', ');
+    const stale     = items.filter(i => i.stale);
+    const tag       = stale.length ? `  [STALE: ${[...new Set(stale.flatMap(i => i.reasons))].join(', ')}]` : '';
+    console.log(`  ${skill.padEnd(36)}${platforms}${tag}`);
+  }
+  console.log('');
+}
+
+// ── Removal ───────────────────────────────────────────────────────────────────
 
 function removeEntry(entry) {
-  // Sort: platform entries before central store
+  // rmSync handles: regular dirs, symlinks (macOS/Linux), junctions (Windows)
   rmSync(entry.fullPath, { recursive: true, force: true });
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log(DRY_RUN ? '\n[DRY RUN] Scanning installed skills…\n' : '\nScanning installed skills…\n');
+  // Non-TTY guard: @inquirer/prompts requires an interactive terminal
+  if (!LIST && !process.stdin.isTTY) {
+    console.error([
+      '',
+      'skill-cleanup requires an interactive terminal.',
+      '',
+      'Run directly in your terminal:',
+      `  node ${new URL(import.meta.url).pathname.split('/').pop()}`,
+      '',
+      'Non-interactive options:',
+      '  --list      print all installed skills (no prompts)',
+      '  --dry-run   select in TUI then preview without removing',
+      '',
+    ].join('\n'));
+    process.exit(1);
+  }
+
+  const label = DRY_RUN ? '\n[DRY RUN] Scanning installed skills...\n'
+                        : '\nScanning installed skills...\n';
+  console.log(label);
 
   const allEntries = PLATFORMS.flatMap(scanPlatform);
 
   if (allEntries.length === 0) {
-    console.log('No skills found. Nothing to clean up.');
+    console.log('No skills found in any platform directory.');
     return;
   }
 
-  const entries  = detectStale(allEntries);
-  const choices  = buildChoices(entries);
+  const entries = detectStale(allEntries);
+
+  if (LIST) {
+    printList(entries);
+    return;
+  }
+
+  const choices    = buildChoices(entries);
   const staleCount = choices.filter(c => c.checked).length;
 
   if (staleCount > 0) {
-    console.log(`Found ${staleCount} potentially stale skill(s) (pre-selected).\n`);
+    console.log(`Found ${staleCount} potentially stale skill(s) — pre-selected below.\n`);
   }
 
   const selected = await checkbox({
-    message: 'Select skills to remove  (↑↓ navigate · space toggle · a select-all · enter confirm)',
+    message: 'Select skills to remove  (space toggle · a select-all · i invert · enter confirm)',
     choices,
     pageSize: 20,
   });
@@ -174,7 +222,7 @@ async function main() {
     return;
   }
 
-  // Flatten: collect all individual entries, sort so central store is last
+  // Flatten entries; platform copies first, central store last
   const toRemove = selected
     .flat()
     .sort((a, b) => {
@@ -184,7 +232,7 @@ async function main() {
     });
 
   console.log('\nSelected for removal:');
-  toRemove.forEach(e => console.log(`  • ${e.skill}  →  ${e.fullPath}`));
+  toRemove.forEach(e => console.log(`  ${e.skill}  ->  ${e.fullPath}`));
 
   if (DRY_RUN) {
     console.log('\n[DRY RUN] No files were removed.');
@@ -205,21 +253,24 @@ async function main() {
   for (const entry of toRemove) {
     try {
       removeEntry(entry);
-      console.log(`  ✓  ${entry.fullPath}`);
+      console.log(`  OK  ${entry.fullPath}`);
       removed++;
     } catch (err) {
-      console.error(`  ✗  ${entry.fullPath}  (${err.message})`);
+      console.error(`  ERR ${entry.fullPath}  (${err.message})`);
       failed++;
     }
   }
 
   console.log(`\nDone.  Removed: ${removed}  Failed: ${failed}`);
-  if (removed > 0) {
-    console.log('Restart your agent to refresh the skills list.');
-  }
+  if (removed > 0) console.log('Restart your agent to refresh the skills list.');
 }
 
 main().catch(err => {
-  console.error('\nError:', err.message);
+  // @inquirer/prompts throws ExitPromptError when user presses Ctrl+C
+  if (err.name === 'ExitPromptError') {
+    console.log('\nCancelled.');
+    process.exit(0);
+  }
+  console.error('\nUnexpected error:', err.message);
   process.exit(1);
 });

@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: grill-with-docs skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-grill-with-docs
+    config:
+      skill_name: grill-with-docs
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-grill-with-docs.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: /grill-with-docs — one question at a time, recommended answers
+  # ---------------------------------------------------------------------------
+  - description: "#1 /grill-with-docs — sequential questions, recommended answers, decision tree"
+    vars:
+      prompt: "/grill-with-docs"
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Asks questions one at a time, waiting for feedback before continuing
+      - type: llm-rubric
+        value: Provides a recommended answer for each question
+      - type: llm-rubric
+        value: Walks down the decision tree, resolving dependencies between decisions
+      - type: llm-rubric
+        value: Explores the codebase to answer questions that can be answered from code
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: CONTEXT.md present — challenges terminology, updates inline
+  # ---------------------------------------------------------------------------
+  - description: "#2 /grill-with-docs with CONTEXT.md — challenges terms, updates inline"
+    vars:
+      prompt: "/grill-with-docs"
+      scaffold_files:
+        - "package.json"
+        - "CONTEXT.md with existing domain glossary"
+    assert:
+      - type: llm-rubric
+        value: Challenges terminology against the existing CONTEXT.md glossary
+      - type: llm-rubric
+        value: Updates CONTEXT.md inline when a term is resolved — does not batch
+      - type: llm-rubric
+        value: Offers ADRs only when hard to reverse, surprising without context, and result of real trade-off
+      - type: llm-rubric
+        value: Does not treat CONTEXT.md as a spec or implementation record

@@ -316,3 +316,45 @@ tests:
         value: Gap message mentions at least two of mem0, letta, memobank, or equivalent
       - type: llm-rubric
         value: Memory system gap appears after stop hook and instruction file gaps (rank 4 or lower)
+
+  # ---------------------------------------------------------------------------
+  # Eval 16: Hooks snippet format — valid settings.json schema
+  # ---------------------------------------------------------------------------
+  - description: "#16 hooks snippet uses valid settings.json schema"
+    vars:
+      prompt: >
+        I need to set up the Stop hook and PostToolUse hook for my project.
+        Can you show me the exact settings.json content I should use?
+      scaffold_files:
+        - "no .claude/settings.json"
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: The JSON snippet uses "matcher" as a plain string (e.g. "Write" or ""), NOT as an object like {"type":"Write"}
+      - type: llm-rubric
+        value: Hook entries use "type":"command" — NOT "type":"prompt" or a bare "prompt" key without a "type" field
+      - type: llm-rubric
+        value: Each Stop and PostToolUse array entry has a "hooks" array — not a bare object with only a prompt/command key at the top level
+
+  # ---------------------------------------------------------------------------
+  # Eval 15: Recommended skill collections — suggest when GSD Redux absent
+  # ---------------------------------------------------------------------------
+  - description: "#15 recommended skill collections — GSD Redux absent, suggestion appears"
+    vars:
+      prompt: >
+        Run harness-audit on my project. I have .claude/settings.json with Stop
+        and PostToolUse hooks, a CLAUDE.md at 70 lines, CI running lint and build,
+        and pre-commit configured. No gsd-* skills are installed.
+      scaffold_files:
+        - ".claude/settings.json with Stop and PostToolUse hooks"
+        - "CLAUDE.md at 70 lines"
+        - ".github/workflows/ci.yml running lint and build"
+        - ".pre-commit-config.yaml"
+        - "no gsd-* skills installed"
+    assert:
+      - type: llm-rubric
+        value: Does NOT list GSD Redux or Superpowers as a numbered harness gap
+      - type: llm-rubric
+        value: Mentions GSD Redux as a recommended or suggested skill collection (separate from the gap list)
+      - type: llm-rubric
+        value: Includes the GSD Redux repo URL (github.com/open-gsd/get-shit-done-redux) in the suggestion

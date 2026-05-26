@@ -2,15 +2,22 @@
   "hooks": {
     "Stop": [
       {
-        "prompt": "Before declaring done, verify all tasks are truly complete: check git diff, run eval:validate, confirm no regressions in changed skill files."
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Before declaring done, verify all tasks are truly complete: check git diff, run eval:validate, confirm no regressions in changed skill files.'"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": {"type": "Write"},
+        "matcher": "Write",
         "hooks": [
           {
-            "prompt": "After every Write: verify the change is correct. If a SKILL.md was edited, run `python evals/run_evals.py --skill <name>` to confirm evals still pass."
+            "type": "command",
+            "command": "echo 'After every Write: verify the change is correct. If a SKILL.md was edited, run python evals/run_evals.py --skill <name> to confirm evals still pass.'"
           }
         ]
       }

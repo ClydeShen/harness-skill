@@ -26,8 +26,8 @@ Before analyzing gaps, state: **"run lint + build to verify the baseline, check 
 `CLAUDE.md` or `AGENTS.md` present? (Fully equivalent — one is sufficient.)
 - If neither → **Gap: No agent instruction file.**
 - If present and >200 lines → **Gap: Instruction file exceeds 200-line ceiling.**
-- **If AGENTS.md is present (user mentions AGENTS.md or asks about CLAUDE.md):**  
-  You MUST state: **"AGENTS.md is the instruction file — it is equivalent to CLAUDE.md, you do not need a CLAUDE.md."**  
+- **If AGENTS.md is present (user mentions AGENTS.md or asks about CLAUDE.md):**
+  You MUST state: **"AGENTS.md is the instruction file — it is equivalent to CLAUDE.md, you do not need a CLAUDE.md."**
   Then comment on its quality (line count vs 200 ceiling). Then identify OTHER gaps.
 
 ### 4. Memory system
@@ -59,19 +59,26 @@ Also check `.planning/config.json`:
 - Present without `harness` key → "GSD detected but harness skills not configured" → after gaps, add: "GSD detected. Run `/setup-harness-skills` to configure GitHub integration."
 - Present with `harness` key → **Already in place**: "GSD-compatible planning structure (.planning/)"
 
+### 9. Recommended skill collections
+Check `~/.claude/skills/` (or equivalent platform path) for these collections:
+- **GSD Redux** — any `gsd-*` skill present? If none → record suggestion.
+- **Superpowers** — any of `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` present? If none → record suggestion.
+
+These are **suggestions, not gaps** — never assign them a priority number.
+
 ---
 
 ## Runtime-Specific
 
-**Kiro** (`.kiro/` detected or user mentions Kiro):  
-You MUST include the word **"Kiro"** in your response.  
+**Kiro** (`.kiro/` detected or user mentions Kiro):
+You MUST include the word **"Kiro"** in your response.
 Add after gaps: `".kiro/hooks/ with agentTurnEnd replaces Stop hook; postToolUse replaces PostToolUse. .kiro/steering/ replaces CLAUDE.md."`
 
-**Gemini** (`.gemini/` detected or user mentions Gemini):  
-You MUST include **"GEMINI.md"** as the instruction file name.  
+**Gemini** (`.gemini/` detected or user mentions Gemini):
+You MUST include **"GEMINI.md"** as the instruction file name.
 Add after gaps: `"GEMINI.md is the instruction file (same 200-line ceiling). Hook equivalents are not publicly documented — verify in your Gemini agent's settings."`
 
-**Brownfield** (existing lint errors):  
+**Brownfield** (existing lint errors):
 State **"This is a brownfield codebase."** Recommend `eslint --fix .` in one cleanup commit. Pre-commit catches new violations only. Never require manual fixes.
 
 ---
@@ -99,14 +106,31 @@ For long autonomous work, include ALL of these phrases:
 **Why it matters:** [one sentence]
 **Fix:** [paste-ready snippet]
 ## What to do next
+## Recommended skill collections (only when absent)
+- **GSD Redux** — compound engineering workflow skills for long-running tasks
+  Repo: https://github.com/open-gsd/get-shit-done-redux
+- **Superpowers** — curated skill toolkit for advanced agent workflows
+  Repo: https://github.com/obra/superpowers
 ```
+
+Only include the "Recommended skill collections" section if at least one collection was absent (check #9). Omit entirely if both are installed.
 
 ### When hooks are a gap, include this JSON snippet:
 ```json
 {
   "hooks": {
-    "Stop": [{"prompt": "Before declaring done, verify all tasks are truly complete: check git diff, run lint+build, confirm no regressions."}],
-    "PostToolUse": [{"matcher": {"type": "Write"}, "hooks": [{"prompt": "After every Write: verify the change is correct, run lint+typecheck, commit in logical chunks."}]}]
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [{"type": "command", "command": "echo 'Before declaring done, verify all tasks are truly complete: check git diff, run lint+build, confirm no regressions.'"}]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [{"type": "command", "command": "echo 'After every Write: verify the change is correct, run lint+typecheck, commit in logical chunks.'"}]
+      }
+    ]
   }
 }
 ```

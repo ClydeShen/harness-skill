@@ -58,3 +58,19 @@ Both the response provider and the LLM judge use the server (see `evals/promptfo
 - Multi-day scope output MUST include "one active task at a time", verification anti-patterns, and Judge audit as exit criterion
 - Every snippet must be complete and paste-ready — no `YOUR_PROJECT_NAME` placeholders
 - Before committing any change to a skill file, run `python evals/run_evals.py --skill <name>` and confirm all evals pass
+
+## Memory Protocol
+
+This project uses memobank for persistent memory. Before starting work, recall relevant context:
+
+```bash
+memo recall "project context"
+```
+
+After finishing significant work, capture learnings:
+
+```bash
+memo capture --auto
+```
+
+For more information, run: `memo --help`

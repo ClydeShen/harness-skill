@@ -25,8 +25,15 @@ Before asking anything, read and report a **one-line summary**:
 6. `.planning/STATE.md` → prior session state?
 7. `.planning/PROJECT.md` → prior project context?
 8. `.claude/harness.json` → old config to migrate? (deprecated — migrate values to .planning/config.json)
+9. `~/.claude/skills/` → any `gsd-*` skill present? Any of `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` present?
 
 Example: "Found CLAUDE.md with no Agent skills block, no docs/agents/, GitHub remote owner/repo."
+
+Append to the summary line if collections are missing:
+- Both absent: `"Tip: GSD Redux and Superpowers are recommended companion collections — see https://github.com/open-gsd/get-shit-done-redux and https://github.com/obra/superpowers"`
+- Only GSD Redux absent: `"Tip: GSD Redux not installed — https://github.com/open-gsd/get-shit-done-redux"`
+- Only Superpowers absent: `"Tip: Superpowers not installed — https://github.com/obra/superpowers"`
+- Both present: omit entirely.
 
 ## Section A — Issue Tracker
 

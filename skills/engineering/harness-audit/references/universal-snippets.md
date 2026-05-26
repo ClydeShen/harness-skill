@@ -32,10 +32,11 @@ done declarations.
     ],
     "Stop": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Before ending this turn: (1) Run the project build and lint — fix any errors now, not later. (2) If this was UI work, open the feature in a browser and confirm the behavior is observable end-to-end. (3) Write a two-sentence status summary: what was changed and what the next concrete step is. Complete all outstanding checks before finishing."
+            "type": "command",
+            "command": "echo 'Before ending this turn: (1) Run the project build and lint — fix any errors now, not later. (2) If this was UI work, open the feature in a browser and confirm the behavior is observable end-to-end. (3) Write a two-sentence status summary: what was changed and what the next concrete step is. Complete all outstanding checks before finishing.'"
           }
         ]
       }

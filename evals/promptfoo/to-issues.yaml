@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: to-issues skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-to-issues
+    config:
+      skill_name: to-issues
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-to-issues.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: /to-issues — vertical slices, HITL/AFK labels, quizzes before publishing
+  # ---------------------------------------------------------------------------
+  - description: "#1 /to-issues — vertical slices, HITL/AFK, quiz before publish"
+    vars:
+      prompt: "/to-issues"
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "docs/prd.md with a feature spec"
+    assert:
+      - type: llm-rubric
+        value: Breaks the plan into vertical slices, not horizontal layers
+      - type: llm-rubric
+        value: Each slice is labeled HITL or AFK
+      - type: llm-rubric
+        value: Presents the breakdown and quizzes the user before publishing
+      - type: llm-rubric
+        value: Asks about granularity, dependencies, and HITL/AFK classification
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: /to-issues #5 — reads parent issue, publishes in dependency order
+  # ---------------------------------------------------------------------------
+  - description: "#2 /to-issues #5 — reads parent issue, publishes in dependency order"
+    vars:
+      prompt: "/to-issues #5"
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Fetches issue #5 from the tracker and reads its full body and comments
+      - type: llm-rubric
+        value: Published issues use the issue body template with Parent, What to build, Acceptance criteria, Blocked by sections
+      - type: llm-rubric
+        value: Publishes issues in dependency order so blockers appear first
+      - type: llm-rubric
+        value: Does not close or modify the parent issue #5

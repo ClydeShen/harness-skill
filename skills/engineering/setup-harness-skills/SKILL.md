@@ -21,7 +21,10 @@ Before asking anything, read and report a **one-line summary**:
 2. `CLAUDE.md` / `AGENTS.md` → existing `## Agent skills` block?
 3. `CONTEXT.md` → present?
 4. `docs/agents/` → prior setup files?
-5. `.claude/harness.json` → prior config?
+5. `.planning/config.json` → prior GSD or harness setup? (read harness key if present)
+6. `.planning/STATE.md` → prior session state?
+7. `.planning/PROJECT.md` → prior project context?
+8. `.claude/harness.json` → old config to migrate? (deprecated — migrate values to .planning/config.json)
 
 Example: "Found CLAUDE.md with no Agent skills block, no docs/agents/, GitHub remote owner/repo."
 
@@ -62,11 +65,31 @@ Options: Single-context · Multi-context · Neither yet
 
 ## Section E — Session State Location
 
-> "`.claude/session.json` tracks active phase and task. Confirm this path or override?"
+> "`.planning/STATE.md` tracks active phase, session status, and last-session context. This follows GSD's format — install GSD at any time and it reads this file directly. Confirm this path or override?"
 
 ## Output
 
 After all five sections, show the draft of what will be written and confirm before writing. Then execute the 10-step output sequence in `output-steps.md` — it covers: `## Agent skills` block, `harness.json`, GitHub labels, milestones, Project v2 board, branch protection, CI scaffold, `.gitignore`, and seed files to `docs/agents/`.
+
+### .planning/ files written by setup-harness-skills
+
+1. `.planning/config.json` — GSD defaults + `harness` namespace (idempotent merge; never overwrites GSD keys)
+2. `.planning/STATE.md` — from GSD state template (only if absent)
+3. `.planning/PROJECT.md` — from GSD project template (only if absent)
+4. `.planning/ROADMAP.md` — stub with four phase entries: 01-discuss, 02-plan, 03-execute, 04-verify (only if absent)
+
+### .gitignore additions
+
+```
+.planning/phases/*/.continue-here.md   # handoff docs — ephemeral, never commit
+```
+
+### Migration (when old .claude/ artifacts exist)
+
+- `.claude/harness.json` → merge values into `.planning/config.json` harness namespace
+- `.claude/session.json` → copy Session Continuity values into `.planning/STATE.md`
+- `.claude/handoff.md` → map into `.continue-here.md` XML sections (lossy — preserves content in `<context>`)
+- Old files are NOT deleted — user confirms before removal
 
 Print a setup summary at the end: ✅ completed · ⚠️ requires manual action · 📁 files written.
 

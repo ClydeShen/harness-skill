@@ -29,7 +29,15 @@ A curated 13-skill collection for compound engineering workflows, packaged as a 
 
 ## Installation
 
-### Claude Code (plugin)
+### Quick install — `harness-engineering` skill only
+
+```bash
+npx skills add ClydeShen/harness-skill@harness-engineering -g
+```
+
+Installs the `harness-engineering` skill globally and symlinks it into Claude Code, Codex, Kiro, Pi, and all other detected runtimes automatically.
+
+### Full collection — all 13 skills
 
 Add to `~/.claude/settings.json`:
 
@@ -41,15 +49,11 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-Or symlink the skills directory locally:
+Or symlink locally from a clone:
 
 ```bash
 bash scripts/link-skills.sh
 ```
-
-### Codex
-
-Skills installed via the plugin are auto-discovered by Codex. No additional config needed.
 
 ## Usage
 

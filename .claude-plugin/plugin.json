@@ -1,6 +1,6 @@
 {
   "name": "harness-engineering-skills",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Harness engineering skill collection — setup, context handover, session management, issue lifecycle, and compound engineering workflows.",
   "skills": [
     "skills/engineering/harness-engineering",

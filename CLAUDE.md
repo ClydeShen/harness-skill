@@ -25,7 +25,13 @@ skills/
   productivity/
     caveman/  grill-me/  handoff/  write-a-skill/
 evals/
-  run_evals.py               ← discovers and runs all skill evals
+  run_evals.py               ← promptfoo runner (discovers all skill configs)
+  promptfoo/
+    <skill-name>.yaml         ← one promptfoo config per skill (13 total)
+    provider.py               ← response provider: llamacpp HTTP at localhost:8080
+    grader.py                 ← judge provider: llamacpp HTTP at localhost:8080
+    scaffold_helper.py        ← shared project scaffolding logic
+    provider_pi.py            ← alternative pi-CLI provider (reference only)
 .claude-plugin/
   plugin.json                ← registered skill list
   link-skills.sh             ← symlinks skills/ into ~/.claude/skills/
@@ -38,6 +44,9 @@ Root `SKILL.md` stays intentionally empty (see README).
 
 ## Running Evals
 
+Requires `promptfoo` on PATH and a llamacpp server running at `localhost:8080`.
+Both the response model and the LLM judge use the server (see `provider.py` / `grader.py`).
+
 ```bash
 # All skills:
 python evals/run_evals.py
@@ -45,17 +54,20 @@ python evals/run_evals.py
 # One skill only:
 python evals/run_evals.py --skill harness-engineering
 
-# Specific eval IDs within a skill:
-python evals/run_evals.py --skill harness-engineering --evals 1,2
+# Filter to specific evals (regex matched against description):
+python evals/run_evals.py --skill harness-engineering --filter "#2"
+
+# Run promptfoo directly for a skill:
+cd evals/promptfoo && promptfoo eval --config harness-engineering.yaml
 ```
 
-Requires `claude` CLI on PATH with an active session. The runner:
-1. Copies the skill to an isolated temp dir (avoids git repo leakage into eval workspace)
-2. Scaffolds a minimal project per eval (package.json, ci.yml, CLAUDE.md stubs, etc.)
-3. Runs each eval prompt via `claude -p --plugin-dir <isolated> --model sonnet`
-4. Judges each expectation via a separate `claude -p --model haiku` call (PASS/FAIL)
+The runner:
+1. Discovers all `evals/promptfoo/<skill>.yaml` configs
+2. Invokes `promptfoo eval --config <skill>.yaml --no-cache` per skill
+3. The provider scaffolds a minimal project temp dir and calls llamacpp HTTP
+4. The grader judges each assertion via a separate llamacpp HTTP call
 
-Models: `RESPONSE_MODEL = "sonnet"`, `JUDGE_MODEL = "haiku"` — change at the top of `evals/run_evals.py`.
+Model and API base are set in `evals/promptfoo/provider.py` (`MODEL`, `API_BASE`).
 
 **Before committing any change to a skill file, run `python evals/run_evals.py --skill <name>` and confirm all evals pass.**
 
@@ -77,10 +89,10 @@ The skill runs in three phases (defined in `SKILL.md`):
 
 ## Editing Conventions
 
-- Skill content lives in `SKILL.md` and `references/*.md`. `evals.json` defines acceptance criteria.
+- Skill content lives in `SKILL.md` and `references/*.md`. `evals/evals.json` captures acceptance criteria in legacy format; `evals/promptfoo/<skill>.yaml` is the canonical eval definition.
 - Snippets are not duplicated between reference files — stack-specific content belongs in `node-snippets.md` or `python-snippets.md`, not in `universal-snippets.md`.
 - Every gate recommendation in `SKILL.md` must justify itself with a failure mode (one sentence). No failure mode = don't add it.
-- When adding a new eval scenario, add it to `evals.json` first, then update `SKILL.md` to cover it.
+- When adding a new eval scenario, add it to `evals/promptfoo/<skill>.yaml` first, then update `SKILL.md` to cover it.
 
 ## Global Constraints
 

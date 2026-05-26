@@ -4,7 +4,9 @@ Injects SKILL.md + all reference files as the system prompt, scaffolds a
 temporary project directory from scaffold_files test vars, and sends a file
 listing + eval prompt as the user message so the model sees realistic context.
 
-The llamacpp server exposes a standard OpenAI-compatible API.
+Config (set in promptfooconfig per provider):
+  skill_name: name of skill to load, e.g. "harness-engineering".
+              Resolved to skills/<category>/<skill_name>/ under the repo root.
 """
 
 import sys
@@ -13,71 +15,63 @@ from pathlib import Path
 
 import requests
 
-# Ensure scaffold_helper (same dir) is importable regardless of promptfoo's cwd
 sys.path.insert(0, str(Path(__file__).parent))
 from scaffold_helper import scaffold
 
-SKILL_DIR = (
-    Path(__file__).parent.parent.parent
-    / "skills" / "engineering" / "harness-engineering"
-)
+REPO_ROOT = Path(__file__).parent.parent.parent
 API_BASE = "http://localhost:8080/v1"
-MODEL = "Qwen3.6-35B-A3B-UD-Q5_K_M.gguf"
+MODEL = "qwen2.5-coder-32b-instruct-q5_k_m.gguf"
+
+_SYSTEM_CACHE: dict[str, str] = {}
 
 
-def _load_system_prompt() -> str:
-    """Read SKILL.md + all reference/*.md files into a single system prompt."""
+def _resolve_skill_dir(skill_name: str) -> Path:
+    matches = list(REPO_ROOT.glob(f"skills/*/{skill_name}"))
+    if not matches:
+        raise FileNotFoundError(f"skill '{skill_name}' not found under skills/*/")
+    return matches[0]
+
+
+def _load_system_prompt(skill_dir: Path) -> str:
     parts: list[str] = []
-
-    skill_md = SKILL_DIR / "SKILL.md"
+    skill_md = skill_dir / "SKILL.md"
     if skill_md.exists():
         text = skill_md.read_text(encoding="utf-8")
         if text.startswith("---"):
             end = text.index("---", 3)
             text = text[end + 3:].lstrip()
         parts.append(text)
-
-    refs = SKILL_DIR / "references"
+    refs = skill_dir / "references"
     if refs.exists():
         for ref in sorted(refs.glob("*.md")):
             parts.append(f"---\n# {ref.name}\n\n{ref.read_text(encoding='utf-8')}")
-
     return "\n\n".join(parts)
 
 
 def _build_file_listing(project_dir: str) -> str:
-    """Walk scaffolded directory and return a file tree for the model."""
     root = Path(project_dir)
-    lines: list[str] = []
-    for p in sorted(root.rglob("*")):
-        if p.is_file():
-            rel = p.relative_to(root)
-            lines.append(f"  {rel}")
-    if not lines:
-        return "(no project files — fresh empty directory)"
-    return "\n".join(lines)
-
-
-# Cache system prompt across calls within one eval run
-_SYSTEM_PROMPT: str | None = None
+    lines = [f"  {p.relative_to(root)}" for p in sorted(root.rglob("*")) if p.is_file()]
+    return "\n".join(lines) if lines else "(no project files — fresh empty directory)"
 
 
 def call_api(prompt: str, options: dict, context: dict) -> dict:
-    global _SYSTEM_PROMPT
-    if _SYSTEM_PROMPT is None:
-        _SYSTEM_PROMPT = _load_system_prompt()
+    skill_name = (options.get("config") or {}).get("skill_name", "harness-engineering")
 
+    if skill_name not in _SYSTEM_CACHE:
+        try:
+            skill_dir = _resolve_skill_dir(skill_name)
+        except FileNotFoundError as exc:
+            return {"error": str(exc)}
+        _SYSTEM_CACHE[skill_name] = _load_system_prompt(skill_dir)
+
+    system_prompt = _SYSTEM_CACHE[skill_name]
     scaffold_files = context.get("vars", {}).get("scaffold_files") or []
 
     with tempfile.TemporaryDirectory(prefix="pf_proj_") as project_dir:
         if scaffold_files:
             scaffold(project_dir, scaffold_files)
-
         file_listing = _build_file_listing(project_dir)
-        user_message = (
-            f"Project files present:\n{file_listing}\n\n"
-            f"{prompt}"
-        )
+        user_message = f"Project files present:\n{file_listing}\n\n{prompt}"
 
         try:
             resp = requests.post(
@@ -85,7 +79,7 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
                 json={
                     "model": MODEL,
                     "messages": [
-                        {"role": "system", "content": _SYSTEM_PROMPT},
+                        {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_message},
                     ],
                     "temperature": 0.1,
@@ -95,10 +89,8 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
                 timeout=300,
             )
             resp.raise_for_status()
-            data = resp.json()
-            output = data["choices"][0]["message"]["content"]
+            output = resp.json()["choices"][0]["message"]["content"]
             return {"output": output}
-
         except requests.exceptions.ConnectionError:
             return {"error": "llamacpp server not reachable at localhost:8080"}
         except Exception as exc:

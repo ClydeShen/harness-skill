@@ -9,7 +9,12 @@ __pycache__/
 
 # Promptfoo eval output
 evals/promptfoo/output.json
+evals/promptfoo/output-*.json
 output.json
+output-*.json
+
+# Session handoff artifacts
+HANDOFF.md
 node_modules/
 
 # Roam codebase indexing tool

@@ -3,6 +3,10 @@
 Pi loads SKILL.md + references natively (equivalent to claude --plugin-dir).
 scaffold_files test var creates realistic project context so the skill can
 discover files via tools, matching the isolation strategy in run_evals.py.
+
+Config (set in promptfooconfig per provider):
+  skill_name: name of skill to load, e.g. "harness-engineering".
+              Resolved to skills/<category>/<skill_name>/ under the repo root.
 """
 
 import shutil
@@ -11,19 +15,29 @@ import sys
 import tempfile
 from pathlib import Path
 
-# Ensure scaffold_helper (same dir) is importable regardless of promptfoo's cwd
 sys.path.insert(0, str(Path(__file__).parent))
 from scaffold_helper import scaffold
 
-SKILL_DIR = (
-    Path(__file__).parent.parent.parent
-    / "skills" / "engineering" / "harness-engineering"
-)
+REPO_ROOT = Path(__file__).parent.parent.parent
 PI_EXE = shutil.which("pi") or shutil.which("pi.cmd") or "pi"
 MODEL = "llamacpp/qwen3.6-35b-a3b-ud-q5_k_m"
 
 
+def _resolve_skill_dir(skill_name: str) -> Path:
+    matches = list(REPO_ROOT.glob(f"skills/*/{skill_name}"))
+    if not matches:
+        raise FileNotFoundError(f"skill '{skill_name}' not found under skills/*/")
+    return matches[0]
+
+
 def call_api(prompt: str, options: dict, context: dict) -> dict:
+    skill_name = (options.get("config") or {}).get("skill_name", "harness-engineering")
+
+    try:
+        skill_dir = _resolve_skill_dir(skill_name)
+    except FileNotFoundError as exc:
+        return {"error": str(exc)}
+
     scaffold_files = context.get("vars", {}).get("scaffold_files") or []
 
     with tempfile.TemporaryDirectory(prefix="pf_proj_") as project_dir:
@@ -34,7 +48,7 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
             [
                 PI_EXE, "-p",
                 "--model", MODEL,
-                "--skill", str(SKILL_DIR),
+                "--skill", str(skill_dir),
                 "--no-context-files",
                 prompt,
             ],

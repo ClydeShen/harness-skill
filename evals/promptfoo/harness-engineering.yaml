@@ -1,0 +1,318 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: harness-engineering skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-harness-engineering
+    config:
+      skill_name: harness-engineering
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-harness-engineering.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: Pre-task checklist (medium-sized task, 2-3 hours)
+  # ---------------------------------------------------------------------------
+  - description: "#1 pre-task checklist"
+    vars:
+      prompt: >
+        I'm about to start implementing the user authentication flow for our app.
+        It's a medium-sized task — probably 2-3 hours. What do I need to do first
+        before writing any code?
+      scaffold_files: []
+    assert:
+      - type: llm-rubric
+        value: Mentions running a build or lint check BEFORE writing code (verify baseline step)
+      - type: llm-rubric
+        value: Mentions checking git status or confirming a clean working tree
+      - type: llm-rubric
+        value: Includes a pre-task alignment step or Initial Interview for the multi-hour task scope
+      - type: llm-rubric
+        value: Does NOT suggest jumping straight into coding as the first step
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: Multi-day task — week-long, gsd-2 installed
+  # ---------------------------------------------------------------------------
+  - description: "#2 multi-day goal structure with gsd-2"
+    vars:
+      prompt: >
+        I need Claude to build a complete payment system with Stripe integration.
+        It's a big feature — probably a week of work. I have gsd-2 installed
+        (/gsd, /gsd auto, /gsd doctor, /gsd verdict). How should I structure this
+        so Claude stays on track and doesn't go off the rails?
+      scaffold_files: []
+    assert:
+      - type: llm-rubric
+        value: Recommends working on one task or one bounded unit of work at a time
+      - type: llm-rubric
+        value: Warns about the risk of false completion — e.g., Claude drifting, hallucinates progress, or prematurely declares done
+      - type: llm-rubric
+        value: Mentions context window management or session handoff strategy for multi-day work
+      - type: icontains
+        value: "Judge audit"
+
+  # ---------------------------------------------------------------------------
+  # Eval 3: CLAUDE.md content guidance
+  # ---------------------------------------------------------------------------
+  - description: "#3 CLAUDE.md content guidance"
+    vars:
+      prompt: >
+        I'm setting up a CLAUDE.md for my new project. It's a Next.js app with
+        Supabase and Stripe. What should I include and what should I leave out?
+      scaffold_files:
+        - "package.json with next.js supabase stripe deps"
+    assert:
+      - type: llm-rubric
+        value: Recommends including key commands Claude needs — dev server, build, lint, or test scripts
+      - type: llm-rubric
+        value: Distinguishes between what should be in CLAUDE.md versus what should be handled by tooling, linters, or separate documentation
+      - type: llm-rubric
+        value: "Mentions a line-count limit or size ceiling for CLAUDE.md (e.g., ~60 lines target or 200-line hard ceiling)"
+      - type: llm-rubric
+        value: Addresses what to leave OUT of CLAUDE.md — e.g., code style, stale content, deep docs, or task-specific rules
+      - type: llm-rubric
+        value: Mentions conditional or task-specific rules — e.g., using <important if> tags or .claude/rules/ for path-specific content
+
+  # ---------------------------------------------------------------------------
+  # Eval 4: Full gap detection (Next.js TypeScript, 250-line CLAUDE.md, build-only CI)
+  # ---------------------------------------------------------------------------
+  - description: "#4 full gap detection — hooks + CLAUDE.md + CI"
+    vars:
+      prompt: >
+        I just cloned a Next.js TypeScript project. It has a package.json with eslint
+        and typescript, a .github/workflows/ci.yml that runs npm run build, but no
+        .claude/settings.json, no init.sh, and a CLAUDE.md that's 250 lines long.
+        What harness gaps do I have and what should I fix first?
+      scaffold_files:
+        - "package.json with typescript and eslint deps"
+        - ".github/workflows/ci.yml running npm run build only"
+        - "CLAUDE.md with 250 lines"
+        - "no .claude/settings.json"
+        - "no init.sh"
+    assert:
+      - type: llm-rubric
+        value: Identifies missing Stop hook as a gap
+      - type: llm-rubric
+        value: Identifies missing PostToolUse hook as a gap
+      - type: llm-rubric
+        value: "Identifies the CLAUDE.md file as a problem — e.g., flags it as too long, over a size limit, or needing to be reduced"
+      - type: llm-rubric
+        value: Identifies CI as incomplete (build only, no lint)
+      - type: llm-rubric
+        value: Includes a JSON snippet or specific hook configuration for .claude/settings.json
+
+  # ---------------------------------------------------------------------------
+  # Eval 5: Brownfield — 50k-line codebase, 340 ESLint errors
+  # ---------------------------------------------------------------------------
+  - description: "#5 brownfield codebase — bulk lint fix, not manual"
+    vars:
+      prompt: >
+        I'm taking over a Next.js TypeScript project that's been running in
+        production for 2 years. It has roughly 50,000 lines of code, no
+        .pre-commit-config.yaml, and eslint currently reports 340 errors. I want
+        to start using Claude Code on it. What harness should I set up, and where
+        should I start?
+      scaffold_files:
+        - "Next.js TypeScript project with ~50k lines"
+        - "no .pre-commit-config.yaml"
+        - "eslint reports 340 errors on existing code"
+        - "no .claude/settings.json"
+    assert:
+      - type: llm-rubric
+        value: Does not say the user must manually fix all 340 ESLint errors before they can begin using Claude Code on this project
+      - type: llm-rubric
+        value: Acknowledges this is a brownfield or inherited codebase and tailors the advice accordingly
+      - type: llm-rubric
+        value: "Suggests an automated or bulk approach to reducing existing lint violations (e.g., eslint --fix, a cleanup commit)"
+      - type: llm-rubric
+        value: "Mentions .claude/settings.json, Stop hook, PostToolUse hook, or Claude hooks as part of what needs to be set up"
+
+  # ---------------------------------------------------------------------------
+  # Eval 6: AGENTS.md equivalence
+  # ---------------------------------------------------------------------------
+  - description: "#6 AGENTS.md is equivalent to CLAUDE.md"
+    vars:
+      prompt: >
+        My project already has an AGENTS.md file at the root that documents the
+        stack, key commands, architecture, and coding conventions for AI agents.
+        It's about 80 lines. Do I still need a CLAUDE.md? Are there any harness
+        gaps I should fix?
+      scaffold_files:
+        - "AGENTS.md at project root, ~80 lines"
+        - "no CLAUDE.md"
+        - "no .claude/settings.json"
+    assert:
+      - type: llm-rubric
+        value: Does NOT flag missing CLAUDE.md as a harness gap
+      - type: llm-rubric
+        value: Treats AGENTS.md as a valid equivalent instruction file — explicitly says no separate CLAUDE.md is needed, or that AGENTS.md covers what CLAUDE.md would provide
+      - type: llm-rubric
+        value: Does not recommend creating a CLAUDE.md alongside AGENTS.md
+
+  # ---------------------------------------------------------------------------
+  # Eval 7: Kiro runtime
+  # ---------------------------------------------------------------------------
+  - description: "#7 Kiro runtime — hook equivalents"
+    vars:
+      prompt: >
+        I'm using Kiro as my AI agent. I just cloned a Next.js TypeScript project.
+        It has a .kiro/ directory but no hooks configured and no .kiro/steering/
+        files. What harness gaps do I have and what should I fix first?
+      scaffold_files:
+        - ".kiro directory present but empty"
+        - "package.json with next.js and typescript"
+        - "no .claude/settings.json"
+    assert:
+      - type: icontains
+        value: "Kiro"
+      - type: llm-rubric
+        value: "Mentions Kiro hook concepts (agentTurnEnd, postToolUse, or .kiro/hooks/) as equivalents to the standard hooks"
+      - type: llm-rubric
+        value: Identifies at least one actionable gap (hooks, CI, instruction file, or pre-commit)
+
+  # ---------------------------------------------------------------------------
+  # Eval 8: Gemini runtime
+  # ---------------------------------------------------------------------------
+  - description: "#8 Gemini runtime — conceptual guidance"
+    vars:
+      prompt: >
+        I'm using Gemini as my AI coding agent. My project has a .gemini/
+        directory. I don't have any instruction files or hook configuration set up
+        yet. What harness gaps should I address?
+      scaffold_files:
+        - ".gemini directory present"
+        - "package.json"
+    assert:
+      - type: icontains
+        value: "GEMINI.md"
+      - type: llm-rubric
+        value: Acknowledges the user is on Gemini and tailors at least some of the response to that context
+      - type: llm-rubric
+        value: Mentions at least one universal harness gap that applies regardless of platform — e.g., CI, init.sh, hooks, or an instruction file
+
+  # ---------------------------------------------------------------------------
+  # Eval 9: Already-configured setup (docs/agents + hooks present)
+  # ---------------------------------------------------------------------------
+  - description: "#9 recognises already-configured setup — no /setup-harness-skills prompt"
+    vars:
+      prompt: >
+        Check the harness for my project. It has docs/agents/ with
+        issue-tracker.md, triage-labels.md, domain.md, github-project.md, and
+        session-config.md.
+      scaffold_files:
+        - "docs/agents/issue-tracker.md"
+        - "docs/agents/triage-labels.md"
+        - "docs/agents/domain.md"
+        - "docs/agents/github-project.md"
+        - "docs/agents/session-config.md"
+        - ".claude/settings.json with Stop and PostToolUse hooks"
+    assert:
+      - type: not-icontains
+        value: "/setup-harness-skills"
+      - type: llm-rubric
+        value: Recognises that docs/agents/ with all five files is already in place — lists it under 'Already in place' or equivalent, rather than flagging it as a gap
+
+  # ---------------------------------------------------------------------------
+  # Eval 10: Stop hook is gap #1 (basic Node project, nothing set up)
+  # ---------------------------------------------------------------------------
+  - description: "#10 Stop hook is gap #1"
+    vars:
+      prompt: "Set up the harness for my new project. It's a Node.js app."
+      scaffold_files:
+        - "package.json"
+        - "no .claude/settings.json"
+        - "no docs/agents/"
+    assert:
+      - type: llm-rubric
+        value: Stop hook is gap #1 (first gap listed)
+
+  # ---------------------------------------------------------------------------
+  # Eval 11: init.sh as the remaining gap (all other gaps already closed)
+  # ---------------------------------------------------------------------------
+  - description: "#11 init.sh detection — other gaps already in place"
+    vars:
+      prompt: >
+        Audit the harness for my Python project. It has a .claude/settings.json
+        with Stop and PostToolUse hooks, a CLAUDE.md at 90 lines, and a
+        .github/workflows/ci.yml running both lint and build. But there's no
+        init.sh at the root.
+      scaffold_files:
+        - ".claude/settings.json with Stop and PostToolUse hooks"
+        - "CLAUDE.md at 90 lines"
+        - ".github/workflows/ci.yml running lint and build"
+        - "requirements.txt"
+        - "no init.sh"
+    assert:
+      - type: llm-rubric
+        value: Identifies missing init.sh as a harness gap
+      - type: llm-rubric
+        value: Does NOT flag Stop hook, PostToolUse hook, or CLAUDE.md as gaps — those are already in place
+      - type: llm-rubric
+        value: Does NOT flag CI as a gap — lint and build are both present
+
+  # ---------------------------------------------------------------------------
+  # Eval 12: settings.json exists but Stop hook missing (PostToolUse-only)
+  # ---------------------------------------------------------------------------
+  - description: "#12 partial hooks — Stop missing, PostToolUse present"
+    vars:
+      prompt: >
+        I have a .claude/settings.json in my project but Claude keeps going off
+        the rails and declaring tasks done without checking. Here's the file:
+        {"hooks": {"PostToolUse": [{"matcher": {"type": "Write"}, "hooks":
+        [{"prompt": "Run lint after every write."}]}]}}
+      scaffold_files:
+        - ".claude/settings.json with PostToolUse hook only (no Stop entry)"
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: Identifies missing Stop hook as a gap despite settings.json already existing
+      - type: llm-rubric
+        value: Does NOT flag PostToolUse hook as a gap — it is already configured
+      - type: llm-rubric
+        value: Explains why the Stop hook prevents premature done declarations — connects the gap to the failure mode the user is experiencing
+
+  # ---------------------------------------------------------------------------
+  # Eval 13: .planning/config.json with harness key present — Already in place
+  # ---------------------------------------------------------------------------
+  - description: "#13 planning config with harness key — GSD-compatible setup in Already in Place"
+    vars:
+      prompt: "Please run harness-engineering on this project."
+      scaffold_files:
+        - ".claude/settings.json with stop and posttooluse hooks"
+        - "CLAUDE.md"
+        - ".planning/config.json with harness key"
+    assert:
+      - type: llm-rubric
+        value: Lists GSD-compatible planning structure in the Already in place section
+      - type: llm-rubric
+        value: Does not list .planning/ as a gap when config.json with harness key is present
+
+  # ---------------------------------------------------------------------------
+  # Eval 14: No memory system configured — memory system gap at rank 4
+  # ---------------------------------------------------------------------------
+  - description: "#14 no memory system — gap listed at rank 4"
+    vars:
+      prompt: "Please run harness-engineering on this project."
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - ".github/workflows/ci.yml with lint and build"
+    assert:
+      - type: llm-rubric
+        value: Lists a memory system gap in the gap list
+      - type: llm-rubric
+        value: Gap message mentions at least two of mem0, letta, memobank, or equivalent
+      - type: llm-rubric
+        value: Memory system gap appears after stop hook and instruction file gaps (rank 4 or lower)

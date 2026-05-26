@@ -17,22 +17,64 @@ Do NOT invoke `/compact` programmatically. Instruct the user to type it.
 
 ## Phase detection (priority order)
 
-1. `.claude/session.json` → `current_phase` — use if present and non-null
-2. Active GitHub issue labels → `phase:design / product / execution / testing`
-3. Issue title/body keywords — "design"/"spec"/"ADR" → design; "PRD"/"story" → product; "implement"/"build"/"fix" → execution; "test"/"QA" → testing
-4. Default to `execution` — note "phase inferred by default" in handoff doc
+1. `.planning/STATE.md` → `Current Position.Phase` field — use if present
+2. `.claude/session.json` → `current_phase` — legacy fallback (deprecated)
+3. Active GitHub issue labels → `phase:discuss / plan / execute / verify`
+4. Issue title/body keywords — "design"/"spec"/"ADR" → discuss; "PRD"/"story" → plan; "implement"/"build"/"fix" → execute; "test"/"QA" → verify
+5. Default to `execute` — note "phase inferred by default" in handoff doc
 
 ## Execution sequence
 
 - [ ] **1. Invoke memory system** — call the active memory system's update mechanism (mem0, memobank, letta, or equivalent). It is a black box — trigger the update and move on. Budget: <5% of remaining context.
 
-- [ ] **2. Write `.claude/handoff.md`** — overwrite in place (single unified file, no timestamps in path). See `phase-budgets.md` for what each phase's handoff focuses on. Rules:
-  - Reference artifacts by path/URL only — never inline file contents
-  - Include a "Suggested skills" section
-  - Always include `Last updated: YYYY-MM-DD HH:mm` at the top
+- [ ] **2. Update `.planning/STATE.md` Session Continuity** — write `session_status: idle`, `last_session`, `Stopped at`, `Resume file` fields. Budget: <1% of remaining context.
+
+- [ ] **3. Write `.planning/phases/XX-name/.continue-here.md`** — use GSD's exact template. Path: derive XX-name from STATE.md `Current Position.Phase`. Rules:
+  - YAML frontmatter: phase, task, total_tasks, status, last_updated
+  - XML sections: current_state, completed_work, remaining_work, decisions_made, blockers, context, next_action
+  - Reference artifacts by path only — never inline content
   - Budget: <5% of remaining context
 
-- [ ] **3. Post GitHub handover comment** — only if `docs/agents/issue-tracker.md` exists AND active task has a GitHub issue number. Format:
+  Template:
+  ```
+  ---
+  phase: 03-execute
+  task: 2
+  total_tasks: 5
+  status: in_progress
+  last_updated: YYYY-MM-DDTHH:MM:SSZ
+  ---
+
+  <current_state>
+  Where exactly are we?
+  </current_state>
+
+  <completed_work>
+  - Task 1: [name] — Done
+  </completed_work>
+
+  <remaining_work>
+  - Task 2: [what's left]
+  </remaining_work>
+
+  <decisions_made>
+  - Decided to use X because Y
+  </decisions_made>
+
+  <blockers>
+  None
+  </blockers>
+
+  <context>
+  Mental state and vibe to resume smoothly.
+  </context>
+
+  <next_action>
+  Start with: [specific action]
+  </next_action>
+  ```
+
+- [ ] **4. Post GitHub handover comment** — only if `docs/agents/issue-tracker.md` exists AND active task has a GitHub issue number. Format:
 
   ```
   ## Handover — YYYY-MM-DD HH:mm
@@ -50,8 +92,8 @@ Do NOT invoke `/compact` programmatically. Instruct the user to type it.
 
   Also update `session.json`: set `last_handover` and `next_session_hint`.
 
-- [ ] **4. Output to user:**
-  - "Handover complete. Handoff doc: `.claude/handoff.md`."
+- [ ] **5. Output to user:**
+  - "Handover complete. Resume file: `.planning/phases/XX-name/.continue-here.md`."
   - "**Start your next session with `/session-start`.**"
   - "**To compact this session now, type `/compact`.**"
 
@@ -59,9 +101,11 @@ Do NOT invoke `/compact` programmatically. Instruct the user to type it.
 
 | Missing | Action |
 |---|---|
-| No `docs/agents/` | Skip GitHub comment; still write handoff doc |
-| No `session.json` | Use phase fallback chain above; create `session.json` from inferred values |
-| No GitHub remote | Skip issue update; note "run /setup-harness-skills" |
-| No memory system | Write key decisions inline in handoff doc under "Key decisions" |
+| No `.planning/` directory | Note "run /setup-harness-skills first"; write `.claude/handoff.md` as emergency fallback only |
+| No `.continue-here.md` path resolvable | Write to `.planning/phases/XX-current/.continue-here.md` using STATE.md `current_focus` value |
+| No `docs/agents/` | Skip GitHub comment; still write .continue-here.md |
+| No `session.json` or STATE.md | Use phase fallback chain; create STATE.md from inferred values |
+| No GitHub remote | Skip issue update silently |
+| No memory system | Write key decisions inline in `<decisions_made>` section of .continue-here.md |
 
 See `phase-budgets.md` for per-phase handoff content and session budget tables.

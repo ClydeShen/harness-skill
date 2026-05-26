@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: handoff skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-handoff
+    config:
+      skill_name: handoff
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-handoff.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: /handoff — writes to OS temp, suggests skills, no duplicates
+  # ---------------------------------------------------------------------------
+  - description: "#1 /handoff — OS temp dir, skill suggestions, no duplicate content"
+    vars:
+      prompt: "/handoff"
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Writes the handoff document to the OS temporary directory, not the workspace
+      - type: llm-rubric
+        value: Includes a 'suggested skills' section recommending relevant skills for the next session
+      - type: llm-rubric
+        value: Does not duplicate content from existing artifacts — references them by path or URL
+      - type: llm-rubric
+        value: Redacts any sensitive information such as API keys or credentials
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: /handoff with next-session focus stated
+  # ---------------------------------------------------------------------------
+  - description: "#2 /handoff with stated focus — tailored to payment flow, refs PRD"
+    vars:
+      prompt: "/handoff focus on implementing the payment flow next session"
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "docs/prd.md"
+    assert:
+      - type: llm-rubric
+        value: Tailors the handoff document to the stated next-session focus (payment flow)
+      - type: llm-rubric
+        value: References the PRD and other artifacts rather than duplicating their content
+      - type: llm-rubric
+        value: Suggests skills appropriate for implementation work in the next session
+      - type: llm-rubric
+        value: Saves to OS temp dir, not the project workspace

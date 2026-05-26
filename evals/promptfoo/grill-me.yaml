@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: grill-me skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-grill-me
+    config:
+      skill_name: grill-me
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-grill-me.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: /grill-me about auth module — sequential, recommended answers
+  # ---------------------------------------------------------------------------
+  - description: "#1 /grill-me about auth — sequential questions, recommended answers"
+    vars:
+      prompt: "/grill-me about how to structure the authentication module"
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Asks questions one at a time — does not dump multiple questions at once
+      - type: llm-rubric
+        value: Provides a recommended answer for each question
+      - type: llm-rubric
+        value: Walks down each branch of the design tree before moving to the next
+      - type: llm-rubric
+        value: Does not start implementing until shared understanding is reached
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: /grill-me with existing code — reads code, surfaces contradictions
+  # ---------------------------------------------------------------------------
+  - description: "#2 /grill-me with existing auth code — reads first, surfaces contradictions"
+    vars:
+      prompt: "/grill-me"
+      scaffold_files:
+        - "package.json"
+        - "src/auth/index.ts with existing auth code"
+    assert:
+      - type: llm-rubric
+        value: Explores the codebase to answer questions that can be answered from code
+      - type: llm-rubric
+        value: Does not ask questions that can be resolved by reading existing files
+      - type: llm-rubric
+        value: Resolves dependencies between decisions one-by-one
+      - type: llm-rubric
+        value: Surfaces contradictions between stated plan and existing code

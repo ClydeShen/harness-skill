@@ -164,8 +164,31 @@ Check each story against all three gates before creating the issue:
 2. **Size gate:** A story estimated at >8 context windows must be split. Above this, scope is too large to track and hand over reliably.
 3. **Vertical slice gate:** Every issue must deliver a **demoable user-facing outcome**. Ask: *"Can this story be demonstrated to a stakeholder end-to-end without implementing any other story first?"* If no → restructure into a vertical slice before creation.
 
+### 6. Write .planning/phases/02-plan/02-PLAN.md (dual output)
+
+In addition to GitHub Issues, write a GSD PLAN.md file. One task block per issue:
+
+```markdown
+## Task N: [title]
+
+**Type:** feature | bug | chore | spike
+**Effort:** N context window(s)
+
+### What to build
+[User-facing outcome, one sentence]
+
+### Acceptance criteria
+- [ ] [criterion]
+
+### Files likely involved
+[leave blank — agent decides HOW]
+```
+
+Path: `.planning/phases/02-plan/02-PLAN.md`. Create `.planning/phases/02-plan/` if absent.
+
 ## Mid-session execution rules
 
-Execution phase agents reading these issues must:
+execute phase agents reading these issues must:
 1. **Commit after each AC item completes** — the git log is the durable in-session progress record.
 2. **Post a progress comment after each AC item completes** — format: `Progress [timestamp]: Completed AC #N — [one line summary]. Remaining: [list].` This survives mid-session interruptions without a clean handover.
+3. **PLAN.md is a local mirror** — GitHub Issues are the canonical human-visible record. PLAN.md is the GSD-compatible local record. Both are written simultaneously. If GitHub is not configured, write PLAN.md only.

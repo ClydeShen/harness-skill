@@ -30,19 +30,34 @@ Before analyzing gaps, state: **"run lint + build to verify the baseline, check 
   You MUST state: **"AGENTS.md is the instruction file — it is equivalent to CLAUDE.md, you do not need a CLAUDE.md."**  
   Then comment on its quality (line count vs 200 ceiling). Then identify OTHER gaps.
 
-### 4. CI
+### 4. Memory system
+Check for any of these signals (one positive signal = gap closed):
+- `.memobank/` directory present at root or user-level
+- `mem0.json`, `letta.json`, or equivalent system config file at root
+- `mem0`, `letta`, `memobank` in `requirements.txt`, `package.json`, or `pyproject.toml`
+- Any mention of "mem0", "letta", "memobank", "memory system", "persistent memory" in CLAUDE.md / AGENTS.md
+- `MEMORY.md` present (convention used by memobank and compatible systems)
+
+No signal → **Gap: No memory system configured.** Why: mid-session interruption recovery falls back to GitHub per-AC comments (requires GitHub) or cold git-log reconstruction — no local recovery path exists without a memory system.
+
+### 5. CI
 `.github/workflows/*.yml` runs both lint AND build? Build-only → **Gap: CI only runs build — no lint.**
 
-### 5. Pre-commit
+### 6. Pre-commit
 `.husky/` or `.pre-commit-config.yaml` present?
 
-### 6. Health script
+### 7. Health script
 `init.sh` at root — exists and executable?
 
-### 7. Onboarding config
+### 8. Onboarding config
 `docs/agents/` with all five files (issue-tracker.md, triage-labels.md, domain.md, github-project.md, session-config.md)?
 - All present → "Already in place" — do NOT suggest `/setup-harness-skills`
 - Missing → after gaps, add: **"Optional: Run `/setup-harness-skills`"** for long-running work.
+
+Also check `.planning/config.json`:
+- Absent → note "no GSD-compatible planning structure" (optional gap, not in top-5 priority)
+- Present without `harness` key → "GSD detected but harness skills not configured" → after gaps, add: "GSD detected. Run `/setup-harness-skills` to configure GitHub integration."
+- Present with `harness` key → **Already in place**: "GSD-compatible planning structure (.planning/)"
 
 ---
 

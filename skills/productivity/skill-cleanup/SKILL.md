@@ -1,90 +1,141 @@
 ---
 name: skill-cleanup
-description: Scan installed skills across ~/.claude/skills/ and ~/.agents/skills/, detect stale or duplicate entries (renamed originals, broken symlinks, orphaned installs, .zip artifacts), and guide safe removal with confirmation. Use when skills list feels cluttered, after renaming a skill, after uninstalling a plugin, or when user says "clean up skills", "remove old skill", "prune skills", "stale skill", "duplicate skill".
+description: Audit and remove stale, renamed, or duplicate skills across all installed agent platforms (Claude Code, Kiro, Codex, Windsurf, Gemini, Pi, and more). Handles symlink and copy installs, detects artifacts, and generates OS-correct removal commands. Use when skills list feels cluttered, after renaming a skill, after uninstalling a plugin, or when user says "clean up skills", "remove old skill", "prune skills", "stale skill", "duplicate skill".
 ---
 
 # Skill Cleanup
 
-**You are an audit tool. Never delete anything without explicit user confirmation.**
+**Audit tool. Never delete anything without explicit user confirmation per item.**
 
 ---
 
-## Step 1 — Scan installed locations
+## Phase 1 — Detect OS and home directory
 
-Run both:
+Run the appropriate probe:
 
+**macOS / Linux:**
 ```bash
-ls ~/.claude/skills/
-ls ~/.agents/skills/
+echo "OS: $(uname -s)"
+echo "HOME: $HOME"
 ```
 
-Group findings into two lists: **symlinks** (`~/.claude/skills/`) and **installs** (`~/.agents/skills/`).
+**Windows (PowerShell):**
+```powershell
+echo "OS: Windows"
+echo "HOME: $env:USERPROFILE"
+```
+
+Use the detected home directory for all paths below. On Windows substitute `\` for `/` throughout.
 
 ---
 
-## Step 2 — Flag stale entries
+## Phase 2 — Scan installed locations
 
-Mark as stale when ANY signal is true:
+Run each command that applies (skip if directory does not exist):
 
-| Signal | Type |
+```bash
+# Central store — source of truth
+ls ~/.agents/skills/
+
+# Symlink platforms (point into central store)
+ls ~/.claude/skills/          # Claude Code
+ls ~/.kiro/skills/            # Kiro CLI
+ls ~/.pi/agent/skills/        # Pi
+ls ~/.kilocode/skills/        # Kilo Code
+ls ~/.qwen/skills/            # Qwen Code
+
+# Copy platforms (independent copies — not symlinks)
+ls ~/.codex/skills/           # Codex
+ls ~/.codeium/windsurf/skills/ # Windsurf
+ls ~/.gemini/config/skills/   # Gemini CLI
+```
+
+See [PLATFORMS.md](PLATFORMS.md) for exact paths per OS and notes on each platform's install type.
+
+Build two inventories:
+- **Central store list** — what `~/.agents/skills/` contains
+- **Platform lists** — what each platform dir contains
+
+---
+
+## Phase 3 — Flag stale entries
+
+Compare inventories. Flag an entry as stale when ANY signal is true:
+
+| Signal | Stale type |
 |---|---|
-| Name matches a known renamed skill and the replacement is also installed | Renamed original |
-| Two entries with similar names where one is clearly the successor (e.g. `foo` and `foo-v2`) | Duplicate |
-| Symlink in `~/.claude/skills/` whose target path does not exist | Broken symlink |
-| `.zip` file or `-workspace` suffix | Install artifact |
-| Entry absent from every `plugins` entry in `~/.claude/settings.json` AND not installed via `npx skills` recently | Orphaned |
+| Name matches a known renamed skill AND the replacement is also in central store | Renamed original |
+| Two entries where one is clearly the predecessor (e.g. `foo` and `foo-v2`, `bar` and `bar-old`) | Duplicate |
+| Entry present in a platform dir but absent from central store | Orphaned platform entry |
+| Entry in central store but absent from ALL platform dirs | Orphaned install (no platform linked) |
+| `.zip` suffix, `-workspace` suffix, or `-backup` suffix | Install artifact |
+| Symlink in a symlink-platform dir whose target path does not resolve | Broken symlink |
+
+Also check `~/.claude/settings.json` (or equivalent) for `plugins` entries whose repo or skill name no longer matches what is installed.
 
 ---
 
-## Step 3 — Check settings.json
+## Phase 4 — Present findings
 
-Read `~/.claude/settings.json`. For each `plugins` entry with `type: git`:
-- If the repo was renamed or a skill within it was renamed, flag the entry as potentially stale.
-- Never auto-remove plugin entries — surface them for human review only.
-
----
-
-## Step 4 — Present findings
-
-Show a confirmation table before touching anything:
+Group by stale type and show a numbered table:
 
 ```
 Stale entries found:
 
-  #  Name                        Location                  Reason
-  1  harness-engineering         ~/.claude/skills/         renamed → harness-audit (both present)
-  2  harness-engineering         ~/.agents/skills/         renamed → harness-audit (both present)
-  3  harness-engineering.zip     ~/.claude/skills/         install artifact
+  #  Name                     Location                        Reason
+  1  harness-engineering      ~/.agents/skills/               renamed → harness-audit (both present)
+  2  harness-engineering      ~/.claude/skills/               renamed → harness-audit (both present)
+  3  harness-engineering      ~/.codex/skills/                renamed → harness-audit (copy)
+  4  harness-engineering.zip  ~/.claude/skills/               install artifact
+  5  old-skill                ~/.kiro/skills/                 orphaned — absent from central store
 
-Remove all? Enter numbers to pick (e.g. 1,3), "all", or "none".
+Nothing to remove? → state "All installed skills look clean."
 ```
 
-Wait for the user's answer before proceeding.
+Wait for user response before any deletion.
+
+User may respond:
+- `all` — remove everything listed
+- `1,3,5` — remove specific numbers
+- `none` / `n` — abort
 
 ---
 
-## Step 5 — Remove confirmed entries
+## Phase 5 — Remove confirmed entries
 
-For each confirmed item, use the correct command for its type:
+Use OS-correct commands. For each confirmed item:
 
+**macOS / Linux:**
 ```bash
-# Symlink in ~/.claude/skills/
+# Symlink entry (Claude Code, Kiro, Pi, Kilo Code, Qwen Code)
 rm ~/.claude/skills/<name>
 
-# Full install directory in ~/.agents/skills/
+# Full directory (central store or copy platform)
 rm -rf ~/.agents/skills/<name>
-
-# Artifact file (.zip, -workspace dir)
-rm -rf ~/.claude/skills/<name>
+rm -rf ~/.codex/skills/<name>
 ```
 
-After removal, re-list both directories and confirm the clean state.
+**Windows (PowerShell):**
+```powershell
+# Symlink / junction
+Remove-Item -Force "$env:USERPROFILE\.claude\skills\<name>"
+
+# Full directory
+Remove-Item -Recurse -Force "$env:USERPROFILE\.agents\skills\<name>"
+Remove-Item -Recurse -Force "$env:USERPROFILE\.codex\skills\<name>"
+```
+
+Removal order: platform entries first, central store last.
+
+After removal, re-run Phase 2 scans and confirm the entries are gone.
 
 ---
 
 ## Gotchas
 
-- `~/.claude/skills/` entries are symlinks — `rm` (no `-rf`) is sufficient and safe.
-- `~/.agents/skills/` entries are full directories — always confirm before `rm -rf`.
-- Remove the symlink first, then the install directory.
-- Never remove the only installed version of a skill (no replacement present = keep it).
+- **Never remove the only installed version** of a skill — if no replacement exists, keep it.
+- **Symlink platforms** (`~/.claude/`, `~/.kiro/`, `~/.pi/agent/`, `~/.kilocode/`, `~/.qwen/`): entries are symlinks, `rm` without `-rf` is sufficient on macOS/Linux; `Remove-Item -Force` on Windows.
+- **Copy platforms** (`~/.codex/`, `~/.codeium/windsurf/`, `~/.gemini/config/`): entries are full directory copies — remove from each platform dir independently, then from central store.
+- **Pi path** is `~/.pi/agent/skills/`, not `~/.pi/skills/` — the extra `agent/` level is intentional.
+- **Gemini CLI** may install under multiple subdirs (`antigravity-backup/`, `antigravity-ide/`, `config/`) — check all three.
+- **`settings.json` plugin entries**: surface for human review only; do not auto-remove them.

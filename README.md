@@ -55,15 +55,42 @@ Or symlink locally from a clone:
 bash scripts/link-skills.sh
 ```
 
-## Usage
+## Getting started
 
-Skills trigger automatically from natural language or can be invoked explicitly:
+### After quick install (`harness-engineering` only)
+
+Open Claude Code in your project and run:
 
 ```
 /harness-engineering
-/session-start
-/context-handover
 ```
+
+Or just say: _"set up harness"_, _"what do I need before I start"_, _"session start"_
+
+The skill runs in three phases:
+
+1. **Detect** — scans your project for missing harness components (stop hook, CI, pre-commit, instruction file, memory system, etc.)
+2. **Interview** — asks up to 3 questions to resolve what the file scan can't determine (task scope, team size, stack)
+3. **Output** — produces a prioritised gap list with complete, paste-ready snippets for the top 5 gaps
+
+Copy the snippets and paste them directly — no placeholders to fill in.
+
+---
+
+### After full install (all 13 skills)
+
+The skills cover the full compound engineering lifecycle. A typical project flow:
+
+| Step | Skill | When |
+|---|---|---|
+| 1 | `/harness-engineering` | First time in a project — detect and close gaps |
+| 2 | `/setup-harness-skills` | One-time project setup: GitHub labels, branch protection, `.planning/` state |
+| 3 | `/session-start` | Beginning of every work session |
+| 4 | `/to-prd` → `/to-issues` | Plan phase: turn a conversation into a PRD, then into GitHub issues |
+| 5 | `/triage` | Ongoing: classify and route incoming issues |
+| 6 | `/context-handover` | End of every session (fires automatically near context limit) |
+
+Skills trigger automatically from natural language — you rarely need to type the slash command explicitly.
 
 ## Skill structure
 

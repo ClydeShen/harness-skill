@@ -4,7 +4,7 @@ Used by both `/context-handover` (handoff content) and `/session-start` (session
 
 ---
 
-## Design
+## discuss
 
 ### Session budget
 | Activity | Budget |
@@ -24,7 +24,7 @@ Used by both `/context-handover` (handoff content) and `/session-start` (session
 
 ---
 
-## Product
+## plan
 
 ### Session budget
 | Activity | Budget |
@@ -44,7 +44,7 @@ Used by both `/context-handover` (handoff content) and `/session-start` (session
 
 ---
 
-## Execution
+## execute
 
 ### Session budget
 | Activity | Budget |
@@ -64,7 +64,7 @@ Used by both `/context-handover` (handoff content) and `/session-start` (session
 
 ---
 
-## Testing
+## verify
 
 ### Session budget
 | Activity | Budget |
@@ -90,7 +90,7 @@ Used by both `/context-handover` (handoff content) and `/session-start` (session
 Last updated: YYYY-MM-DD HH:mm
 
 ## Phase
-[design / product / execution / testing]
+[discuss / plan / execute / verify]
 
 ## Active task
 Issue: #N — [title]

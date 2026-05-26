@@ -18,10 +18,10 @@
 
 | Label | Meaning |
 |---|---|
-| `phase:design` | Design phase work (spec, ADR, discovery) |
-| `phase:product` | Product phase work (PRD, story breakdown) |
-| `phase:execution` | Execution phase work (implementation) |
-| `phase:testing` | Testing phase work (QA, issue filing) |
+| `phase:discuss` | discuss phase work (spec, ADR, discovery) |
+| `phase:plan` | plan phase work (PRD, story breakdown) |
+| `phase:execute` | execute phase work (implementation) |
+| `phase:verify` | verify phase work (QA, issue filing) |
 
 ## Type labels
 

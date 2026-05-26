@@ -56,8 +56,46 @@ The infrastructure layer that allows AI agents to run long-running tasks reliabl
 An external persistent store that survives session boundaries and context compaction. Used to record facts, decisions, and constraints that are not derivable from the codebase, git history, or project documents. The harness framework is **memory-system-agnostic**: any common system (memobank, mem0, letta, etc.) satisfies the interface. Required operations: write a memory, read/query relevant memories, update or remove stale memories. Skills reference "the active memory system" without naming a specific product.
 _Avoid_: treating memobank as the only valid implementation.
 
+**Detection (harness-engineering gap check):** Any one of the following signals = memory system configured:
+- Known config artifact: `.memobank/` directory, `mem0.json`, `letta.json`, or equivalent system-specific file at root or user-level
+- Known package dependency: `mem0`, `letta`, `memobank` in `requirements.txt`, `package.json`, or `pyproject.toml`
+- Explicit mention: any of "mem0", "letta", "memobank", "memory system", "persistent memory" in CLAUDE.md / AGENTS.md
+- `MEMORY.md` present (convention used by memobank and compatible systems)
+
+No signal found → **Gap: No memory system configured.** Gap message: "Mid-session interruption recovery relies on GitHub per-AC comments (requires GitHub) or cold git-log reconstruction. Recommended: configure a persistent memory system (mem0, letta, memobank, or equivalent)." Priority: rank 4 in the gap list (after stop hook, instruction file, PostToolUse hook — before CI).
+
 ### Recovery State
-The minimum information an agent needs after an interruption to resume correctly: (1) **Purpose** — active task, current phase, next step; (2) **Constraints** — project rules (CLAUDE.md), domain config (harness.json), CONTEXT.md glossary. Purpose comes from session.json + handoff.md. Constraints come from version-controlled project files. Both must be reconstructible without human intervention, at any interruption point.
+The minimum information an agent needs after an interruption to resume correctly: (1) **Purpose** — active task, current phase, next step; (2) **Constraints** — project rules (CLAUDE.md), domain config (.planning/config.json), CONTEXT.md glossary. Purpose comes from `.planning/STATE.md` + `.planning/phases/XX/.continue-here.md`. Constraints come from version-controlled project files. Both must be reconstructible without human intervention, at any interruption point.
+
+Recovery chain (use first that applies):
+1. STATE.md Session Continuity + `.continue-here.md` `<next_action>` — clean handover
+2. Memory system query — local, no GitHub required
+3. `git log --after=<session_started>` + GitHub per-AC comments — mid-session evidence
+4. Cold start — present what was found, suggest `/setup-harness-skills`
+
+**Interrupted session detection:** `session-start` reads STATE.md Session Continuity `session_status: in_progress` with a stale `session_started` timestamp — signals no context-handover fired. Recovery briefing includes `git log` diff since `session_started`.
+
+### STATE.md Session State Machine
+A two-level state model embedded in `.planning/STATE.md`. The YAML frontmatter `status` field is GSD's project-level status (`in_progress` / `completed`) — not touched by session state transitions. Session state lives in the **Session Continuity** markdown section:
+
+```markdown
+## Session Continuity
+
+session_status: idle | in_progress
+session_started: 2026-05-26T14:30:00Z   ← written by session-start
+last_session: 2026-05-26 14:30          ← written by context-handover
+Stopped at: [1-sentence summary]        ← written by context-handover
+Resume file: .planning/phases/XX/.continue-here.md
+```
+
+Transitions:
+| From | To | Written by | Trigger |
+|---|---|---|---|
+| (absent / idle) | `in_progress` | `session-start` | Session begins |
+| `in_progress` | `idle` | `context-handover` | Clean session end |
+| `in_progress` | *(stays in_progress)* | *(nobody)* | Session interrupted — detected on next session-start by stale timestamp |
+
+`session-start` distinguishes **clean resume** (session_status: idle) from **interrupted recovery** (session_status: in_progress + stale timestamp). Recovery briefing adds `git log --after=<session_started>` diff summary.
 
 ### Session
 A single continuous Claude Code conversation. Sessions are bounded by context window limits. A **context handover** is the structured transition between sessions, preserving continuity.
@@ -68,7 +106,7 @@ The structured process executed near the end of a session to preserve state acro
 Trigger: context window token usage reaches ≥80% of total capacity. Claude receives this natively via `<system_warning>Token usage: X/Y; Z remaining</system_warning>` after each tool call — no external hook required for detection. The remaining 10-20% is the reserved buffer for executing the handover procedure itself.
 
 **Handover trigger — two-tier:**
-1. **Phase-budget warning (proactive):** After each tool call, the agent reads `<system_warning>Token usage: X/Y; Z remaining</system_warning>` and compares remaining tokens to the expected budget for remaining phases. If insufficient to complete Review + Compound for the current phase, trigger handover immediately — do not wait for the global threshold. Per-phase trigger points: Design ≥70% used, Product ≥70% used, Execution ≥70% used.
+1. **Phase-budget warning (proactive):** After each tool call, the agent reads `<system_warning>Token usage: X/Y; Z remaining</system_warning>` and compares remaining tokens to the expected budget for remaining phases. If insufficient to complete Review + Compound for the current phase, trigger handover immediately — do not wait for the global threshold. Per-phase trigger points: discuss ≥70% used, plan ≥70% used, execute ≥70% used.
 2. **Hard threshold (safety net):** If the proactive trigger is missed, ≥80% total usage fires as a fallback. The remaining 20% is reserved for executing the handover procedure.
 
 **Handoff document:** A single unified file at `.claude/handoff.md` in the project root. Overwritten in place on every handover — no timestamped copies. Added to `.gitignore` by `setup-harness-skills`. This is the primary continuity artifact for the next agent session; `session-start` reads it directly. The "Last updated" timestamp inside the file records when it was last written.
@@ -96,35 +134,35 @@ Context cleanliness is the primary reason for context handover — not just reso
 The first action in every `context-handover` execution. The agent invokes the active memory system's update mechanism — what the memory system does internally (updating long-term memory, optimising CLAUDE.md, classifying facts) is the memory system's responsibility, not the harness's. The harness contract is: "trigger the update before compacting." The memory system is a black box from the harness's perspective.
 
 ### Implementation Notes
-A running artifact (markdown file) maintained during an Execution phase session when the agent makes decisions not covered by the spec. Captures: decisions not in the spec, things changed from the original plan, tradeoffs accepted, and anything the next session or human reviewer should know. Not created for every issue — only when the agent deviated from the spec.
+A running artifact (markdown file) maintained during an execute phase session when the agent makes decisions not covered by the spec. Captures: decisions not in the spec, things changed from the original plan, tradeoffs accepted, and anything the next session or human reviewer should know. Not created for every issue — only when the agent deviated from the spec.
 
 Path: `docs/implementation-notes/YYYY-MM-DD-issue-NNN.md` (version controlled, permanent institutional knowledge). The agent links the file path in a closing GitHub issue comment. Distinct from CLAUDE.md (project-level institutional knowledge that applies universally) and the handoff document (session state for the next agent session).
 
 ### Project Phase
-One of four project-level phases: Design, Product, Execution, Testing. The default order is Design → Product → Execution → Testing, but phases can be **skipped** or **reversed** based on existing artifacts:
+One of four project-level phases: discuss, plan, execute, verify. The default order is discuss → plan → execute → verify, but phases can be **skipped** or **reversed** based on existing artifacts:
 
-- **Skip (A)**: `session-start` evaluates what artifacts already exist. If a spec exists, skip Design. If issues already exist in GitHub, skip Product. Entry condition is artifact presence, not human declaration.
-- **Reverse (B)**: Agent detects a specific artifact absence and sets `session.json.current_phase` back to the appropriate earlier phase, commenting on the Design Phase Tracking Issue to explain. Revert is triggered **only by observable artifact absence** — never by the agent's subjective quality judgment about artifacts. Concrete triggers: (1) revert to Design when no `.md` file exists in `docs/superpowers/specs/`; (2) revert to Design when `current_phase == "product"` but no `phase:design` issue is closed or labelled `design-approved`; (3) revert to Product when `current_phase == "execution"` but `gh issue list --label "phase:execution,status:ready-for-agent"` returns 0 issues. If the spec file exists but is thin in quality, the agent proceeds and notes the quality concern in the issue comment — not revert. Human observes on GitHub.
+- **Skip (A)**: `session-start` evaluates what artifacts already exist. If a spec exists, skip discuss. If issues already exist in GitHub, skip discuss + plan. Entry condition is artifact presence, not human declaration.
+- **Reverse (B)**: Agent detects a specific artifact absence and sets `session.json.current_phase` back to the appropriate earlier phase, commenting on the Discuss Phase Tracking Issue to explain. Revert is triggered **only by observable artifact absence** — never by the agent's subjective quality judgment about artifacts. Concrete triggers: (1) revert to discuss when no `.md` file exists in `docs/superpowers/specs/`; (2) revert to discuss when `current_phase == "plan"` but no `phase:discuss` issue is closed or labelled `discuss-approved`; (3) revert to plan when `current_phase == "execute"` but `gh issue list --label "phase:execute,status:ready-for-agent"` returns 0 issues. If the spec file exists but is thin in quality, the agent proceeds and notes the quality concern in the issue comment — not revert. Human observes on GitHub.
 - **Parallel phases**: Out of scope (YAGNI).
 
 Distinct from the per-task **compound engineering cycle** (Plan/Work/Review/Compound), which repeats within each project phase. A project phase may span multiple sessions; a compound cycle maps to one task.
 
 Each phase reasons its own context window allocation independently. The compound engineering 40/10/40/10 ratios are illustrative principles, not fixed constraints. All allocations reserve a minimum 10% buffer before context handover. Example reasoning differences by phase: Design allocates more to user dialogue and review (documents accumulate and must be reconciled); Execution allocates more to implementation and less to dialogue.
 
-Phase transitions are criteria-based and agent-declared (not human-initiated). The agent self-validates against exit criteria defined during the Design phase, then posts a GitHub transition summary for human visibility. Humans may veto; they do not initiate.
+Phase transitions are criteria-based and agent-declared (not human-initiated). The agent self-validates against exit criteria defined during the discuss phase, then posts a GitHub transition summary for human visibility. Humans may veto; they do not initiate.
 
-**Invariant:** All phase exit criteria must be defined during the Design phase, before any other phase begins. A Design phase that does not produce exit criteria for all subsequent phases is not complete.
+**Invariant:** All phase exit criteria must be defined during the discuss phase, before any other phase begins. A discuss phase that does not produce exit criteria for all subsequent phases is not complete.
 
-**Human gate:** Verification and review require human participation — the system is not fully autonomous. Human approval gates: (1) Design phase exit (design-approved label or closed issue); (2) PR merge for Execution phase issues (human merges the PR — this is the Execution exit oracle). Product → Execution and Execution → Testing transitions may be agent-declared only when the human-gated oracles above are satisfied. Human observes all transitions via GitHub; may veto at any point.
+**Human gate:** Verification and review require human participation — the system is not fully autonomous. Human approval gates: (1) discuss phase exit (discuss-approved label or closed issue); (2) PR merge for execute phase issues (human merges the PR — this is the execute exit oracle). plan → execute and execute → verify transitions may be agent-declared only when the human-gated oracles above are satisfied. Human observes all transitions via GitHub; may veto at any point.
 
 ### Phase Exit Criteria
-Machine-verifiable conditions that determine when a phase is complete. Defined during Design phase for all phases. The agent validates these at phase end and posts a transition summary (GitHub comment or issue) before advancing.
+Machine-verifiable conditions that determine when a phase is complete. Defined during discuss phase for all phases. The agent validates these at phase end and posts a transition summary (GitHub comment or issue) before advancing.
 
 Per-phase oracles:
-- **Design**: Design Phase Tracking Issue has `design-approved` label or is closed by human.
-- **Product**: All breakdown issues have `status:ready-for-agent` + `phase:execution`.
-- **Execution**: All `phase:execution` issues are closed via merged PRs. PR merge is the oracle — agent must go through PR flow; direct push to main is prohibited via GitHub branch protection rules (require PR + require CI pass, configured by `setup-harness-skills`). Issue close happens automatically via `Closes #NNN` in PR body. If branch protection configuration fails (insufficient token permissions), it is recorded as an unresolved gap and listed in the setup report — other configuration steps continue unaffected.
-- **Testing**: All `phase:testing` issues are `status:done` and no `p1` open bugs remain.
+- **discuss**: Discuss Phase Tracking Issue has `discuss-approved` label or is closed by human.
+- **plan**: All breakdown issues have `status:ready-for-agent` + `phase:execute`.
+- **execute**: All `phase:execute` issues are closed via merged PRs. PR merge is the oracle — agent must go through PR flow; direct push to main is prohibited via GitHub branch protection rules (require PR + require CI pass, configured by `setup-harness-skills`). Issue close happens automatically via `Closes #NNN` in PR body. If branch protection configuration fails (insufficient token permissions), it is recorded as an unresolved gap and listed in the setup report — other configuration steps continue unaffected.
+- **verify**: All `phase:verify` issues are `status:done` and no `p1` open bugs remain.
 
 Exit criteria must be:
 - **Observable**: verifiable by reading an artifact, not by trusting the agent's self-report
@@ -138,10 +176,10 @@ The condition under which an autonomous agent session pauses to ask the human a 
 The single unit of work that scopes a session's context window. One session = one task. The task boundary is defined by the **task anchor** — the artifact that identifies what "relevant" means for that context.
 
 Task anchor by phase:
-- **Design phase**: the Design Phase Tracking Issue (a single GitHub issue created at project start, before any design work begins). All Design phase sessions comment on this issue. The active design document path is noted in the handoff document.
-- **Product phase**: one PRD document or one epic breakdown session; tracked via GitHub issue or milestone.
-- **Execution phase**: one GitHub issue number (agent brief format per mattpocock/skills pattern).
-- **Testing phase**: one test plan document or one batch of related issues being tested together.
+- **discuss phase**: the Discuss Phase Tracking Issue (a single GitHub issue created at project start, before any design work begins). All discuss phase sessions comment on this issue. The active design document path is noted in the handoff document.
+- **plan phase**: one PRD document or one epic breakdown session; tracked via GitHub issue or milestone.
+- **execute phase**: one GitHub issue number (agent brief format per mattpocock/skills pattern).
+- **verify phase**: one test plan document or one batch of related issues being tested together.
 
 Any work outside the task anchor's scope must be deferred: create a new issue/document and either spawn a subagent or queue it for the next session. Never handled inline.
 
@@ -151,17 +189,17 @@ The four label categories used across all issues in the system:
 | Category | Values |
 |---|---|
 | `status:` | `triage` / `needs-prd` / `ready-for-agent` / `in-progress` / `done` |
-| `phase:` | `design` / `product` / `execution` / `testing` |
+| `phase:` | `discuss` / `plan` / `execute` / `verify` |
 | `type:` | `feature` / `bug` / `chore` / `task` / `spike` |
 | `priority:` | `p1` / `p2` / `p3` |
 
-`phase:` is **categorical** (what kind of issue this is), not temporal (what phase the project is currently in). A `phase:execution` issue and a `phase:testing` issue can coexist on the board. The current project phase is canonical in `session.json`; the agent processes only issues matching `phase:<current-phase>` + `status:ready-for-agent`.
+`phase:` is **categorical** (what kind of issue this is), not temporal (what phase the project is currently in). A `phase:execute` issue and a `phase:verify` issue can coexist on the board. The current project phase is canonical in `session.json`; the agent processes only issues matching `phase:<current-phase>` + `status:ready-for-agent`.
 
 ### GitHub Milestone
-GitHub's native issue-grouping container. Used in this system as a release or phase container — not an issue type. Created by `setup-harness-skills` at project start (e.g., `Design`, `MVP`, `v1.0`). Issues are assigned to milestones during the Product phase breakdown. Milestones are visible on the GitHub Project board and give humans a progress view per release. Distinct from `type:` labels, which describe the nature of an individual issue.
+GitHub's native issue-grouping container. Used in this system as a release or phase container — not an issue type. Created by `setup-harness-skills` at project start (e.g., `Design`, `MVP`, `v1.0`). Issues are assigned to milestones during the plan phase breakdown. Milestones are visible on the GitHub Project board and give humans a progress view per release. Distinct from `type:` labels, which describe the nature of an individual issue.
 
 ### User Story
-The unit of work produced by the Product phase. Written in BA (Business Analyst) format and assigned to `phase:execution` issues. A user story describes **what** the system should do from the user's perspective — never **how** to implement it. Technical decisions belong to the Execution phase agent.
+The unit of work produced by the plan phase. Written in BA (Business Analyst) format and assigned to `phase:execute` issues. A user story describes **what** the system should do from the user's perspective — never **how** to implement it. Technical decisions belong to the execute phase agent.
 
 **Format:**
 ```
@@ -184,19 +222,26 @@ As a [role], I want [capability], so that [benefit].
 - No regressions in related tests
 - Implementation notes written if agent deviated from spec
 
-**Effort estimate:** Set during Product phase. Unit = context windows. `1` = estimated to complete within one context window. Maximum: `8`. Stories estimated at >8 context windows must be split into smaller issues before creation — above this threshold the scope is too large to track and hand over reliably. Used to populate the `Effort (windows)` GitHub Project field.
+**Effort estimate:** Set during plan phase. Unit = context windows. `1` = estimated to complete within one context window. Maximum: `8`. Stories estimated at >8 context windows must be split into smaller issues before creation — above this threshold the scope is too large to track and hand over reliably. Used to populate the `Effort (windows)` GitHub Project field.
 
 **INVEST criteria applied:** Stories must be Independent (can be worked in any order within a phase), Negotiable (scope can be adjusted), Valuable (delivers user-facing benefit), Estimable (effort is knowable), Small (fits within 1–2 context windows), Testable (AC are verifiable).
 
 **Vertical slice (first principle):** Every story must deliver a **demoable user-facing outcome** — a thin end-to-end cut through all layers (schema, API, UI, tests) that can be demonstrated to a stakeholder without any other story being implemented first. Horizontal slices ("implement the database schema for auth") violate this principle and must be restructured before the issue is created. This is the first-principles derivation of the vertical slice rule, not a process convention.
 
 ### harness.json
+> **Deprecated.** Replaced by `.planning/config.json` with `harness` namespace. See ADR 0003.
+
 The static project configuration file, written by `setup-harness-skills` to `.claude/harness.json` in the user's project. **Version-controlled (committed)** — shared team config analogous to `package.json`. Separates static config (what the project is) from dynamic session state (what is happening right now — see `session.json`). Contains: GitHub owner, repo, default branch, Project v2 board ID, docs_agents_dir, specs_dir, and issue_tracker type. All skills read this file with null-safety. Updated only when the user re-runs `setup-harness-skills` to change a setting.
 
 ### handoff.md
+> **Deprecated.** Replaced by `.planning/phases/XX/.continue-here.md` (GSD format). See ADR 0003.
+
 The unified context handover document at `.claude/handoff.md` in the user's project. A single file overwritten in place on every `context-handover` invocation — no timestamped copies. **Gitignored** (agent working file — per-agent ephemeral state). Contains: last-updated timestamp, phase, session summary, next step, artifact references (paths/URLs only, never inlined content), and suggested skills. Read by `session-start` as the primary local continuity artifact. Distinct from the GitHub issue comment (durable remote record for humans) and from `session.json` (machine-readable state).
 
 ### session.json
+> **Deprecated.** Replaced by `.planning/STATE.md` (GSD-compatible). See ADR 0003.
+> setup-harness-skills migrates existing values on re-run.
+
 The dynamic session state file at `.claude/session.json` in the user's project. **Gitignored** (agent working file — changes every session). Tracks: current phase, active task (GitHub issue number, title, effort estimate, project board item ID), last handover timestamp, and next session hint. Written by `session-start` (initialize) and `context-handover` (update). Read by `session-start`, `context-handover`, and `harness-engineering`. Distinct from `harness.json` (version-controlled team config) and `handoff.md` (human-readable continuity document).
 
 ### Spike
@@ -232,5 +277,5 @@ Six columns mapping the full issue lifecycle with two human gates:
 
 `status:needs-review` is a new label. Human moves from Needs Review → Ready for Agent by relabeling. Agent moves directly to Ready for Agent when confident.
 
-### Design Phase Tracking Issue
-A single GitHub issue created at project start (before any design work begins). Labelled `phase:design`. Serves as the task anchor for all Design phase sessions. The agent comments on this issue at each session end (progress, decisions made, next design document). Human approval is signalled by applying a label (e.g. `design-approved`) or by the human closing the issue. All subsequent phase tracking may use separate issues or milestones.
+### Discuss Phase Tracking Issue
+A single GitHub issue created at project start (before any design work begins). Labelled `phase:discuss`. Serves as the task anchor for all discuss phase sessions. The agent comments on this issue at each session end (progress, decisions made, next design document). Human approval is signalled by applying a label (e.g. `discuss-approved`) or by the human closing the issue. All subsequent phase tracking may use separate issues or milestones.

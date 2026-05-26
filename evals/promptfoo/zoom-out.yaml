@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: zoom-out skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-zoom-out
+    config:
+      skill_name: zoom-out
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-zoom-out.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: /zoom-out — maps modules, no implementation details, no changes
+  # ---------------------------------------------------------------------------
+  - description: "#1 /zoom-out — module map, abstraction layer, no implementation"
+    vars:
+      prompt: "/zoom-out"
+      scaffold_files:
+        - "package.json"
+        - "src/index.ts"
+        - "src/lib/parser.ts"
+    assert:
+      - type: llm-rubric
+        value: Produces a map of relevant modules and callers without asking questions
+      - type: llm-rubric
+        value: Goes up a layer of abstraction — does not dig into implementation details
+      - type: llm-rubric
+        value: Uses the project's domain glossary vocabulary where available
+      - type: llm-rubric
+        value: Does not start implementing or suggesting changes

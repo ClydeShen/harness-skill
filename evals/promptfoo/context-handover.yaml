@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: context-handover skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-context-handover
+    config:
+      skill_name: context-handover
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-context-handover.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: execute phase, STATE.md present, issue #42
+  # ---------------------------------------------------------------------------
+  - description: "#1 execute phase handover — STATE.md + issue #42"
+    vars:
+      prompt: "My context is at 82%. Please run context-handover. I'm working on issue #42 'Add auth middleware', execute phase."
+      scaffold_files:
+        - ".planning/STATE.md with idle session_status current_focus 03-execute and issue 42"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Writes .continue-here.md under .planning/phases/03-execute/ — not .claude/handoff.md or a timestamped path
+      - type: llm-rubric
+        value: .continue-here.md includes YAML frontmatter with phase, task, status, last_updated fields
+      - type: llm-rubric
+        value: .continue-here.md includes XML sections including <next_action> and <completed_work>
+      - type: llm-rubric
+        value: Updates STATE.md Session Continuity to session_status idle
+      - type: llm-rubric
+        value: Instructs user to type /compact — does NOT invoke /compact programmatically
+      - type: llm-rubric
+        value: Instructs user to start next session with /session-start
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: No STATE.md — falls back gracefully
+  # ---------------------------------------------------------------------------
+  - description: "#2 no STATE.md — fallback chain, still writes handoff"
+    vars:
+      prompt: "Please do a context handover. I'm getting close to the limit."
+      scaffold_files:
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: Still writes a .continue-here.md or fallback handoff doc despite missing STATE.md
+      - type: llm-rubric
+        value: Does NOT error or refuse because STATE.md is absent
+      - type: llm-rubric
+        value: Notes somewhere that phase was inferred (not from STATE.md)
+
+  # ---------------------------------------------------------------------------
+  # Eval 3: User states next session focus — references artifacts by path
+  # ---------------------------------------------------------------------------
+  - description: "#3 stated next-session focus — no inline content from MEMORY.md"
+    vars:
+      prompt: "Context handover — next session will focus on writing tests."
+      scaffold_files:
+        - "CLAUDE.md"
+        - "MEMORY.md"
+        - ".planning/STATE.md with idle session_status current_focus 03-execute"
+    assert:
+      - type: llm-rubric
+        value: .continue-here.md does not inline the content of MEMORY.md or any source files
+      - type: llm-rubric
+        value: .continue-here.md references MEMORY.md by path only
+      - type: llm-rubric
+        value: <next_action> reflects the user's stated focus on writing tests
+      - type: llm-rubric
+        value: Instructs user to type /compact

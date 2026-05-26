@@ -1,43 +1,26 @@
-# harness-engineering-skill
+# Harness Engineering Skills
 
-A curated 13-skill collection for compound engineering workflows, packaged as a Claude Code / Codex plugin.
+[![skills.sh](https://skills.sh/b/ClydeShen/harness-skill)](https://skills.sh/ClydeShen/harness-skill)
 
-## What's included
+Agent skills for compound engineering workflows — structured sessions, context handover, issue lifecycle, and harness health.
 
-### Engineering skills (`skills/engineering/`)
-
-| Skill | Purpose |
-|---|---|
-| `harness-engineering` | Detect agent-harness gaps; output paste-ready fix snippets |
-| `setup-harness-skills` | One-time gateway: configure GitHub, labels, `.planning/` state |
-| `context-handover` | End-of-context-window session transition |
-| `session-start` | Phase detection, interrupted-session recovery, session briefing |
-| `triage` | Issue triage state machine |
-| `to-prd` | Convert conversation to PRD with technical constraints |
-| `to-issues` | Break PRD into vertical-slice user stories |
-| `zoom-out` | Gain high-level architectural perspective |
-| `grill-with-docs` | Interview relentlessly against reference docs until shared understanding is reached |
-
-### Productivity skills (`skills/productivity/`)
-
-| Skill | Purpose |
-|---|---|
-| `caveman` | Explain complex topics in plain language |
-| `grill-me` | Stress-test a plan through relentless questioning |
-| `handoff` | Hand off context to another agent or session |
-| `write-a-skill` | Create a new skill with proper structure |
-
-## Installation
-
-### Quick install — `harness-engineering` skill only
+## Quickstart
 
 ```bash
 npx skills add ClydeShen/harness-skill@harness-engineering -g
 ```
 
-Installs the `harness-engineering` skill globally and symlinks it into Claude Code, Codex, Kiro, Pi, and all other detected runtimes automatically.
+This installs `harness-engineering` into Claude Code, Codex, Kiro, Pi, and every other detected runtime automatically.
 
-### Full collection — all 13 skills
+Then open your project in Claude Code and run:
+
+```
+/harness-engineering
+```
+
+It scans for missing harness components, asks up to 3 questions, and outputs a prioritised gap list with paste-ready snippets.
+
+## Full Collection (all 13 skills)
 
 Add to `~/.claude/settings.json`:
 
@@ -49,101 +32,33 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-Or symlink locally from a clone:
+Or clone and symlink locally:
 
 ```bash
 bash scripts/link-skills.sh
 ```
 
-## Getting started
+## Reference
 
-### After quick install (`harness-engineering` only)
+### Engineering
 
-Open Claude Code in your project and run:
+Skills for the full compound engineering lifecycle.
 
-```
-/harness-engineering
-```
+- **[harness-engineering](./skills/engineering/harness-engineering/SKILL.md)** — Detect agent-harness gaps and output paste-ready fix snippets. Run first in any new project.
+- **[setup-harness-skills](./skills/engineering/setup-harness-skills/SKILL.md)** — One-time project setup: GitHub labels, branch protection, `.planning/` state structure.
+- **[session-start](./skills/engineering/session-start/SKILL.md)** — Phase detection, interrupted-session recovery, and session briefing. Run at the start of every work session.
+- **[context-handover](./skills/engineering/context-handover/SKILL.md)** — End-of-context-window session transition. Fires near context limit; preserves state across sessions.
+- **[to-prd](./skills/engineering/to-prd/SKILL.md)** — Turn a conversation into a PRD with technical constraints and a spike recommendation.
+- **[to-issues](./skills/engineering/to-issues/SKILL.md)** — Break a PRD into vertical-slice GitHub issues with AFK/HITL confidence labels.
+- **[triage](./skills/engineering/triage/SKILL.md)** — Issue triage state machine: classify, label, and route incoming issues.
+- **[grill-with-docs](./skills/engineering/grill-with-docs/SKILL.md)** — Interview relentlessly against reference docs until shared understanding is reached; updates `CONTEXT.md` and ADRs inline.
+- **[zoom-out](./skills/engineering/zoom-out/SKILL.md)** — Tell the agent to zoom out and give a higher-level architectural perspective on an unfamiliar section of code.
 
-Or just say: _"set up harness"_, _"what do I need before I start"_, _"session start"_
+### Productivity
 
-The skill runs in three phases:
+General workflow tools, not code-specific.
 
-1. **Detect** — scans your project for missing harness components (stop hook, CI, pre-commit, instruction file, memory system, etc.)
-2. **Interview** — asks up to 3 questions to resolve what the file scan can't determine (task scope, team size, stack)
-3. **Output** — produces a prioritised gap list with complete, paste-ready snippets for the top 5 gaps
-
-Copy the snippets and paste them directly — no placeholders to fill in.
-
----
-
-### After full install (all 13 skills)
-
-The skills cover the full compound engineering lifecycle. A typical project flow:
-
-| Step | Skill | When |
-|---|---|---|
-| 1 | `/harness-engineering` | First time in a project — detect and close gaps |
-| 2 | `/setup-harness-skills` | One-time project setup: GitHub labels, branch protection, `.planning/` state |
-| 3 | `/session-start` | Beginning of every work session |
-| 4 | `/to-prd` → `/to-issues` | Plan phase: turn a conversation into a PRD, then into GitHub issues |
-| 5 | `/triage` | Ongoing: classify and route incoming issues |
-| 6 | `/context-handover` | End of every session (fires automatically near context limit) |
-
-Skills trigger automatically from natural language — you rarely need to type the slash command explicitly.
-
-## Skill structure
-
-```
-skills/
-  engineering/
-    harness-engineering/
-      SKILL.md               ← detect → interview → output flow
-      skill.json
-      evals/evals.json
-      references/
-        detect.md            ← gap classification logic
-        universal-snippets.md
-        node-snippets.md
-        python-snippets.md
-        kiro-snippets.md
-        scenarios.md
-    setup-harness-skills/  context-handover/  session-start/
-    triage/  to-prd/  to-issues/  zoom-out/  grill-with-docs/
-  productivity/
-    caveman/  grill-me/  handoff/  write-a-skill/
-evals/
-  run_evals.py               ← promptfoo runner (discovers all skill configs)
-  promptfoo/
-    <skill-name>.yaml        ← one promptfoo config per skill (13 total)
-    provider.py              ← response provider: llamacpp HTTP at localhost:8080
-    grader.py                ← judge provider: llamacpp HTTP at localhost:8080
-    scaffold_helper.py       ← shared project scaffolding for eval fixtures
-.claude-plugin/
-  plugin.json                ← registered skill list
-scripts/
-  link-skills.sh             ← symlinks skills/ into ~/.claude/skills/
-  list-skills.sh             ← lists all skills in collection
-```
-
-## Evals
-
-Each skill has a dedicated promptfoo config in `evals/promptfoo/<skill-name>.yaml`.
-
-```bash
-# All skills:
-python evals/run_evals.py
-
-# One skill only:
-python evals/run_evals.py --skill harness-engineering
-
-# Filter to specific evals (regex against description):
-python evals/run_evals.py --skill harness-engineering --filter "#2"
-
-# Run promptfoo directly:
-cd evals/promptfoo && promptfoo eval --config harness-engineering.yaml
-```
-
-Requires `promptfoo` on PATH and a llamacpp server at `localhost:8080`.
-
-Before committing any change to a skill file, run the relevant eval and confirm all tests pass.
+- **[caveman](./skills/productivity/caveman/SKILL.md)** — Ultra-compressed communication mode. Cuts token usage by dropping filler while keeping full technical accuracy.
+- **[grill-me](./skills/productivity/grill-me/SKILL.md)** — Relentless sequential interview that stress-tests a plan until every decision branch is resolved.
+- **[handoff](./skills/productivity/handoff/SKILL.md)** — Compact the current conversation into a handoff document so another agent can continue the work.
+- **[write-a-skill](./skills/productivity/write-a-skill/SKILL.md)** — Create new skills with proper structure, progressive disclosure, and bundled resources.

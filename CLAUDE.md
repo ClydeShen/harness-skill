@@ -10,6 +10,19 @@ All 13 skills implemented across `skills/engineering/` and `skills/productivity/
 
 Install via `bash scripts/link-skills.sh`. Skills live in `skills/engineering/` or `skills/productivity/`.
 
+## Bucket Conventions
+
+Skills are organised into bucket folders under `skills/`:
+
+- `engineering/` — daily code work
+- `productivity/` — daily non-code workflow tools
+
+Every skill in either bucket must have a reference entry in the top-level `README.md` (linking the skill name to its `SKILL.md`) and an entry in `.claude-plugin/plugin.json`.
+
+Each bucket folder has a `README.md` listing every skill with a one-line description and a link to its `SKILL.md`.
+
+The root `SKILL.md` is absent by design — `npx skills` discovers skills from the bucket subfolders.
+
 ## Skill Structure
 
 ```

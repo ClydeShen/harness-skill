@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: setup-harness-skills skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-setup-harness-skills
+    config:
+      skill_name: setup-harness-skills
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-setup-harness-skills.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: New Next.js project — explores before asking, CLAUDE.md exists
+  # ---------------------------------------------------------------------------
+  - description: "#1 new project — explore-first, CLAUDE.md present"
+    vars:
+      prompt: "I'm starting a new Next.js project and want to use harness skills. Please set up the harness."
+      scaffold_files:
+        - "package.json with next.js"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Explores project state first (reads .git/config, existing instruction files, docs/agents/) before asking any questions
+      - type: llm-rubric
+        value: Presents a one-line summary of what it found before proceeding to questions
+      - type: llm-rubric
+        value: Asks about the issue tracker before asking about labels or domain docs (Section A comes first)
+      - type: llm-rubric
+        value: Does NOT ask all questions at once — questions are asked one section at a time
+      - type: llm-rubric
+        value: Mentions writing docs/agents/ seed files as part of the output steps
+      - type: llm-rubric
+        value: Mentions writing to CLAUDE.md (not AGENTS.md) because CLAUDE.md already exists
+      - type: llm-rubric
+        value: Does NOT propose creating AGENTS.md when CLAUDE.md exists
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: Update existing harness — docs/agents already present
+  # ---------------------------------------------------------------------------
+  - description: "#2 update existing harness — docs/agents/ already configured"
+    vars:
+      prompt: "I want to update the harness setup. I already ran setup before — docs/agents/ exists with config files."
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "docs/agents/issue-tracker.md with github issues config"
+        - "docs/agents/triage-labels.md"
+    assert:
+      - type: llm-rubric
+        value: Detects existing docs/agents/ config files during the explore step and notes them explicitly
+      - type: llm-rubric
+        value: Does not overwrite existing config with blank defaults without confirming
+      - type: llm-rubric
+        value: References the existing issue tracker config rather than re-asking from scratch
+
+  # ---------------------------------------------------------------------------
+  # Eval 3: No instruction file — asks which to create
+  # ---------------------------------------------------------------------------
+  - description: "#3 no instruction file — asks CLAUDE.md or AGENTS.md"
+    vars:
+      prompt: "Set up harness skills for this project. There is no CLAUDE.md or AGENTS.MD yet."
+      scaffold_files:
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: Detects that neither CLAUDE.md nor AGENTS.md exists during the explore step
+      - type: llm-rubric
+        value: Asks the user which instruction file to create (CLAUDE.md or AGENTS.md) — presents both options
+      - type: llm-rubric
+        value: Does NOT make the choice unilaterally or default to one without asking
+
+  # ---------------------------------------------------------------------------
+  # Eval 4: GSD already installed — configure harness namespace, not overwrite
+  # ---------------------------------------------------------------------------
+  - description: "#4 GSD already installed — configure harness namespace without overwriting GSD keys"
+    vars:
+      prompt: "/setup-harness-skills"
+      scaffold_files:
+        - ".planning/config.json without harness key"
+        - "CLAUDE.md"
+        - ".git/config with remote origin"
+    assert:
+      - type: llm-rubric
+        value: Detects .planning/config.json is present (GSD installed)
+      - type: llm-rubric
+        value: Adds harness namespace to config.json without overwriting existing GSD keys
+      - type: llm-rubric
+        value: Does NOT create a new config.json from scratch — merges into existing
+      - type: llm-rubric
+        value: Notes that GSD is already installed and confirms the integration

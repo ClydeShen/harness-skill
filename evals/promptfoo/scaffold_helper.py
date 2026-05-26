@@ -319,6 +319,27 @@ def scaffold(tmpdir: str, files: list) -> None:
             Continue execute phase. Run tests before writing new code.
         """))
 
+    # .git/config with remote origin
+    if ".git/config" in desc or "git/config" in desc or ("git" in desc and "remote origin" in desc):
+        git_dir = root / ".git"
+        git_dir.mkdir(exist_ok=True)
+        import re
+        owner_match = re.search(r"owner[:\s]+(\S+)", desc)
+        repo_match = re.search(r"repo[:\s]+(\S+)", desc)
+        owner = owner_match.group(1) if owner_match else "my-org"
+        repo = repo_match.group(1) if repo_match else "my-repo"
+        (git_dir / "config").write_text(textwrap.dedent(f"""\
+            [core]
+              repositoryformatversion = 0
+              filemode = false
+            [remote "origin"]
+              url = https://github.com/{owner}/{repo}.git
+              fetch = +refs/heads/*:refs/remotes/origin/*
+            [branch "main"]
+              remote = origin
+              merge = refs/heads/main
+        """))
+
     # .planning/STATE.md — idle state (clean prior session)
     if "state.md" in desc and "idle" in desc:
         planning = root / ".planning"

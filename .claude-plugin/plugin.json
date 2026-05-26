@@ -1,21 +1,21 @@
 {
   "name": "harness-audit-skills",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "Harness engineering skill collection — setup, context handover, session management, issue lifecycle, and compound engineering workflows.",
   "skills": [
-    "skills/engineering/harness-audit",
-    "skills/engineering/setup-harness-skills",
-    "skills/engineering/context-handover",
-    "skills/engineering/session-start",
-    "skills/engineering/triage",
-    "skills/engineering/to-prd",
-    "skills/engineering/to-issues",
-    "skills/engineering/zoom-out",
-    "skills/engineering/grill-with-docs",
-    "skills/productivity/caveman",
-    "skills/productivity/grill-me",
-    "skills/productivity/handoff",
-    "skills/productivity/write-a-skill",
-    "skills/productivity/skill-cleanup"
+    "./skills/engineering/harness-audit",
+    "./skills/engineering/setup-harness-skills",
+    "./skills/engineering/context-handover",
+    "./skills/engineering/session-start",
+    "./skills/engineering/triage",
+    "./skills/engineering/to-prd",
+    "./skills/engineering/to-issues",
+    "./skills/engineering/zoom-out",
+    "./skills/engineering/grill-with-docs",
+    "./skills/productivity/caveman",
+    "./skills/productivity/grill-me",
+    "./skills/productivity/handoff",
+    "./skills/productivity/write-a-skill",
+    "./skills/productivity/skill-cleanup"
   ]
 }

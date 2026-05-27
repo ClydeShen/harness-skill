@@ -160,39 +160,24 @@ flowchart TD
     A([New project]) --> B
 
     subgraph ONCE["① One-time setup"]
-        B["/harness-audit<br/>Detect gaps · paste-ready snippets"]
-        B --> C["/setup-harness-skills<br/>CLAUDE.md · STATE.md · init.sh · GitHub labels"]
+        B["/harness-audit<br/>Detect gaps · snippets"]
+        B --> C["/setup-harness-skills<br/>CLAUDE.md · STATE.md · GitHub labels"]
     end
 
     C --> D
 
-    subgraph LOOP["② Session loop — every session"]
-        D["/session-start<br/>Briefing or recovery from interrupted session"]
-        D --> WORK["Agent does work"]
-        WORK --> CTX{"Context ~70%?"}
-        CTX -->|yes| HO["/context-handover<br/>Write .continue-here.md · update STATE.md<br/>GitHub comment · memory update"]
-        HO --> COM["Close session<br/>Open new Claude Code session"]
+    subgraph LOOP["② Every session"]
+        D["/session-start<br/>Briefing or recovery"]
+        D --> WORK["Agent does work<br/>(phase skills as needed)"]
+        WORK --> CTX{"≥ 70% used?"}
+        CTX -->|yes| HO["/context-handover<br/>Write .continue-here.md<br/>update STATE.md · GitHub"]
+        HO --> COM["Close · open new session"]
         COM -->|"/session-start"| D
         CTX -->|no| WORK
     end
-
-    subgraph PHASES["③ Phase skills — invoke by need"]
-        DISC["discuss<br/>brainstorming · /grill-with-docs<br/>/to-prd · /to-issues · /triage"]
-        EXEC["execute<br/>/gsd-execute-phase · /zoom-out<br/>systematic-debugging · /gsd-debug"]
-        VER["verify<br/>/gsd-verify-work · /gsd-code-review"]
-        DISC -.->|"or skip"| EXEC -.->|"or skip"| VER
-    end
-
-    WORK -->|"pick up phase skill<br/>by need"| PHASES
-
-    subgraph GOV["④ Governance — anytime, independent of phase"]
-        G["/harness-guide<br/>Inspect 8 dimensions · Classify · Recommend one step · Repeat"]
-    end
-
-    D -.->|"run anytime"| GOV
 ```
 
-*Phase skills (③) from [mattpocock/skills](https://github.com/mattpocock/skills) · [obra/superpowers](https://github.com/obra/superpowers) · [open-gsd/get-shit-done-redux](https://github.com/open-gsd/get-shit-done-redux) · Harness design from [Anthropic 2025](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)*
+*Run `/harness-guide` anytime for governance — inspects 8 dimensions, recommends one next step. Phase skills (discuss / execute / verify) listed in [Skill reference](#skill-reference) below. Harness design from [Anthropic 2025](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)*
 
 ---
 

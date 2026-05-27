@@ -114,11 +114,27 @@ flowchart LR
 Every GitHub issue carries an `Effort` field — the number of context windows estimated to complete it:
 
 - `1` = fits in one session
+
+```
+Effort = 3 CW example:
+
+CW 1  [████████████████████████████░░░░░░░]  → /context-handover
+CW 2  [████████████████████████████░░░░░░░]  → /context-handover
+CW 3  [████████████░░░░░░░░░░░░░░░░░░░░░░░]  → done ✓
+       ←── active work (70%) ──→ ←─ buffer ─→
+```
+
 - Maximum: **8 context windows**. Any issue estimated above this must be split into smaller tasks before the agent starts. Beyond 8, handoff drift compounds: each session-to-session transfer carries a small loss of precision, and enough transfers make the original intent unrecoverable. ([Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents))
 
 The `/to-issues` skill enforces this ceiling at creation time. An issue scoped above 8 CW cannot be created — the agent must break it down first.
 
 ### Session boundary: trigger at 70%, not later
+
+```
+  0%                                         70%            100%
+  [████████████████████████████████████████░░░░░░░░░░░░░░░░░░░]
+   ←─────────────── active work ────────────→ ←── buffer ────→
+```
 
 The agent monitors token usage after every tool call. At the system-configured threshold (≥70% of the context window):
 

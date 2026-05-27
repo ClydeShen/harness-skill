@@ -264,6 +264,8 @@ Open your project in Claude Code and run:
 /harness-audit
 ```
 
+---
+
 ## Full collection (all 15 skills)
 
 Add to `~/.claude/settings.json`:
@@ -282,7 +284,7 @@ Or clone and symlink locally:
 bash scripts/link-skills.sh
 ```
 
-## Recommended companion collections
+### Recommended companion collections
 
 | Collection | Adds |
 |---|---|

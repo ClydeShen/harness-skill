@@ -17,6 +17,7 @@ Every comment or issue posted to the issue tracker during triage **must** start 
 
 - [AGENT-BRIEF.md](AGENT-BRIEF.md) — how to write durable agent briefs
 - [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md) — how the `.out-of-scope/` knowledge base works
+- [references/effort-calibration.md](references/effort-calibration.md) — token-budget calibration table for Effort field
 
 ## Roles
 
@@ -87,7 +88,7 @@ If the maintainer says "move #42 to ready-for-agent", trust them and apply the r
 
 **Category:** bug / enhancement
 **Type:** AFK / HITL
-**Effort:** N (estimated context windows needed; 1 ≈ under ~1 hr of focused execution)
+**Effort:** N (token budget: 1 = ~30–60K tokens / single slice; 2 = ~80–150K / 1 phase; 3 = ~200–300K / full feature; 4+ = epic)
 **Summary:** one-line description of what needs to happen
 
 **Current behavior:**

@@ -65,7 +65,7 @@ Explore → Evaluate → Brief. Never ask questions before reading available sta
   ## Session briefing
   Phase: [discuss / plan / execute / verify] (0N-name)
   Active task: #N — [title]
-  Effort remaining: ~N context window(s)
+  Effort remaining: ~N context window(s) (token budget: 1 = ~30–60K tokens)
   Pick up from: [<next_action> from .continue-here.md]
 
   Budget for this session:

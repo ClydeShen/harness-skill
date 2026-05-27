@@ -84,7 +84,7 @@ Do NOT invoke `/compact` programmatically. Instruct the user to type it.
   **Next step:** [specific pick-up point]
   **Handoff doc:** `.claude/handoff.md`
 
-  _[N] of ~[effort_estimate] context window(s) used so far._
+  _[N] of ~[effort_estimate] context window(s) used so far (token budget: 1 = ~30–60K)._
 
   ---
   _🤖 Posted by `/context-handover` (AI-generated)_

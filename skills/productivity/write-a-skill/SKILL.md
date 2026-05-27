@@ -115,7 +115,7 @@ After drafting, verify:
 - [ ] Consistent terminology
 - [ ] Concrete examples included
 - [ ] References one level deep
-- [ ] Does the skill's description mention its typical context window cost? (e.g. "typically consumes <5% of a context window")
+- [ ] Does the skill's description mention its typical token budget? (e.g. "typically consumes ~5K–10K tokens / <5% of a context window")
 - [ ] If the skill reads setup config (issue tracker, labels, GitHub board), does it include "run `/setup-harness-skills` if missing context"?
 - [ ] If the skill posts any comment or body to the issue tracker, does every post end with the AI-generated footer (`🤖 Posted by /[skill-name] (AI-generated)`)?
-- [ ] If the skill creates issues, does it enforce all three creation gates: (1) Estimable, (2) ≤8 context windows, (3) demoable user-facing outcome?
+- [ ] If the skill creates issues, does it enforce all three creation gates: (1) Estimable, (2) ≤8 context windows (≈1.2M tokens total — approaches model limit), (3) demoable user-facing outcome?

@@ -88,4 +88,4 @@ Any further notes about the feature.
 
 </prd-template>
 
-**Spike recommendation:** If the solution approach is uncertain after writing the PRD, append: *"Solution uncertainty detected — recommend creating a `type:spike` issue (1 context window, AFK, throwaway) to validate the approach before breaking down into implementation stories."* The spike's output is a decision (proceed / pivot / split), not shippable code.
+**Spike recommendation:** If the solution approach is uncertain after writing the PRD, append: *"Solution uncertainty detected — recommend creating a `type:spike` issue (1–2 context windows (30K–150K tokens), AFK, throwaway) to validate the approach before breaking down into implementation stories."* The spike's output is a decision (proceed / pivot / split), not shippable code.

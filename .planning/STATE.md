@@ -7,19 +7,19 @@
 in_progress
 
 ## Last Session
-2026-05-26T08:00:00Z
-
-## Session Started
 2026-05-27T00:00:00Z
 
+## Session Started
+2026-05-27T04:00:00Z
+
 ## Active Task
-#3 — feat: skill-suggestion in harness-audit + setup-harness-skills
+#7 — fix: replace stale "1 context window ≈ 1 hr" definition with token-budget calibration
 
 ## Stopped at
-#3 implementation complete (4 files changed). Needs eval run + commit before closing issue.
+#3 and #5 closed this session. Next: implement #7 (Effort calibration, 10 files), then #4 (harness-guide), evaluate #6.
 
 ## Resume file
 .planning/phases/01-discuss/.continue-here.md
 
 ## Notes
-Next: python evals/run_evals.py --skill harness-audit → pass → commit → close #3 → continue #7.
+Evals: only harness-audit, setup-harness-skills, context-handover, session-start, skill-cleanup need eval configs. 9 others deleted.

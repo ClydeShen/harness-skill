@@ -16,7 +16,7 @@
 
 ## Custom fields
 
-- **Effort (windows):** number field — plan phase agent's estimate of context windows to complete the issue. execute agent updates if actual effort differs significantly.
+- **Effort (windows):** number field — token budget estimate (1 ≈ 30K–60K tokens / single slice; 2 ≈ 80K–150K / 1 phase; 3 ≈ 200K–300K / full feature; 4+ = epic). Execute agent updates if actual effort differs significantly. See [effort calibration](../triage/references/effort-calibration.md).
 
 ## Human gates
 

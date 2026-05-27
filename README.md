@@ -183,6 +183,20 @@ flowchart TD
 
 ## Use cases
 
+```mermaid
+flowchart LR
+    subgraph PHASES["Phase skills — invoke by need"]
+        DISC["discuss<br/>/grill-with-docs · /to-prd · /triage"]
+        EXEC["execute<br/>/zoom-out · systematic-debugging"]
+        VER["verify<br/>/gsd-verify-work · /gsd-code-review"]
+        DISC -.->|"or skip"| EXEC -.->|"or skip"| VER
+    end
+
+    subgraph GOV["Governance — anytime"]
+        G["/harness-guide<br/>8 dimensions · one next step"]
+    end
+```
+
 ### New project — detect gaps and configure once
 
 ```

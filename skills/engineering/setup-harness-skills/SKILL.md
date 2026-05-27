@@ -70,6 +70,13 @@ Options: Single-context · Multi-context · Neither yet
 
 > "Which board should `context-handover` and `session-start` use? (Leave blank to skip.) Default columns: Triage → Needs PRD → Needs Review → Ready for Agent → In Progress → Done. Default milestones: Design, MVP, v1.0."
 
+After confirming the board, inform the user of the two sizing fields (no new questions — informational only):
+
+> "The board uses two sizing fields:
+> - **Effort (windows):** token budget estimate — set from the `Effort:` value in an agent brief. 1 ≈ 30K–60K tokens (single slice); 2 ≈ 80K–150K (1 phase); 3 ≈ 200K–300K (full feature); 4+ = epic.
+> - **Size** (T-shirt): rough relative size. Suggested mapping: XS ≤ 1 window, S = 2, M = 3–4, L = 5–6, XL ≥ 7.
+> Both are optional but Effort is read by `context-handover` for session budget planning."
+
 ## Section E — Session State Location
 
 > "`.planning/STATE.md` tracks active phase, session status, and last-session context. This follows GSD's format — install GSD at any time and it reads this file directly. Confirm this path or override?"

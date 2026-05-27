@@ -32,6 +32,8 @@ These are harness problems, not model capability problems. This framework is the
 | Source | Role in this framework |
 |---|---|
 | [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) — Anthropic Engineering | Core design: initializer + coding agent + clean-state discipline |
+| [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) — Anthropic Engineering | Context as a finite, depletable resource; compaction strategy; structured note-taking across sessions |
+| [Compound Engineering with AI — The Definitive Guide](https://ai.sulat.com/compound-engineering-with-ai-the-definitive-guide-05530cf717dd) | Compound of time: each session makes subsequent sessions more effective; 40/10/40/10 cycle (Plan/Work/Review/Compound) |
 | [Andrej Karpathy — LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876) | CLAUDE.md behavioral baseline: Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution |
 | [mattpocock/skills](https://github.com/mattpocock/skills) | Direct source: `grill-me`, `handoff`, `zoom-out`, `caveman`, `write-a-skill`, `setup-matt-pocock-skills`, `to-prd`, `to-issues`, `triage`, `grill-with-docs` — kept verbatim, extended, or rewritten |
 | [obra/superpowers](https://github.com/obra/superpowers) | Companion collection: `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` |
@@ -63,6 +65,78 @@ Five skills in this collection have no equivalent in mattpocock — they are the
 
 ---
 
+## GitHub as the agent's operating system
+
+No external project management tool required. The framework uses GitHub Issues and GitHub Project Kanban natively — the same APIs available to every repo — as the agent's task queue and state machine.
+
+![GitHub Kanban board](./assets/github-kanban.png)
+
+A GitHub Action (`sync-status.yml`) keeps the board in sync automatically — no webhooks, no third-party service, no extra dependencies:
+
+- A `status:*` label applied to any issue → board column updates instantly
+- PR opened against an issue → issue moves to **In Progress**
+- PR merged → linked issue closes and moves to **Done**
+
+The agent reads `status:ready-for-agent` issues to know what to work on next. When it finishes, it applies `status:done`. The board reflects live project state without any manual moves.
+
+| Column | Who moves it | Meaning |
+|---|---|---|
+| Triage | Agent | New issue, needs classification |
+| Needs PRD | Agent | Story not writable yet — requirements missing |
+| Needs Review | Agent | Human must validate before agent starts (HITL) |
+| Ready for Agent | Human or Agent | Agent confident — can start autonomously (AFK) |
+| In Progress | GitHub Action | PR opened against this issue |
+| Done | GitHub Action | PR merged |
+
+---
+
+## Context window discipline
+
+Compound engineering works like compound interest: each session should make subsequent sessions more effective, not harder. ([Compound Engineering with AI](https://ai.sulat.com/compound-engineering-with-ai-the-definitive-guide-05530cf717dd)) The mechanism that enables this is **context window discipline** — keeping each session clean, bounded, and explicitly handed off.
+
+A Claude Code session opens with 1 million tokens. Task size is measured in **context windows**, not hours or days. When sessions overflow, bleed into each other through `/compact`, or take on tasks too large to hand off cleanly, the compounding effect degrades: context pollution accumulates, drift builds across transfers, and the original intent becomes unrecoverable. ([Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents))
+
+```mermaid
+flowchart LR
+    A([New session<br/>1M tokens]) --> B["Active work<br/>0% → 70%"]
+    B --> C{"≥ 70%<br/>used?"}
+    C -->|no| B
+    C -->|"yes — trigger"| D["/context-handover<br/>writes .continue-here.md<br/>updates STATE.md · GitHub comment"]
+    D --> E([New session<br/>1M tokens<br/>resume with /session-start])
+    E --> B
+
+    C -. "avoid: agent auto-compact" .-> F["❌ /compact<br/>unknown state retained"]
+    F --> G["⚠️ Degraded session<br/>compound effect lost"]
+```
+
+### Effort estimate (unit: context windows)
+
+Every GitHub issue carries an `Effort` field — the number of context windows estimated to complete it:
+
+- `1` = fits in one session
+- Maximum: **8 context windows**. Any issue estimated above this must be split into smaller tasks before the agent starts. Beyond 8, handoff drift compounds: each session-to-session transfer carries a small loss of precision, and enough transfers make the original intent unrecoverable. ([Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents))
+
+The `/to-issues` skill enforces this ceiling at creation time. An issue scoped above 8 CW cannot be created — the agent must break it down first.
+
+### Session boundary: trigger at 70%, not later
+
+The agent monitors token usage after every tool call. At the system-configured threshold (≥70% of the context window):
+
+1. Run `/context-handover` — writes `.continue-here.md`, updates STATE.md, posts a GitHub progress comment
+2. Close the current Claude Code session
+3. Open a **new** Claude Code session
+4. Run `/session-start` — reads the handoff artifact and resumes exactly at `<next_action>`
+
+The remaining 30% is the buffer for executing the handover itself. Triggering late leaves insufficient budget for a clean handoff. ([Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents))
+
+### Do not let the agent auto-run `/compact`
+
+`/compact` compresses conversation history, but neither you nor the agent knows exactly what was retained. Critical context — constraints established earlier in the session, in-progress decisions, partial implementation state — can silently disappear. The session continues in a degraded, unverifiable state.
+
+`/context-handover` + new session is the correct alternative. The handoff artifact (`.continue-here.md`) is explicit, human-readable, and fully recoverable by any fresh agent with no prior context. Each new session starts with a full 1M token budget and a clean context — the compound effect is preserved, not diluted.
+
+---
+
 ## Skill lifecycle
 
 ```mermaid
@@ -81,8 +155,8 @@ flowchart TD
         D --> WORK["Agent does work"]
         WORK --> CTX{"Context ~70%?"}
         CTX -->|yes| HO["/context-handover<br/>Write .continue-here.md · update STATE.md<br/>GitHub comment · memory update"]
-        HO --> COM["/compact → next session"]
-        COM -->|resume| D
+        HO --> COM["Close session<br/>Open new Claude Code session"]
+        COM -->|"/session-start"| D
         CTX -->|no| WORK
     end
 
@@ -161,7 +235,7 @@ git log since interruption:
 Resume from last commit. Run lint+build before continuing.
 ```
 
-When context reaches ~70%, run `/context-handover`. It writes `.continue-here.md`, updates STATE.md, and posts a GitHub progress comment. Then run `/compact`. The next session picks up exactly at `<next_action>`.
+When context reaches ~70%, run `/context-handover`. It writes `.continue-here.md`, updates STATE.md, and posts a GitHub progress comment. Then close the session and open a new Claude Code conversation — do not run `/compact`. A new session starts clean with full token budget; `/session-start` reads the handoff and resumes exactly at `<next_action>`.
 
 ### Harness drift — ongoing governance
 

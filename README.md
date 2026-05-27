@@ -164,10 +164,10 @@ flowchart TD
         DISC["discuss<br/>brainstorming · /grill-with-docs<br/>/to-prd · /to-issues · /triage"]
         EXEC["execute<br/>/gsd-execute-phase · /zoom-out<br/>systematic-debugging · /gsd-debug"]
         VER["verify<br/>/gsd-verify-work · /gsd-code-review"]
-        DISC --> EXEC --> VER
+        DISC -.->|"or skip"| EXEC -.->|"or skip"| VER
     end
 
-    WORK <-->|"pick up phase skills<br/>as needed"| PHASES
+    WORK -->|"pick up phase skill<br/>by need"| PHASES
 
     subgraph GOV["④ Governance — anytime, independent of phase"]
         G["/harness-guide<br/>Inspect 8 dimensions · Classify · Recommend one step · Repeat"]

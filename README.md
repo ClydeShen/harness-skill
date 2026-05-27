@@ -27,20 +27,6 @@ These are harness problems, not model capability problems. This framework is the
 
 ---
 
-## Sources and attribution
-
-| Source | Role in this framework |
-|---|---|
-| [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) — Anthropic Engineering | Core design: initializer + coding agent + clean-state discipline |
-| [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) — Anthropic Engineering | Context as a finite, depletable resource; compaction strategy; structured note-taking across sessions |
-| [Compound Engineering with AI — The Definitive Guide](https://ai.sulat.com/compound-engineering-with-ai-the-definitive-guide-05530cf717dd) | Compound of time: each session makes subsequent sessions more effective; 40/10/40/10 cycle (Plan/Work/Review/Compound) |
-| [Andrej Karpathy — LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876) | CLAUDE.md behavioral baseline: Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution |
-| [mattpocock/skills](https://github.com/mattpocock/skills) | Direct source: `grill-me`, `handoff`, `zoom-out`, `caveman`, `write-a-skill`, `setup-matt-pocock-skills`, `to-prd`, `to-issues`, `triage`, `grill-with-docs` — kept verbatim, extended, or rewritten |
-| [obra/superpowers](https://github.com/obra/superpowers) | Companion collection: `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` |
-| [open-gsd/get-shit-done-redux](https://github.com/open-gsd/get-shit-done-redux) | Recommended companion: discuss → plan → execute → verify phase lifecycle |
-
----
-
 ## Built on mattpocock/skills
 
 Use **mattpocock/skills alone** if:
@@ -177,7 +163,7 @@ flowchart TD
     end
 ```
 
-*Run `/harness-guide` anytime for governance — inspects 8 dimensions, recommends one next step. Phase skills (discuss / execute / verify) listed in [Skill reference](#skill-reference) below. Harness design from [Anthropic 2025](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)*
+*Run `/harness-guide` anytime for governance — inspects 8 dimensions, recommends one next step. Phase skills (discuss / execute / verify) shown in the [Use cases](#use-cases) section below. Harness design from [Anthropic 2025](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)*
 
 ---
 
@@ -250,7 +236,7 @@ git log since interruption:
 Resume from last commit. Run lint+build before continuing.
 ```
 
-When context reaches ~70%, run `/context-handover`. It writes `.continue-here.md`, updates STATE.md, and posts a GitHub progress comment. Then close the session and open a new Claude Code conversation — do not run `/compact`. A new session starts clean with full token budget; `/session-start` reads the handoff and resumes exactly at `<next_action>`.
+At ~70%, follow the [session boundary protocol](#session-boundary-trigger-at-70-not-later) — `/context-handover` → close → new session → `/session-start`.
 
 ### Harness drift — ongoing governance
 
@@ -305,29 +291,14 @@ bash scripts/link-skills.sh
 
 ---
 
-## Skill reference
+## Sources and attribution
 
-### Engineering
-
-| Skill | Purpose |
+| Source | Role in this framework |
 |---|---|
-| [harness-audit](./skills/engineering/harness-audit/SKILL.md) | Detect agent-harness gaps and output paste-ready fix snippets |
-| [setup-harness-skills](./skills/engineering/setup-harness-skills/SKILL.md) | One-time project setup: CLAUDE.md, GitHub labels, `.planning/` state structure |
-| [session-start](./skills/engineering/session-start/SKILL.md) | Phase detection, interrupted-session recovery, session briefing |
-| [context-handover](./skills/engineering/context-handover/SKILL.md) | End-of-context-window session transition; preserves state across sessions |
-| [to-prd](./skills/engineering/to-prd/SKILL.md) | Turn a conversation into a PRD with technical constraints |
-| [to-issues](./skills/engineering/to-issues/SKILL.md) | Break a PRD into vertical-slice GitHub issues with AFK/HITL labels |
-| [triage](./skills/engineering/triage/SKILL.md) | Issue triage state machine: classify, label, and route incoming issues |
-| [grill-with-docs](./skills/engineering/grill-with-docs/SKILL.md) | Interview relentlessly against reference docs; updates `CONTEXT.md` and ADRs inline |
-| [zoom-out](./skills/engineering/zoom-out/SKILL.md) | Higher-level architectural perspective on an unfamiliar section of code |
-| [harness-guide](./skills/engineering/harness-guide/SKILL.md) | Continuously guide a project toward better Harness and Compound Engineering practices |
-
-### Productivity
-
-| Skill | Purpose |
-|---|---|
-| [caveman](./skills/productivity/caveman/SKILL.md) | Ultra-compressed communication mode; cuts token usage while keeping technical accuracy |
-| [grill-me](./skills/productivity/grill-me/SKILL.md) | Relentless sequential interview that stress-tests a plan until every decision branch is resolved |
-| [handoff](./skills/productivity/handoff/SKILL.md) | Compact the current conversation into a handoff document for another agent to continue |
-| [write-a-skill](./skills/productivity/write-a-skill/SKILL.md) | Create new skills with proper structure, progressive disclosure, and bundled resources |
-| [skill-cleanup](./skills/productivity/skill-cleanup/SKILL.md) | Scan installed skills, detect stale or renamed entries, guide safe removal with confirmation |
+| [Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) — Anthropic Engineering | Core design: initializer + coding agent + clean-state discipline |
+| [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) — Anthropic Engineering | Context as a finite, depletable resource; compaction strategy; structured note-taking across sessions |
+| [Compound Engineering with AI — The Definitive Guide](https://ai.sulat.com/compound-engineering-with-ai-the-definitive-guide-05530cf717dd) | Compound of time: each session makes subsequent sessions more effective; 40/10/40/10 cycle (Plan/Work/Review/Compound) |
+| [Andrej Karpathy — LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876) | CLAUDE.md behavioral baseline: Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution |
+| [mattpocock/skills](https://github.com/mattpocock/skills) | Direct source: `grill-me`, `handoff`, `zoom-out`, `caveman`, `write-a-skill`, `setup-matt-pocock-skills`, `to-prd`, `to-issues`, `triage`, `grill-with-docs` — kept verbatim, extended, or rewritten |
+| [obra/superpowers](https://github.com/obra/superpowers) | Companion collection: `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` |
+| [open-gsd/get-shit-done-redux](https://github.com/open-gsd/get-shit-done-redux) | Recommended companion: discuss → plan → execute → verify phase lifecycle |

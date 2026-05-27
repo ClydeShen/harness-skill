@@ -1,0 +1,286 @@
+name: Sync status labels and PRs to project board
+
+on:
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [opened, closed, reopened]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run — print actions without applying changes"
+        type: boolean
+        default: false
+
+env:
+  PROJECT_ID: PVT_kwHOAPZRDM4BYnKy
+  STATUS_FIELD_ID: PVTSSF_lAHOAPZRDM4BYnKyzhTrw68
+  OWNER: ClydeShen
+  REPO: harness-skill
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 1: status:* label applied to an issue → move board column
+  # ─────────────────────────────────────────────────────────────────────────────
+  sync-label:
+    name: Label → board column
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      projects: write
+    steps:
+      - name: Map label to status option ID
+        id: map
+        run: |
+          LABEL="${{ github.event.label.name }}"
+          case "$LABEL" in
+            status:needs-triage|status:needs-info)         OPTION_ID="f75ad846" ;;
+            status:needs-prd)                               OPTION_ID="61e4505c" ;;
+            status:needs-review)                            OPTION_ID="47fc9ee4" ;;
+            status:ready-for-agent|status:ready-for-human) OPTION_ID="df73e18b" ;;
+            status:in-progress)                             OPTION_ID="8981fc42" ;;
+            status:done|status:wontfix)                     OPTION_ID="98236657" ;;
+            *)
+              echo "Not a status label ($LABEL), skipping."
+              exit 0
+              ;;
+          esac
+          echo "option_id=$OPTION_ID" >> "$GITHUB_OUTPUT"
+          echo "Mapped '$LABEL' → option $OPTION_ID"
+
+      - name: Get project item ID for issue
+        id: item
+        if: steps.map.outputs.option_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
+        run: |
+          ITEM_ID=$(gh api graphql \
+            -f query='
+              query($owner: String!, $repo: String!, $issue: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $issue) {
+                    projectItems(first: 1) { nodes { id } }
+                  }
+                }
+              }' \
+            -f owner="$OWNER" \
+            -f repo="$REPO" \
+            -F issue=${{ github.event.issue.number }} \
+            --jq '.data.repository.issue.projectItems.nodes[0].id // empty')
+          if [[ -z "$ITEM_ID" ]]; then
+            echo "Issue #${{ github.event.issue.number }} not on project board — skipping."
+            exit 0
+          fi
+          echo "item_id=$ITEM_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Update board column
+        if: steps.item.outputs.item_id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
+        run: |
+          gh api graphql \
+            -f query='
+              mutation($project: ID!, $item: ID!, $field: ID!, $option: String!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $project
+                  itemId: $item
+                  fieldId: $field
+                  value: { singleSelectOptionId: $option }
+                }) { projectV2Item { id } }
+              }' \
+            -f project="$PROJECT_ID" \
+            -f item="${{ steps.item.outputs.item_id }}" \
+            -f field="$STATUS_FIELD_ID" \
+            -f option="${{ steps.map.outputs.option_id }}"
+          echo "✅ Issue #${{ github.event.issue.number }} → ${{ github.event.label.name }}"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 2: PR opened/closed/reopened → update linked issues + board
+  # ─────────────────────────────────────────────────────────────────────────────
+  sync-pr:
+    name: PR event → linked issues + board
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+      projects: write
+    steps:
+      - name: Get linked closing issues
+        id: linked
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NUMS=$(gh api graphql \
+            -f query='
+              query($owner: String!, $repo: String!, $pr: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $pr) {
+                    closingIssuesReferences(first: 20) {
+                      nodes { number }
+                    }
+                  }
+                }
+              }' \
+            -f owner="$OWNER" \
+            -f repo="$REPO" \
+            -F pr=${{ github.event.pull_request.number }} \
+            --jq '[.data.repository.pullRequest.closingIssuesReferences.nodes[].number] | join(" ")')
+          echo "numbers=$NUMS" >> "$GITHUB_OUTPUT"
+          echo "Linked issues: ${NUMS:-none}"
+
+      - name: Determine target status
+        id: target
+        run: |
+          ACTION="${{ github.event.action }}"
+          MERGED="${{ github.event.pull_request.merged }}"
+          if [[ "$ACTION" == "closed" && "$MERGED" == "true" ]]; then
+            echo "label=status:done"       >> "$GITHUB_OUTPUT"
+            echo "option_id=98236657"      >> "$GITHUB_OUTPUT"
+            echo "close_issues=true"       >> "$GITHUB_OUTPUT"
+          elif [[ "$ACTION" == "opened" || "$ACTION" == "reopened" ]]; then
+            echo "label=status:in-progress" >> "$GITHUB_OUTPUT"
+            echo "option_id=8981fc42"        >> "$GITHUB_OUTPUT"
+            echo "close_issues=false"        >> "$GITHUB_OUTPUT"
+          elif [[ "$ACTION" == "closed" && "$MERGED" == "false" ]]; then
+            echo "label=status:ready-for-agent" >> "$GITHUB_OUTPUT"
+            echo "option_id=df73e18b"            >> "$GITHUB_OUTPUT"
+            echo "close_issues=false"            >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update linked issues and board
+        if: steps.linked.outputs.numbers != '' && steps.target.outputs.label != ''
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
+          STATUS_LABELS: "status:needs-triage,status:needs-info,status:needs-prd,status:needs-review,status:ready-for-agent,status:ready-for-human,status:in-progress,status:done,status:wontfix"
+        run: |
+          NEW_LABEL="${{ steps.target.outputs.label }}"
+          OPTION_ID="${{ steps.target.outputs.option_id }}"
+          CLOSE="${{ steps.target.outputs.close_issues }}"
+          PR="${{ github.event.pull_request.number }}"
+
+          for NUM in ${{ steps.linked.outputs.numbers }}; do
+            echo "── Issue #$NUM ──"
+
+            # Swap status label
+            gh issue edit "$NUM" --repo "$OWNER/$REPO" \
+              --remove-label "$STATUS_LABELS" 2>/dev/null || true
+            gh issue edit "$NUM" --repo "$OWNER/$REPO" \
+              --add-label "$NEW_LABEL" 2>/dev/null || true
+
+            # Close if PR merged
+            if [[ "$CLOSE" == "true" ]]; then
+              gh issue close "$NUM" --repo "$OWNER/$REPO" \
+                --comment "Closed by merged PR #${PR}." 2>/dev/null || true
+            fi
+
+            # Move board column
+            ITEM_ID=$(gh api graphql \
+              -f query='
+                query($owner: String!, $repo: String!, $issue: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    issue(number: $issue) {
+                      projectItems(first: 1) { nodes { id } }
+                    }
+                  }
+                }' \
+              -f owner="$OWNER" \
+              -f repo="$REPO" \
+              -F issue="$NUM" \
+              --jq '.data.repository.issue.projectItems.nodes[0].id // empty')
+
+            if [[ -n "$ITEM_ID" ]]; then
+              gh api graphql \
+                -f query='
+                  mutation($project: ID!, $item: ID!, $field: ID!, $option: String!) {
+                    updateProjectV2ItemFieldValue(input: {
+                      projectId: $project
+                      itemId: $item
+                      fieldId: $field
+                      value: { singleSelectOptionId: $option }
+                    }) { projectV2Item { id } }
+                  }' \
+                -f project="$PROJECT_ID" \
+                -f item="$ITEM_ID" \
+                -f field="$STATUS_FIELD_ID" \
+                -f option="$OPTION_ID"
+              echo "✅ #$NUM → $NEW_LABEL"
+            else
+              echo "⚠️  #$NUM not on project board"
+            fi
+          done
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 3: manual backfill — sync all open issues with status labels
+  # ─────────────────────────────────────────────────────────────────────────────
+  backfill:
+    name: Backfill open issues to board
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+      projects: write
+    steps:
+      - name: Backfill
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_TOKEN || github.token }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          ISSUES=$(gh issue list --repo "$OWNER/$REPO" \
+            --state open --json number,labels --limit 100)
+
+          echo "$ISSUES" | jq -c '.[]' | while read -r ISSUE; do
+            NUM=$(echo "$ISSUE" | jq -r '.number')
+            LABEL=$(echo "$ISSUE" | jq -r '[.labels[].name | select(startswith("status:"))] | first // empty')
+            [[ -z "$LABEL" ]] && continue
+
+            case "$LABEL" in
+              status:needs-triage|status:needs-info)         OPTION_ID="f75ad846" ;;
+              status:needs-prd)                               OPTION_ID="61e4505c" ;;
+              status:needs-review)                            OPTION_ID="47fc9ee4" ;;
+              status:ready-for-agent|status:ready-for-human) OPTION_ID="df73e18b" ;;
+              status:in-progress)                             OPTION_ID="8981fc42" ;;
+              status:done|status:wontfix)                     OPTION_ID="98236657" ;;
+              *) continue ;;
+            esac
+
+            ITEM_ID=$(gh api graphql \
+              -f query='
+                query($owner: String!, $repo: String!, $issue: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    issue(number: $issue) {
+                      projectItems(first: 1) { nodes { id } }
+                    }
+                  }
+                }' \
+              -f owner="$OWNER" \
+              -f repo="$REPO" \
+              -F issue="$NUM" \
+              --jq '.data.repository.issue.projectItems.nodes[0].id // empty')
+
+            if [[ -z "$ITEM_ID" ]]; then
+              echo "⚠️  #$NUM not on board"
+              continue
+            fi
+
+            if [[ "$DRY_RUN" == "true" ]]; then
+              echo "[dry-run] #$NUM → $LABEL (option $OPTION_ID)"
+            else
+              gh api graphql \
+                -f query='
+                  mutation($project: ID!, $item: ID!, $field: ID!, $option: String!) {
+                    updateProjectV2ItemFieldValue(input: {
+                      projectId: $project
+                      itemId: $item
+                      fieldId: $field
+                      value: { singleSelectOptionId: $option }
+                    }) { projectV2Item { id } }
+                  }' \
+                -f project="$PROJECT_ID" \
+                -f item="$ITEM_ID" \
+                -f field="$STATUS_FIELD_ID" \
+                -f option="$OPTION_ID"
+              echo "✅ #$NUM → $LABEL"
+            fi
+          done

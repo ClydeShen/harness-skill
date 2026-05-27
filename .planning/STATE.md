@@ -4,22 +4,22 @@
 01-discuss
 
 ## Status
-in_progress
+idle
 
 ## Last Session
-2026-05-27T00:00:00Z
+2026-05-27T12:00:00Z
 
 ## Session Started
-2026-05-27T04:00:00Z
+2026-05-27T12:00:00Z
 
 ## Active Task
-#7 — fix: replace stale "1 context window ≈ 1 hr" definition with token-budget calibration
+None — all tracked issues closed
 
 ## Stopped at
-#3 and #5 closed this session. Next: implement #7 (Effort calibration, 10 files), then #4 (harness-guide), evaluate #6.
+#4 closed (harness-guide skill — commit 62946e8). All 4 open issues (#4, #6, #7, #8) now closed.
 
 ## Resume file
 .planning/phases/01-discuss/.continue-here.md
 
 ## Notes
-Evals: only harness-audit, setup-harness-skills, context-handover, session-start, skill-cleanup need eval configs. 9 others deleted.
+All 15 skills registered in plugin.json (v2.4.0). Evals configured for 6 skills: harness-audit, setup-harness-skills, context-handover, session-start, skill-cleanup, harness-guide. Promptfoo grader.py worker times out on Windows — known infrastructure limitation.

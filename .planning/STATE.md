@@ -4,13 +4,13 @@
 01-discuss
 
 ## Status
-idle
+in_progress
 
 ## Last Session
 2026-05-26T08:00:00Z
 
 ## Session Started
-2026-05-26T08:00:00Z
+2026-05-27T00:00:00Z
 
 ## Active Task
 #3 — feat: skill-suggestion in harness-audit + setup-harness-skills

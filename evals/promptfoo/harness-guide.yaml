@@ -1,0 +1,151 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: harness-guide skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-harness-guide
+    config:
+      skill_name: harness-guide
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-harness-guide.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: Fresh project — no harness — Stop hook is gap #1
+  # ---------------------------------------------------------------------------
+  - description: "#1 fresh project — Stop hook first in Missing bucket"
+    vars:
+      prompt: >
+        Please run harness-guide on my project. I just started it — it's a new
+        Node.js app. There's a package.json but no .claude/settings.json, no
+        CLAUDE.md, no CI, and no evals.
+      scaffold_files:
+        - "package.json"
+        - "no .claude/settings.json"
+        - "no CLAUDE.md"
+        - "no .github/workflows/"
+        - "no evals/"
+    assert:
+      - type: llm-rubric
+        value: Outputs a Missing (❌) bucket listing the Stop hook or .claude/settings.json as absent
+      - type: llm-rubric
+        value: Recommends the Stop hook as the single highest-leverage next step (gap #1)
+      - type: llm-rubric
+        value: Recommendation includes a copy-pasteable command, snippet, or /skill-name prompt block — not just a description
+      - type: llm-rubric
+        value: Does NOT recommend more than one next step
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: Partial harness — hooks present, evals absent — classifies correctly
+  # ---------------------------------------------------------------------------
+  - description: "#2 partial harness — hooks present, evals missing"
+    vars:
+      prompt: >
+        Run harness-guide on my project. I have .claude/settings.json with Stop
+        and PostToolUse hooks, a CLAUDE.md at 80 lines, and CI running lint and
+        build. But I have no evals/ directory and no pre-commit configured.
+      scaffold_files:
+        - ".claude/settings.json with Stop and PostToolUse hooks"
+        - "CLAUDE.md at 80 lines with key commands"
+        - ".github/workflows/ci.yml running lint and build"
+        - "no evals/"
+        - "no .pre-commit-config.yaml"
+    assert:
+      - type: llm-rubric
+        value: Lists Stop hook and PostToolUse hook in the Already aligned (✅) bucket — does NOT list them as missing or weak
+      - type: llm-rubric
+        value: Lists CLAUDE.md as aligned (✅) — 80 lines is under the 200-line ceiling
+      - type: llm-rubric
+        value: Lists missing evals in the Missing (❌) bucket
+      - type: llm-rubric
+        value: Recommends exactly one next step — not a list of improvements
+
+  # ---------------------------------------------------------------------------
+  # Eval 3: Anti-pattern signals — Planning=Done and Proxy Signal
+  # ---------------------------------------------------------------------------
+  - description: "#3 anti-pattern detection — Planning=Done and Proxy Signal"
+    vars:
+      prompt: >
+        Please guide me on my project's harness. It has .claude/settings.json
+        with Stop and PostToolUse hooks, and CI that runs npm run build only
+        (no lint). The recent git log shows: "add plan for auth", "outline
+        payment flow", "plan database schema" — three commits with no
+        corresponding implementation commits.
+      scaffold_files:
+        - ".claude/settings.json with Stop and PostToolUse hooks"
+        - ".github/workflows/ci.yml running npm run build only (no lint step)"
+        - "git log: 'add plan for auth', 'outline payment flow', 'plan database schema'"
+        - "no implementation commits after planning commits"
+    assert:
+      - type: llm-rubric
+        value: Identifies Planning=Done as a weak or anti-pattern signal in the ⚠️ bucket
+      - type: llm-rubric
+        value: Identifies CI as weak or incomplete (build-only, no lint) — names Proxy Signal or equivalent
+      - type: llm-rubric
+        value: Does NOT list Stop hook or PostToolUse hook as missing — they are already present
+      - type: llm-rubric
+        value: Recommends exactly one next step with a specific action — not a general suggestion
+
+  # ---------------------------------------------------------------------------
+  # Eval 4: Well-aligned project — all three buckets populated, one step only
+  # ---------------------------------------------------------------------------
+  - description: "#4 mostly aligned project — outputs all three buckets, one next step"
+    vars:
+      prompt: >
+        Run harness-guide on my project. It has: .claude/settings.json with
+        Stop and PostToolUse hooks, CLAUDE.md at 90 lines, CI running lint
+        and build, .pre-commit-config.yaml, .planning/STATE.md tracking active
+        task, and memobank configured with MEMORY.md. The only thing missing
+        is evals — no evals/ directory exists.
+      scaffold_files:
+        - ".claude/settings.json with Stop and PostToolUse hooks"
+        - "CLAUDE.md at 90 lines"
+        - ".github/workflows/ci.yml running lint and build"
+        - ".pre-commit-config.yaml"
+        - ".planning/STATE.md with session_status and active_task"
+        - "MEMORY.md present"
+        - "no evals/"
+    assert:
+      - type: llm-rubric
+        value: Outputs all three classification buckets (✅ aligned, ⚠️ weak or anti-pattern, ❌ missing)
+      - type: llm-rubric
+        value: Lists Stop hook, CLAUDE.md, CI, pre-commit, memory system, and session discipline as aligned (✅)
+      - type: llm-rubric
+        value: Identifies missing evals in the ❌ bucket
+      - type: llm-rubric
+        value: Recommends exactly one next step — not multiple improvements in parallel
+      - type: llm-rubric
+        value: Next step recommendation includes a copy-pasteable prompt, command, or /skill-name block
+
+  # ---------------------------------------------------------------------------
+  # Eval 5: Inspect-first — never asks before reading files
+  # ---------------------------------------------------------------------------
+  - description: "#5 inspect-first — no questions asked before classification output"
+    vars:
+      prompt: >
+        Please run harness-guide. I want to understand how my project compares
+        to best practices.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md at 120 lines"
+        - ".github/workflows/ci.yml running npm run build"
+        - "no .claude/settings.json"
+    assert:
+      - type: llm-rubric
+        value: Produces a classification output (✅/⚠️/❌ buckets or equivalent) before asking any questions
+      - type: llm-rubric
+        value: Does NOT ask the user questions about their project setup before producing the classification
+      - type: llm-rubric
+        value: Identifies missing Stop hook as a gap — either ❌ Missing or ⚠️ Weak

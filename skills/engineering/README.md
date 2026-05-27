@@ -14,3 +14,4 @@ project setup, phase management, context handover, issue lifecycle, and harness 
 | `to-issues` | Break PRD into vertical-slice user stories | Adapted from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT License) |
 | `zoom-out` | Gain high-level architectural perspective | Copied from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT License) |
 | `grill-with-docs` | Interview relentlessly against reference docs until shared understanding is reached | Copied from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT License) |
+| `harness-guide` | Continuously guide a project toward better Harness and Compound Engineering practices | Original |

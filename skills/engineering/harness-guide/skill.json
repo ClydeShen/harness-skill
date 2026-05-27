@@ -1,0 +1,14 @@
+{
+  "name": "harness-guide",
+  "version": "0.1.0",
+  "description": "Continuously guides a project toward better Harness and Compound Engineering practices. Inspects project state, classifies findings into aligned/weak/missing buckets, and recommends exactly one next step with a copy-pasteable prompt.",
+  "author": {
+    "name": "Clyde Shen",
+    "github": "ClydeShen"
+  },
+  "verticals": ["productivity", "devops"],
+  "tags": ["claude", "harness", "compound-engineering", "coaching", "session-discipline", "evals", "ci", "hooks"],
+  "scripts": {
+    "setup": ""
+  }
+}

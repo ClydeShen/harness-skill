@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This repo is a curated skill collection for compound engineering workflows, packaged as a Claude Code / Codex plugin.
 
-All 13 skills implemented across `skills/engineering/` and `skills/productivity/`. See `skills/engineering/README.md` and `skills/productivity/README.md` for the full list and source attribution.
+All 14 skills implemented across `skills/engineering/` and `skills/productivity/`. See `skills/engineering/README.md` and `skills/productivity/README.md` for the full list and source attribution.
 
 Install via `bash scripts/link-skills.sh`. Skills live in `skills/engineering/` or `skills/productivity/`.
 
@@ -40,7 +40,7 @@ skills/
 evals/
   run_evals.py               ← promptfoo runner (discovers all skill configs)
   promptfoo/
-    <skill-name>.yaml         ← one promptfoo config per skill (13 total)
+    <skill-name>.yaml         ← one promptfoo config per skill (14 total)
     provider.py               ← response provider: llamacpp HTTP at localhost:8080
     grader.py                 ← judge provider: llamacpp HTTP at localhost:8080
     scaffold_helper.py        ← shared project scaffolding logic
@@ -131,6 +131,7 @@ Install via `bash scripts/link-skills.sh`. Invoke with `/skill-name`.
 | `to-issues` | Break a PRD into scoped GitHub issues |
 | `zoom-out` | Step back and reframe current work |
 | `grill-with-docs` | Stress-test a plan against domain docs and ADRs |
+| `harness-guide` | Continuously guide project toward Harness and Compound Engineering best practices |
 
 ### Productivity
 | Skill | Purpose |

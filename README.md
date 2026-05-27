@@ -20,7 +20,7 @@ Then open your project in Claude Code and run:
 
 It scans for missing harness components, asks up to 3 questions, and outputs a prioritised gap list with paste-ready snippets.
 
-## Full Collection (all 13 skills)
+## Full Collection (all 15 skills)
 
 Add to `~/.claude/settings.json`:
 
@@ -53,6 +53,7 @@ Skills for the full compound engineering lifecycle.
 - **[triage](./skills/engineering/triage/SKILL.md)** — Issue triage state machine: classify, label, and route incoming issues.
 - **[grill-with-docs](./skills/engineering/grill-with-docs/SKILL.md)** — Interview relentlessly against reference docs until shared understanding is reached; updates `CONTEXT.md` and ADRs inline.
 - **[zoom-out](./skills/engineering/zoom-out/SKILL.md)** — Tell the agent to zoom out and give a higher-level architectural perspective on an unfamiliar section of code.
+- **[harness-guide](./skills/engineering/harness-guide/SKILL.md)** — Continuously guide a project toward better Harness and Compound Engineering practices.
 
 ### Productivity
 

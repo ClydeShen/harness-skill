@@ -108,15 +108,15 @@ A Claude Code session opens with 1 million tokens. Task size is measured in **co
 
 ```mermaid
 flowchart LR
-    A([New session<br/>1M tokens]) --> B["Active work<br/>0% → 70%"]
-    B --> C{"≥ 70%<br/>used?"}
+    A([New session]) --> B["Active work<br/>0% to 70%"]
+    B --> C{">= 70% used?"}
     C -->|no| B
-    C -->|"yes — trigger"| D["/context-handover<br/>writes .continue-here.json<br/>updates .harness/state.json · GitHub comment"]
-    D --> E([New session<br/>1M tokens<br/>resume with /session-start])
+    C -->|yes - trigger| D["/context-handover<br/>writes .continue-here.json<br/>updates state.json + GitHub"]
+    D --> E([New session<br/>resume with /session-start])
     E --> B
 
-    C -. "avoid: agent auto-compact" .-> F["❌ /compact<br/>unknown state retained"]
-    F --> G["⚠️ Degraded session<br/>compound effect lost"]
+    C -. "avoid: auto-compact" .-> F["/compact<br/>unknown state retained"]
+    F --> G["Degraded session<br/>compound effect lost"]
 ```
 
 ### Effort estimate (unit: context windows)
@@ -169,19 +169,19 @@ The remaining 30% is the buffer for executing the handover itself. Triggering la
 flowchart TD
     A([New project]) --> B
 
-    subgraph ONCE["① One-time setup"]
-        B["/harness-audit<br/>Detect gaps · snippets"]
-        B --> C["/setup-harness-skills<br/>CLAUDE.md · .harness/state.json · GitHub labels"]
+    subgraph ONCE["One-time setup"]
+        B["/harness-audit<br/>Detect gaps and snippets"]
+        B --> C["/setup-harness-skills<br/>CLAUDE.md + state.json + GitHub labels"]
     end
 
     C --> D
 
-    subgraph LOOP["② Every session"]
+    subgraph LOOP["Every session"]
         D["/session-start<br/>Briefing or recovery"]
-        D --> WORK["Agent does work<br/>(phase skills as needed)"]
-        WORK --> CTX{"≥ 70% used?"}
-        CTX -->|yes| HO["/context-handover<br/>Write .continue-here.json<br/>update .harness/state.json · GitHub"]
-        HO --> COM["Close · open new session"]
+        D --> WORK["Agent does work<br/>phase skills as needed"]
+        WORK --> CTX{">= 70% used?"}
+        CTX -->|yes| HO["/context-handover<br/>Write .continue-here.json<br/>update state.json + GitHub"]
+        HO --> COM["Close and open new session"]
         COM -->|"/session-start"| D
         CTX -->|no| WORK
     end
@@ -195,15 +195,15 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    subgraph PHASES["Phase skills — invoke by need"]
-        DISC["discuss<br/>/grill-with-docs · /harness-prd · /harness-triage"]
-        EXEC["execute<br/>/systematic-debugging · /harness-guide"]
-        VER["verify<br/>/gsd-verify-work · /gsd-code-review<br/>(companion: GSD Redux)"]
-        DISC -.->|"or skip"| EXEC -.->|"or skip"| VER
+    subgraph PHASES["Phase skills - invoke by need"]
+        DISC["discuss<br/>/grill-with-docs /harness-prd /harness-triage"]
+        EXEC["execute<br/>/systematic-debugging /harness-guide"]
+        VER["verify<br/>/gsd-verify-work /gsd-code-review<br/>companion: GSD Redux"]
+        DISC -.->|or skip| EXEC -.->|or skip| VER
     end
 
-    subgraph GOV["Governance — anytime"]
-        G["/harness-guide<br/>project state · one next step"]
+    subgraph GOV["Governance - anytime"]
+        G["/harness-guide<br/>inspect and recommend one next step"]
     end
 ```
 

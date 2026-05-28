@@ -1,0 +1,28 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Engineering",
+      "description": "Session discipline, context handover, and harness governance for multi-day agent work.",
+      "skills": [
+        "harness-audit",
+        "session-start",
+        "context-handover",
+        "harness-guide",
+        "harness-triage",
+        "harness-prd",
+        "harness-issues",
+        "setup-harness-skills"
+      ]
+    },
+    {
+      "title": "Productivity",
+      "description": "Skill authoring and maintenance tools.",
+      "skills": [
+        "write-harness-skill",
+        "skill-cleanup"
+      ]
+    }
+  ]
+}

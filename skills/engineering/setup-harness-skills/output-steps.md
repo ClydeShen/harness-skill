@@ -105,16 +105,61 @@ Stack-specific based on files detected in Step 1:
 - Python (`requirements.txt` / `pyproject.toml`): Python CI template
 - Unknown stack: minimal placeholder CI
 
-## Step 8 — Append to `.gitignore`
+## Step 8 — Write `.claude/hooks/` and configure `.claude/settings.json`
+
+Copy the three hook templates from this skill's `hooks/` folder to the user's project:
+
+```
+.claude/hooks/session-start.sh      ← SessionStart: state transition + additionalContext inject
+.claude/hooks/session-heartbeat.sh  ← Stop: update last_active every turn
+.claude/hooks/validate-state.sh     ← PostToolUse: validate state.json / .continue-here.json
+```
+
+Make executable:
+```bash
+chmod +x .claude/hooks/session-start.sh .claude/hooks/session-heartbeat.sh .claude/hooks/validate-state.sh
+```
+
+Merge into `.claude/settings.json` (idempotent — only add missing entries):
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [{ "type": "command", "command": "bash .claude/hooks/session-start.sh" }]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [{ "type": "command", "command": "bash .claude/hooks/session-heartbeat.sh" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [{ "type": "command", "command": "bash .claude/hooks/validate-state.sh" }]
+      }
+    ]
+  }
+}
+```
+
+**Dependency check:** hooks require `jq`. If absent, note in setup summary:
+> "`jq` not found — install with `brew install jq` (macOS) or `apt install jq` (Linux). Hooks will silently no-op until installed."
+
+## Step 8a — Append to `.gitignore`
 
 Idempotent — skip lines already present:
 
 ```
 .claude/handoff.md
-.claude/session.json
+.planning/phases/*/.continue-here.json
 ```
 
-`.claude/harness.json` is NOT gitignored — it is committed as shared team config.
+`.claude/harness.json` and `.planning/state.json` are NOT gitignored — committed as shared team config.
 
 ## Step 9 — Write seed files to `docs/agents/`
 

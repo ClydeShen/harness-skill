@@ -78,11 +78,11 @@ Reference: [Effective Harnesses for Long-Running Agents](https://www.anthropic.c
 
 ## Session Discipline
 
-**What:** `.planning/STATE.md` tracking `session_status`, `active_task`, and phase. One task active at a time.
+**What:** `.planning/state.json` tracking `session.status`, `position.active_task`, and phase. Three hooks (`SessionStart`, `Stop`, `PostToolUse`) maintain it automatically. One task active at a time.
 
 **Why:** Without a session state machine, context handover is lossy, interruptions lose all progress, and task scope drifts across sessions.
 
-**Signal of alignment:** `.planning/STATE.md` present with `session_status` and `active_task` fields. `.continue-here.md` present for active tasks.
+**Signal of alignment:** `.planning/state.json` present with `session.status` and `position.active_task` fields. `.continue-here.json` present for active tasks.
 
 ---
 
@@ -102,4 +102,4 @@ Reference: [Effective Harnesses for Long-Running Agents](https://www.anthropic.c
 
 **Why:** Multiple in-progress tasks lead to Context Drift, incomplete handoffs, and untested partial implementations.
 
-**Signal of alignment:** GitHub Issues or STATE.md show exactly one active task per session.
+**Signal of alignment:** GitHub Issues or `state.json → position.active_task` show exactly one active task per session.

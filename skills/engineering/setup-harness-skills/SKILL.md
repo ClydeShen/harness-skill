@@ -22,7 +22,7 @@ Before asking anything, read and report a **one-line summary**:
 3. `CONTEXT.md` → present?
 4. `docs/agents/` → prior setup files?
 5. `.planning/config.json` → prior GSD or harness setup? (read harness key if present)
-6. `.planning/STATE.md` → prior session state?
+6. `.planning/state.json` → prior session state?
 7. `.planning/PROJECT.md` → prior project context?
 8. `.claude/harness.json` → old config to migrate? (deprecated — migrate values to .planning/config.json)
 9. `~/.claude/skills/` → any `gsd-*` skill present? Any of `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` present?
@@ -79,7 +79,7 @@ After confirming the board, inform the user of the two sizing fields (no new que
 
 ## Section E — Session State Location
 
-> "`.planning/STATE.md` tracks active phase, session status, and last-session context. This follows GSD's format — install GSD at any time and it reads this file directly. Confirm this path or override?"
+> "`.planning/state.json` tracks active phase, session status, and last-session context as machine-readable JSON. Three hooks (`SessionStart`, `Stop`, `PostToolUse`) maintain it automatically. Confirm this path or override?"
 
 ## Output
 
@@ -88,21 +88,22 @@ After all five sections, show the draft of what will be written and confirm befo
 ### .planning/ files written by setup-harness-skills
 
 1. `.planning/config.json` — GSD defaults + `harness` namespace (idempotent merge; never overwrites GSD keys)
-2. `.planning/STATE.md` — from GSD state template (only if absent)
+2. `.planning/state.json` — session state JSON (only if absent; see `session-config.md` for schema)
 3. `.planning/PROJECT.md` — from GSD project template (only if absent)
 4. `.planning/ROADMAP.md` — stub with four phase entries: 01-discuss, 02-plan, 03-execute, 04-verify (only if absent)
 
 ### .gitignore additions
 
 ```
-.planning/phases/*/.continue-here.md   # handoff docs — ephemeral, never commit
+.planning/phases/*/.continue-here.json   # resume context — ephemeral, never commit
 ```
 
 ### Migration (when old .claude/ artifacts exist)
 
 - `.claude/harness.json` → merge values into `.planning/config.json` harness namespace
-- `.claude/session.json` → copy Session Continuity values into `.planning/STATE.md`
-- `.claude/handoff.md` → map into `.continue-here.md` XML sections (lossy — preserves content in `<context>`)
+- `.claude/session.json` → extract phase/task values into `.planning/state.json` position fields
+- `.planning/STATE.md` → extract session fields into `.planning/state.json` (then delete STATE.md)
+- `.claude/handoff.md` → map into `.continue-here.json` fields (lossy — preserves content in `context`)
 - Old files are NOT deleted — user confirms before removal
 
 Print a setup summary at the end: ✅ completed · ⚠️ requires manual action · 📁 files written.

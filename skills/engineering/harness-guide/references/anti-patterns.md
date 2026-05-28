@@ -6,7 +6,7 @@ Anti-patterns detected during Phase 2 — Classify. Each entry names the pattern
 
 ## Planning=Done
 
-**Signal:** Task committed as "plan X" or "outline feature Y" with no subsequent build, test, or verify commit. STATE.md shows phase advancing without observable output.
+**Signal:** Task committed as "plan X" or "outline feature Y" with no subsequent build, test, or verify commit. `state.json` shows phase advancing without observable output.
 
 **Failure mode:** The agent treats a written plan as a deliverable. The feature is not built. The user believes work is complete; it is not.
 
@@ -20,7 +20,7 @@ Anti-patterns detected during Phase 2 — Classify. Each entry names the pattern
 
 **Failure mode:** Unverified completion cascades into the next task. Regressions accumulate silently. The first real signal is a failing CI run or user-reported bug.
 
-**Detection:** Task closure in STATE.md or git with no lint/build/test command in the same session. No verification commit before `session_status: idle`.
+**Detection:** Task closure in git with no lint/build/test command in the same session. No verification commit before `state.json → session.status: "idle"`.
 
 ---
 

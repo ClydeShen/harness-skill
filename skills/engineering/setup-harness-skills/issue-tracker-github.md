@@ -27,7 +27,7 @@ gh issue comment <N> --body "..."
 - Title format: `[type]: short imperative description` (e.g., `feature: user can reset password via email`)
 - All issues follow the enforced template: Story / Confidence / AC / DoD / Effort / Dependencies
 - Labels use four categories: `status:`, `phase:`, `type:`, `priority:`
-- The active issue is stored in `.claude/session.json` → `active_task.github_issue`
+- The active issue title is stored in `.planning/state.json` → `position.active_task`
 
 ## Owner / Repo
 

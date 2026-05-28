@@ -7,66 +7,83 @@ description: Briefs the current session by reading session state, handoff doc, a
 
 Explore → Evaluate → Brief. Never ask questions before reading available state.
 
+## State file
+
+Session state lives in `.planning/state.json`. Schema:
+
+```json
+{
+  "version": "1.0",
+  "session": {
+    "status": "idle",
+    "started_at": "ISO 8601",
+    "last_session": "ISO 8601"
+  },
+  "position": {
+    "phase": "01-discuss",
+    "active_task": "task title string",
+    "resume_file": ".planning/phases/01-discuss/.continue-here.json",
+    "stopped_at": "brief description of last action"
+  }
+}
+```
+
+`session.status`: `"idle"` (clean close) | `"in_progress"` (active or interrupted).
+
 ## Execution sequence
 
-- [ ] **1. EXPLORE** — read project state before asking anything:
-  - `.planning/STATE.md` → session_status, session_started, Current Position (phase, active task, status)
-  - `.planning/STATE.md` → Session Continuity.Resume file → path to .continue-here.md
+- [ ] **1. EXPLORE** — if the `SessionStart` hook ran, state fields are already in your context window via `additionalContext` — use them directly. Otherwise read:
+  - `.planning/state.json` → `session.status`, `session.last_active`, `position.*`
   - `.planning/config.json` → GitHub owner, repo, project board ID (harness key)
-  - `.planning/phases/XX-name/.continue-here.md` → path from STATE.md Resume file
+  - `.planning/phases/XX-name/.continue-here.json` → path from `position.resume_file`
   - `.git/config` → remote origin (fallback if config.json absent)
   - `CLAUDE.md` / `AGENTS.md` → `## Agent skills` block present? (setup indicator)
   - `.planning/phases/01-discuss/` → any `CONTEXT.md` files? (phase skip signal)
   - `.planning/phases/02-plan/` → any `PLAN.md` files? (phase skip signal)
   - `MEMORY.md` or top-3 memory entries relevant to active task
-  - `.claude/session.json` → legacy fallback if STATE.md absent (deprecated)
-  - `.claude/handoff.md` → legacy fallback if .continue-here.md absent (deprecated)
+  - `.claude/handoff.md` → legacy fallback if .continue-here.json absent (deprecated)
 
-- [ ] **2. WRITE SESSION STATE** — update STATE.md Session Continuity before reading prior state:
-  - Set `session_status: in_progress`
-  - Set `session_started: <current ISO timestamp>`
-  - Set `Active task: #N — [title]` in Current Position (if known from prior state or user context)
-  - Budget: <1% of remaining context
+  > **Note:** `session.status` and `session.started_at` are set automatically by the `SessionStart` hook before this skill runs. No manual state write needed.
 
-  This makes the state machine transition observable: context-handover sets `session_status: idle`; session-start sets `session_status: in_progress`. A session that is interrupted before context-handover fires leaves `in_progress` in place — detected by the next session-start reading a stale `session_started` timestamp.
+- [ ] **2. RESUME CONTEXT** — determine if this is a clean resume or interrupted recovery:
 
-- [ ] **3. RESUME CONTEXT** — determine if this is a clean resume or interrupted recovery:
+  **Detect interrupted session:** if `session.status` is `"in_progress"` AND `session.last_active` is >5 minutes old → interrupted session. Output a **Recovery briefing** (see Step 5b).
 
-  **Detect interrupted session:** if STATE.md `session_status` is `in_progress` AND `session_started` timestamp is >30 minutes old → this is an interrupted session. Output a **Recovery briefing** (see Step 6b).
+  > If `last_active` is absent (hook not configured), fall back to: `session.started_at` >30 minutes old.
 
-  **Clean resume chain (session_status: idle or absent):**
-  - **a. `.planning/phases/XX/.continue-here.md`** — primary. Read `<next_action>`, `<completed_work>`, `<remaining_work>`.
-  - **b. Memory system query** — query active memory system for entries relevant to the active task. No GitHub required.
-  - **c. Mid-session recovery** (.continue-here.md stale or absent): `git log --oneline -20` + recent GitHub per-AC progress comments (`gh api repos/{owner}/{repo}/issues/{N}/comments --jq '[.[] | select(.body | startswith("Progress"))] | .[-5:]'`).
-  - **d. Legacy `.claude/handoff.md`** — use only if .continue-here.md absent and no migration has run.
+  **Clean resume chain (`session.status: "idle"` or absent):**
+  - **a. `.planning/phases/XX/.continue-here.json`** — primary. Read `next_action`, `completed_work`, `remaining_work`.
+  - **b. Memory system query** — query active memory system for entries relevant to the active task. No GitHub required. If roam MCP tools are available (`roam_context` or `roam_retrieve`), call `roam_retrieve <active_task>` and include the architecture snapshot in the briefing output.
+  - **c. Mid-session recovery** (.continue-here.json stale or absent): `git log --oneline -20` + recent GitHub per-AC progress comments (`gh api repos/{owner}/{repo}/issues/{N}/comments --jq '[.[] | select(.body | startswith("Progress"))] | .[-5:]'`).
+  - **d. Legacy `.claude/handoff.md`** — use only if .continue-here.json absent and no migration has run.
   - **e. Cold start** — nothing found.
 
-- [ ] **4. EVALUATE** — apply phase skip/revert (observable checks only):
+- [ ] **3. EVALUATE** — apply phase skip/revert (observable checks only):
 
   | Condition | Action |
   |---|---|
   | `.planning/phases/01-discuss/` contains a `CONTEXT.md` | Skip discuss → set phase to plan |
   | `.planning/phases/02-plan/` contains a `PLAN.md` | Skip discuss + plan → set phase to execute |
-  | STATE.md `current_focus` is `02-plan` but no CONTEXT.md in `01-discuss/` | Revert to discuss |
-  | STATE.md `current_focus` is `03-execute` but no PLAN.md in `02-plan/` | Revert to plan |
+  | `position.phase` is `02-plan` but no CONTEXT.md in `01-discuss/` | Revert to discuss |
+  | `position.phase` is `03-execute` but no PLAN.md in `02-plan/` | Revert to plan |
 
   Log skip/revert in the briefing: *"Phase advanced to execute — found PLAN.md in 02-plan and approved CONTEXT.md."*
 
-- [ ] **5. COLD-START** — if all of the above yield nothing (no config.json, STATE.md, .continue-here.md, GitHub issues):
+- [ ] **4. COLD-START** — if all of the above yield nothing (no config.json, state.json, .continue-here.json, GitHub issues):
   - Output: "No prior session state found."
   - Present what WAS found (e.g., "Found CLAUDE.md with no ## Agent skills block")
   - Suggest: "Run `/setup-harness-skills` to initialize .planning/ or describe what you'd like to work on."
   - Do NOT default to any phase. Wait for user input.
 
-- [ ] **6. OUTPUT** — emit one of two briefing formats:
+- [ ] **5. OUTPUT** — emit one of two briefing formats:
 
-  **6a. Clean resume briefing:**
+  **5a. Clean resume briefing:**
   ```
   ## Session briefing
   Phase: [discuss / plan / execute / verify] (0N-name)
   Active task: #N — [title]
   Effort remaining: ~N context window(s) (token budget: 1 = ~30–60K tokens)
-  Pick up from: [<next_action> from .continue-here.md]
+  Pick up from: [<next_action> from .continue-here.json]
 
   Budget for this session:
   [phase-specific table from context-handover/phase-budgets.md]
@@ -74,18 +91,18 @@ Explore → Evaluate → Brief. Never ask questions before reading available sta
   Run /context-handover when approaching 80% usage.
   ```
 
-  **6b. Recovery briefing (interrupted session detected):**
+  **5b. Recovery briefing (interrupted session detected):**
   ```
   ## Recovery briefing — interrupted session detected
 
-  Previous session started: [session_started timestamp] — no context-handover was recorded.
+  Last active: [session.last_active] — no context-handover was recorded.
 
-  Phase: [from STATE.md Current Position]
-  Active task: #N — [title]
-  Last known intent: [Stopped at from STATE.md, or <next_action> from stale .continue-here.md]
+  Phase: [position.phase]
+  Active task: [position.active_task]
+  Last known intent: [position.stopped_at, or next_action from stale .continue-here.json]
 
   ## What changed since interruption (git log)
-  [output of: git log --after="<session_started>" --oneline]
+  [output of: git log --after="<session.last_active>" --oneline]
 
   ## What to do
   Review the git log above. If work is partially complete, continue from the last commit.

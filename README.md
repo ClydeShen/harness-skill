@@ -3,7 +3,7 @@
 [![skills.sh](https://skills.sh/b/ClydeShen/harness-skill)](https://skills.sh/ClydeShen/harness-skill)
 [![CI](https://github.com/ClydeShen/harness-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/ClydeShen/harness-skill/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-2.4.0-blue)](https://github.com/ClydeShen/harness-skill/releases)
+[![Version](https://img.shields.io/badge/version-2.5.0-blue)](https://github.com/ClydeShen/harness-skill/releases)
 [![GitHub last commit](https://img.shields.io/github/last-commit/ClydeShen/harness-skill)](https://github.com/ClydeShen/harness-skill/commits/main)
 [![GitHub stars](https://img.shields.io/github/stars/ClydeShen/harness-skill?style=social)](https://github.com/ClydeShen/harness-skill/stargazers)
 
@@ -26,7 +26,7 @@ These are harness problems, not model capability problems. This framework is the
 
 - **Named anti-patterns** — Fuzzy Done, Proxy Signal, Confidence Exit, Planning=Done. When an agent fails, you can say which pattern it hit. ([anti-patterns.md](./skills/engineering/harness-guide/references/anti-patterns.md))
 - **A session state machine** — `STATE.md` tracks phase, status, and active task. Every session starts with a briefing; every session ends with a handoff. An interrupted session leaves a detectable fingerprint.
-- **Four-layer recoverable state** — Intent (STATE.md + CLAUDE.md) → Position (.continue-here.md + GitHub issue) → Evidence (git log + issue comments) → Memory (memobank/mem0/letta). Any interruption is recoverable without human intervention.
+- **Four-layer recoverable state** — Intent (STATE.md + CLAUDE.md) → Position (.continue-here.md + GitHub issue) → Evidence (git log + issue comments) → Memory (agentmemory / memobank / mem0 / letta). Any interruption is recoverable without human intervention.
 - **Glue between issue tracker, agent, and memory** — skills read from and write to GitHub Issues, `.planning/`, and the memory system as a coordinated unit.
 - **A behavioral baseline** — CLAUDE.md derived from [Karpathy's observations on LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876) plus a fifth section (Harness Discipline) that enforces session boundary discipline.
 
@@ -51,7 +51,7 @@ Five skills in this collection have no equivalent in mattpocock — they are the
 | `/harness-audit` | Scans for harness gaps, outputs prioritised list with paste-ready snippets. Never writes files. Stop hook is always gap #1. |
 | `/harness-guide` | Continuous coaching loop: inspect → classify → recommend one next step → repeat. Detects anti-patterns by name. |
 | `/session-start` | Reads STATE.md and `.continue-here.md`. Outputs structured briefing or recovery brief when an interrupted session is detected. |
-| `/context-handover` | Session boundary manager: writes `.continue-here.md`, updates STATE.md, posts GitHub progress comment, updates memory system. |
+| `/context-handover` | Session boundary manager: writes `.continue-here.md`, updates STATE.md, posts GitHub progress comment, updates memory system (skips if Stop hook already handles it automatically). |
 | `/skill-cleanup` | Audits installed skills across all agent platforms for stale or duplicate entries. Interactive, dry-run mode, never deletes without confirmation. |
 
 ---
@@ -199,7 +199,7 @@ Outputs a prioritised gap list with paste-ready snippets. Typical first run:
 ```
 1. Missing Stop hook         → paste .claude/settings.json snippet
 2. No instruction file       → paste CLAUDE.md template
-3. No memory system          → install memobank or equivalent
+3. No memory system          → install agentmemory, memobank, mem0, or equivalent
 4. CI runs build only        → paste .github/workflows/ci.yml snippet
 ```
 
@@ -295,6 +295,8 @@ bash scripts/link-skills.sh
 |---|---|
 | [GSD Redux](https://github.com/open-gsd/get-shit-done-redux) | `gsd-*` skills: full discuss → plan → execute → verify phase lifecycle |
 | [Superpowers](https://github.com/obra/superpowers) | `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` |
+| [agentmemory](https://github.com/rohitg00/agentmemory) | Persistent memory across sessions — recommended memory system. Stop hook auto-generates session summaries; `session-start` reads past decisions on resume. |
+| [roam-code](https://github.com/Cranot/roam-code) | Codebase intelligence via MCP — `session-start` calls `roam_retrieve` to inject architecture snapshot into the session briefing. |
 
 ---
 

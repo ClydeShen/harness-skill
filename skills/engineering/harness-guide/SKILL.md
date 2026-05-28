@@ -37,7 +37,7 @@ description: |
 Read these files before doing or saying anything. Do not ask questions during this phase.
 
 1. `CLAUDE.md` / `AGENTS.md` — instruction file quality: line count, key commands present, staleness signals
-2. `.planning/STATE.md` — session discipline: `session_status`, active task, phase tracking
+2. `.planning/state.json` — session discipline: `session.status`, `position.active_task`, phase tracking
 3. `.planning/config.json` — GSD/harness configuration
 4. `.claude/settings.json` — Stop hook and PostToolUse hook presence and validity
 5. `.github/workflows/*.yml` — CI: runs lint AND build? or build-only?
@@ -58,7 +58,7 @@ Practices matching Harness and Compound Engineering best practices. Examples:
 - Stop hook present and well-formed
 - CLAUDE.md / AGENTS.md under 200 lines with key commands
 - CI runs lint + build
-- `.planning/` with active STATE.md
+- `.planning/` with `state.json` present and `session.status` field valid
 - Memory system configured (memobank, mem0, letta, MEMORY.md)
 - Evals covering observable behavior, not just happy path
 - Pre-commit configured
@@ -67,7 +67,7 @@ Practices matching Harness and Compound Engineering best practices. Examples:
 Practices that exist but are degraded, incomplete, or match a known anti-pattern. Name the anti-pattern when applicable (see `references/anti-patterns.md`). Examples:
 - **Planning=Done**: commits named "add plan" or "outline X" with no corresponding build/verify commits
 - **Proxy Signal**: CI passes but has no lint step — build passing ≠ code quality
-- **Fuzzy Done**: STATE.md shows `session_status: idle` but no verification commit follows task-end
+- **Fuzzy Done**: `state.json` shows `session.status: "idle"` but no verification commit follows task-end
 - CLAUDE.md at 160–199 lines (approaching 200-line ceiling)
 - PostToolUse hook present but Stop hook absent (partial harness)
 - Evals exist but cover only the happy path

@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "session": {
+    "status": "idle",
+    "started_at": "2026-05-28T00:00:00Z",
+    "last_active": "2026-05-28T00:00:00Z",
+    "last_session": "2026-05-28T12:00:00Z"
+  },
+  "position": {
+    "phase": "01-discuss",
+    "active_task": "Integrate agentmemory + roam-code built-in capabilities into skill content",
+    "resume_file": ".planning/phases/01-discuss/.continue-here.json",
+    "stopped_at": "Redesigned session state: STATE.md→state.json, .continue-here.md→.continue-here.json, 3 hook templates created (SessionStart/Stop/PostToolUse), 11 skill files updated, verification passed clean."
+  }
+}

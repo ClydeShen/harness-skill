@@ -35,8 +35,9 @@ Check for any of these signals (one positive signal = gap closed):
 - `.memobank/` directory present at root or user-level
 - `mem0.json`, `letta.json`, or equivalent system config file at root
 - `mem0`, `letta`, `memobank` in `requirements.txt`, `package.json`, or `pyproject.toml`
-- Any mention of "mem0", "letta", "memobank", "memory system", "persistent memory" in CLAUDE.md / AGENTS.md
+- Any mention of "mem0", "letta", "memobank", "agentmemory", "memory system", "persistent memory" in CLAUDE.md / AGENTS.md
 - `MEMORY.md` present (convention used by memobank and compatible systems)
+- `agentmemory` path present in `.claude/settings.json` hooks (any hook entry)
 
 No signal → **Gap: No memory system configured.** Why: mid-session interruption recovery falls back to GitHub per-AC comments (requires GitHub) or cold git-log reconstruction — no local recovery path exists without a memory system.
 

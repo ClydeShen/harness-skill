@@ -1,0 +1,14 @@
+{
+  "name": "session-start",
+  "version": "0.1.0",
+  "description": "Briefs the current session by reading session state, handoff doc, and memory to determine the active phase, task, and context budget. Outputs a structured briefing and detects whether the phase should be skipped or reverted based on observable artifacts.",
+  "author": {
+    "name": "Clyde Shen",
+    "github": "ClydeShen"
+  },
+  "verticals": ["productivity", "devops"],
+  "tags": ["claude", "harness", "session-state", "resume", "context-budget", "compound-engineering"],
+  "scripts": {
+    "setup": ""
+  }
+}

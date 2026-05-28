@@ -1,0 +1,14 @@
+{
+  "name": "skill-cleanup",
+  "version": "0.1.0",
+  "description": "Scans installed Claude Code skills, detects stale, renamed, or duplicate entries across ~/.claude/skills/ and the local plugin registry, and suggests removal or update actions.",
+  "author": {
+    "name": "Clyde Shen",
+    "github": "ClydeShen"
+  },
+  "verticals": ["productivity"],
+  "tags": ["claude", "harness", "skill-management", "cleanup", "maintenance"],
+  "scripts": {
+    "setup": ""
+  }
+}

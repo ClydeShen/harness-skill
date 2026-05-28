@@ -1,0 +1,14 @@
+{
+  "name": "harness-issues",
+  "version": "0.1.0",
+  "description": "Breaks a plan, spec, or PRD into independently-grabbable issues using tracer-bullet vertical slices with enforced AC templates, creation gates, and dual output to GitHub Issues and PLAN.md.",
+  "author": {
+    "name": "Clyde Shen",
+    "github": "ClydeShen"
+  },
+  "verticals": ["productivity", "devops"],
+  "tags": ["claude", "harness", "github-issues", "vertical-slices", "plan", "issue-breakdown", "compound-engineering"],
+  "scripts": {
+    "setup": ""
+  }
+}

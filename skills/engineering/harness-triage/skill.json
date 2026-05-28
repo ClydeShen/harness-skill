@@ -1,0 +1,14 @@
+{
+  "name": "harness-triage",
+  "version": "0.1.0",
+  "description": "Harness-aware issue triage with effort calibration and agent brief generation. Use when creating issues, triaging bugs or feature requests, preparing issues for an AFK agent, or managing issue workflow.",
+  "author": {
+    "name": "Clyde Shen",
+    "github": "ClydeShen"
+  },
+  "verticals": ["productivity", "devops"],
+  "tags": ["claude", "harness", "triage", "github-issues", "effort-calibration", "agent-brief"],
+  "scripts": {
+    "setup": ""
+  }
+}

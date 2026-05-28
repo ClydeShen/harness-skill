@@ -1,0 +1,14 @@
+{
+  "name": "setup-harness-skills",
+  "version": "0.1.0",
+  "description": "Sets up the Agent skills block in AGENTS.md/CLAUDE.md and docs/agents/ so harness skills know the issue tracker, triage labels, domain docs, GitHub Project board, and session state location. Run before first use of triage, harness-prd, harness-issues, context-handover, or session-start.",
+  "author": {
+    "name": "Clyde Shen",
+    "github": "ClydeShen"
+  },
+  "verticals": ["productivity", "devops"],
+  "tags": ["claude", "harness", "setup", "claude-md", "agents-md", "session-discipline", "onboarding"],
+  "scripts": {
+    "setup": ""
+  }
+}

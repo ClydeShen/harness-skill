@@ -1,0 +1,14 @@
+{
+  "name": "context-handover",
+  "version": "0.1.0",
+  "description": "End-of-context-window session transition that saves memory, writes a handoff doc, posts a GitHub progress comment, and instructs the user to /compact for a clean next session. Use when context usage approaches 80% or when user says handover, context is full, save progress, end session.",
+  "author": {
+    "name": "Clyde Shen",
+    "github": "ClydeShen"
+  },
+  "verticals": ["productivity", "devops"],
+  "tags": ["claude", "harness", "context-window", "session-handover", "state-management", "compound-engineering"],
+  "scripts": {
+    "setup": ""
+  }
+}

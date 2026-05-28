@@ -1,0 +1,14 @@
+{
+  "name": "write-harness-skill",
+  "version": "0.1.0",
+  "description": "Creates new harness-compatible agent skills with proper structure, progressive disclosure, and bundled resources — includes harness-specific checklist covering token budget, setup-harness-skills reference, AI footer, and creation gates.",
+  "author": {
+    "name": "Clyde Shen",
+    "github": "ClydeShen"
+  },
+  "verticals": ["productivity"],
+  "tags": ["claude", "harness", "skill-authoring", "compound-engineering", "meta"],
+  "scripts": {
+    "setup": ""
+  }
+}

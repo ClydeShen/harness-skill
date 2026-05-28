@@ -187,7 +187,7 @@ flowchart TD
     end
 ```
 
-*Run `/harness-guide` anytime for governance — inspects 8 dimensions, recommends one next step. Phase skills (discuss / execute / verify) shown in the [Use cases](#use-cases) section below. Harness design from [Anthropic 2025](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)*
+*Run `/harness-guide` anytime for governance — inspects project state, recommends one next step. Phase skills (discuss / execute / verify) shown in the [Use cases](#use-cases) section below. Harness design from [Anthropic 2025](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)*
 
 ---
 
@@ -197,13 +197,13 @@ flowchart TD
 flowchart LR
     subgraph PHASES["Phase skills — invoke by need"]
         DISC["discuss<br/>/grill-with-docs · /harness-prd · /harness-triage"]
-        EXEC["execute<br/>/zoom-out · systematic-debugging"]
-        VER["verify<br/>/gsd-verify-work · /gsd-code-review"]
+        EXEC["execute<br/>/systematic-debugging · /harness-guide"]
+        VER["verify<br/>/gsd-verify-work · /gsd-code-review<br/>(companion: GSD Redux)"]
         DISC -.->|"or skip"| EXEC -.->|"or skip"| VER
     end
 
     subgraph GOV["Governance — anytime"]
-        G["/harness-guide<br/>8 dimensions · one next step"]
+        G["/harness-guide<br/>project state · one next step"]
     end
 ```
 
@@ -270,7 +270,7 @@ After weeks of work, `CLAUDE.md` has grown past 200 lines, the Stop hook was rem
 /harness-guide
 ```
 
-Inspects 8 dimensions, classifies every finding into three buckets (✅ aligned / ⚠️ weak / ❌ missing), and recommends exactly one next step. The coaching loop continues after you act on each recommendation.
+Reads instruction file, `.harness/state.json`, `.harness/config.json`, and `.claude/settings.json`. Classifies every finding into three buckets (✅ aligned / ⚠️ weak / ❌ missing) and recommends exactly one next step. The coaching loop continues after you act on each recommendation.
 
 ---
 

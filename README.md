@@ -23,8 +23,8 @@ These are harness problems, not model capability problems. This framework is the
 ## What you get
 
 - **Named anti-patterns** — Fuzzy Done, Proxy Signal, Confidence Exit, Planning=Done. When an agent fails, you can say which pattern it hit. ([anti-patterns.md](./skills/engineering/harness-guide/references/anti-patterns.md))
-- **A session state machine** — `STATE.md` tracks phase, status, and active task. Every session starts with a briefing; every session ends with a handoff. An interrupted session leaves a detectable fingerprint.
-- **Four-layer recoverable state** — Intent (STATE.md + CLAUDE.md) → Position (.continue-here.md + GitHub issue) → Evidence (git log + issue comments) → Memory (agentmemory / memobank / mem0 / letta). Any interruption is recoverable without human intervention.
+- **A session state machine** — `.harness/state.json` tracks phase, status, and active task as machine-readable JSON. Every session starts with a briefing; every session ends with a handoff. An interrupted session leaves a detectable fingerprint.
+- **Four-layer recoverable state** — Intent (state.json + CLAUDE.md) → Position (.continue-here.json + GitHub issue) → Evidence (git log + issue comments) → Memory (agentmemory / memobank / mem0 / letta). Any interruption is recoverable without human intervention.
 - **Glue between issue tracker, agent, and memory** — skills read from and write to GitHub Issues, `.harness/`, and the memory system as a coordinated unit.
 - **A behavioral baseline** — CLAUDE.md derived from [Karpathy's observations on LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876) plus a fifth section (Harness Discipline) that enforces session boundary discipline.
 
@@ -48,8 +48,8 @@ Five skills in this collection have no equivalent in mattpocock — they are the
 |---|---|
 | `/harness-audit` | Scans for harness gaps, outputs prioritised list with paste-ready snippets. Never writes files. Stop hook is always gap #1. |
 | `/harness-guide` | Continuous coaching loop: inspect → classify → recommend one next step → repeat. Detects anti-patterns by name. |
-| `/session-start` | Reads STATE.md and `.continue-here.md`. Outputs structured briefing or recovery brief when an interrupted session is detected. |
-| `/context-handover` | Session boundary manager: writes `.continue-here.md`, updates STATE.md, posts GitHub progress comment, updates memory system (skips if Stop hook already handles it automatically). |
+| `/session-start` | Reads `.harness/state.json` and `.continue-here.json`. Outputs structured briefing or recovery brief when an interrupted session is detected. |
+| `/context-handover` | Session boundary manager: writes `.continue-here.json`, updates `.harness/state.json`, posts GitHub progress comment, updates memory system (skips if Stop hook already handles it automatically). |
 | `/skill-cleanup` | Audits installed skills across all agent platforms for stale or duplicate entries. Interactive, dry-run mode, never deletes without confirmation. |
 
 ---
@@ -90,7 +90,7 @@ flowchart LR
     A([New session<br/>1M tokens]) --> B["Active work<br/>0% → 70%"]
     B --> C{"≥ 70%<br/>used?"}
     C -->|no| B
-    C -->|"yes — trigger"| D["/context-handover<br/>writes .continue-here.md<br/>updates STATE.md · GitHub comment"]
+    C -->|"yes — trigger"| D["/context-handover<br/>writes .continue-here.json<br/>updates .harness/state.json · GitHub comment"]
     D --> E([New session<br/>1M tokens<br/>resume with /session-start])
     E --> B
 
@@ -127,7 +127,7 @@ The `/harness-issues` skill enforces this ceiling at creation time. An issue sco
 
 The agent monitors token usage after every tool call. At the system-configured threshold (≥70% of the context window):
 
-1. Run `/context-handover` — writes `.continue-here.md`, updates STATE.md, posts a GitHub progress comment
+1. Run `/context-handover` — writes `.continue-here.json`, updates .harness/state.json, posts a GitHub progress comment
 2. Close the current Claude Code session
 3. Open a **new** Claude Code session
 4. Run `/session-start` — reads the handoff artifact and resumes exactly at `<next_action>`
@@ -138,7 +138,7 @@ The remaining 30% is the buffer for executing the handover itself. Triggering la
 
 `/compact` compresses conversation history, but neither you nor the agent knows exactly what was retained. Critical context — constraints established earlier in the session, in-progress decisions, partial implementation state — can silently disappear. The session continues in a degraded, unverifiable state.
 
-`/context-handover` + new session is the correct alternative. The handoff artifact (`.continue-here.md`) is explicit, human-readable, and fully recoverable by any fresh agent with no prior context. Each new session starts with a full 1M token budget and a clean context — the compound effect is preserved, not diluted.
+`/context-handover` + new session is the correct alternative. The handoff artifact (`.continue-here.json`) is explicit, human-readable, and fully recoverable by any fresh agent with no prior context. Each new session starts with a full 1M token budget and a clean context — the compound effect is preserved, not diluted.
 
 ---
 
@@ -150,7 +150,7 @@ flowchart TD
 
     subgraph ONCE["① One-time setup"]
         B["/harness-audit<br/>Detect gaps · snippets"]
-        B --> C["/setup-harness-skills<br/>CLAUDE.md · STATE.md · GitHub labels"]
+        B --> C["/setup-harness-skills<br/>CLAUDE.md · .harness/state.json · GitHub labels"]
     end
 
     C --> D
@@ -159,7 +159,7 @@ flowchart TD
         D["/session-start<br/>Briefing or recovery"]
         D --> WORK["Agent does work<br/>(phase skills as needed)"]
         WORK --> CTX{"≥ 70% used?"}
-        CTX -->|yes| HO["/context-handover<br/>Write .continue-here.md<br/>update STATE.md · GitHub"]
+        CTX -->|yes| HO["/context-handover<br/>Write .continue-here.json<br/>update .harness/state.json · GitHub"]
         HO --> COM["Close · open new session"]
         COM -->|"/session-start"| D
         CTX -->|no| WORK
@@ -207,7 +207,7 @@ Close gap #1 first. Nothing else matters until the agent cannot declare done wit
 /setup-harness-skills
 ```
 
-One-time interactive setup: writes `CLAUDE.md`, creates GitHub labels, initialises `.harness/STATE.md`. Shows a draft before writing anything.
+One-time interactive setup: writes `CLAUDE.md`, creates GitHub labels, initialises `.harness/state.json`. Shows a draft before writing anything.
 
 ### Sustained multi-day feature work
 
@@ -255,36 +255,57 @@ Inspects 8 dimensions, classifies every finding into three buckets (✅ aligned 
 
 ## Quickstart
 
-Install `harness-audit` only (recommended first step in any project):
+### Full collection (recommended)
 
 ```bash
-npx skills add ClydeShen/harness-skill@harness-audit -g
+npx skills@latest add ClydeShen/harness-skill
 ```
 
-Open your project in Claude Code and run:
+Pick the skills you want and which coding agents to install them on. Then run `/setup-harness-skills` in your agent to initialise `.harness/state.json`, create GitHub labels, and configure your instruction file.
+
+### Individual skills
+
+Install only what you need:
+
+```bash
+# Detect harness gaps in any project
+npx skills@latest add ClydeShen/harness-skill@harness-audit
+
+# Session resume and recovery briefings
+npx skills@latest add ClydeShen/harness-skill@session-start
+
+# Context window handover
+npx skills@latest add ClydeShen/harness-skill@context-handover
+
+# Continuous harness governance
+npx skills@latest add ClydeShen/harness-skill@harness-guide
+
+# GitHub issue triage
+npx skills@latest add ClydeShen/harness-skill@harness-triage
+
+# Convert context to a PRD
+npx skills@latest add ClydeShen/harness-skill@harness-prd
+
+# Break a PRD into vertical-slice issues
+npx skills@latest add ClydeShen/harness-skill@harness-issues
+
+# Author a new harness-compatible skill
+npx skills@latest add ClydeShen/harness-skill@write-harness-skill
+
+# Audit stale or duplicate installed skills
+npx skills@latest add ClydeShen/harness-skill@skill-cleanup
+```
+
+**Recommended starting point** — audit any project for harness gaps before anything else:
+
+```bash
+npx skills@latest add ClydeShen/harness-skill@harness-audit
+```
+
+Then open your project in Claude Code and run:
 
 ```
 /harness-audit
-```
-
----
-
-## Full collection (all 15 skills)
-
-Add to `~/.claude/settings.json`:
-
-```json
-{
-  "plugins": [
-    { "type": "git", "url": "https://github.com/ClydeShen/harness-skill" }
-  ]
-}
-```
-
-Or clone and symlink locally:
-
-```bash
-bash scripts/link-skills.sh
 ```
 
 ### Recommended companion collections

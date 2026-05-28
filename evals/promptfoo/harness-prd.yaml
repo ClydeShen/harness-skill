@@ -23,9 +23,9 @@ outputPath: output-harness-prd.json
 tests:
 
   # ---------------------------------------------------------------------------
-  # Eval 1: Synthesizes from context — no interview, explores codebase first
+  # Eval 1: Synthesizes from context — no interview, produces relevant output
   # ---------------------------------------------------------------------------
-  - description: "#1 synthesizes from context — no interview, codebase explored first"
+  - description: "#1 synthesizes from context — no interview, relevant content produced"
     vars:
       prompt: >
         /harness-prd
@@ -36,16 +36,14 @@ tests:
         - "src/index.ts"
     assert:
       - type: llm-rubric
-        value: Does NOT interview the user before synthesizing — proceeds from existing conversation context
+        value: Does NOT ask the user clarifying questions before writing — synthesizes from the conversation context and proceeds directly to output
       - type: llm-rubric
-        value: Explores the codebase to understand the current state before writing the PRD
-      - type: llm-rubric
-        value: Sketches major modules and checks with the user before writing the full PRD
+        value: Output content is specific to user authentication — not a generic placeholder template with no feature-specific details
 
   # ---------------------------------------------------------------------------
-  # Eval 2: PRD uses correct template sections
+  # Eval 2: PRD output contains core substance — problem, requirements, constraints
   # ---------------------------------------------------------------------------
-  - description: "#2 PRD contains required template sections"
+  - description: "#2 PRD output contains problem, requirements, and constraints"
     vars:
       prompt: >
         /harness-prd
@@ -54,19 +52,19 @@ tests:
       scaffold_files:
         - "package.json"
         - "CLAUDE.md"
-        - "src/index.ts with existing API routes"
+        - "src/index.ts"
     assert:
       - type: llm-rubric
-        value: PRD contains a Problem Statement section
+        value: Output describes the problem or need the payment feature addresses (problem statement or domain section)
       - type: llm-rubric
-        value: PRD contains a Solution section and User Stories section
+        value: Output contains user-facing requirements or user stories for the payment feature
       - type: llm-rubric
-        value: PRD contains a Technical Constraints section (or equivalent) that describes WHAT the system must respect — not HOW to build it
+        value: Output separates what the system must respect (constraints, compliance, integration points) from implementation decisions
 
   # ---------------------------------------------------------------------------
-  # Eval 3: WHAT/HOW invariant — no file paths or class names in constraints
+  # Eval 3: WHAT/HOW invariant — constraints section has no implementation details
   # ---------------------------------------------------------------------------
-  - description: "#3 WHAT/HOW invariant — no implementation details in Technical Constraints"
+  - description: "#3 WHAT/HOW invariant — no implementation details in constraints"
     vars:
       prompt: >
         /harness-prd
@@ -74,15 +72,14 @@ tests:
       scaffold_files:
         - "package.json"
         - "CLAUDE.md"
-        - "src/reports/index.ts"
     assert:
       - type: llm-rubric
-        value: Technical Constraints section does NOT include file paths, class names, module names, or schema decisions
+        value: The constraints or decisions section does NOT include file paths, class names, module names, or schema decisions
       - type: llm-rubric
-        value: Technical Constraints section contains only constraints about WHAT the system must do — external integrations, compliance, performance SLAs, system boundaries
+        value: The constraints or decisions section is predominantly system-level constraints (integrations, compliance, SLAs, boundaries) — user stories and user-facing capabilities are NOT placed in the constraints section
 
   # ---------------------------------------------------------------------------
-  # Eval 4: GSD output path — writes to .harness/phases/01-discuss/
+  # Eval 4: GSD output path — writes to .planning/phases/01-discuss/
   # ---------------------------------------------------------------------------
   - description: "#4 GSD output — CONTEXT.md path and next-step message"
     vars:
@@ -92,12 +89,12 @@ tests:
       scaffold_files:
         - "package.json"
         - "CLAUDE.md"
-        - ".harness/state.json"
+        - ".planning/state.json"
     assert:
       - type: icontains
-        value: ".harness/phases/01-discuss"
+        value: ".planning/phases/01-discuss"
       - type: llm-rubric
-        value: Mentions writing to .harness/phases/01-discuss/01-CONTEXT.md or equivalent GSD path
+        value: Mentions writing to .planning/phases/01-discuss/01-CONTEXT.md or equivalent GSD path
       - type: llm-rubric
         value: After writing, suggests running /harness-issues to plan the phase
 

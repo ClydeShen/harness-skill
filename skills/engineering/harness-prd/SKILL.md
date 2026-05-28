@@ -1,6 +1,6 @@
 ---
 name: harness-prd
-description: Turn the current conversation context into a GSD-compatible PRD with WHAT/HOW constraints, optionally writing to .harness/phases/01-discuss/CONTEXT.md. Use when user wants to create a PRD from the current context.
+description: Turn the current conversation context into a GSD-compatible PRD with WHAT/HOW constraints, optionally writing to .planning/phases/01-discuss/CONTEXT.md. Use when user wants to create a PRD from the current context.
 ---
 
 This skill takes the current conversation context and codebase understanding and produces a PRD. Do NOT interview the user — just synthesize what you already know.
@@ -21,7 +21,7 @@ Check with the user that these modules match their expectations. Check with the 
 
 ## GSD-compatible output
 
-Write the PRD to `.harness/phases/01-discuss/01-CONTEXT.md` using GSD's 6-section CONTEXT.md format:
+Write the PRD to `.planning/phases/01-discuss/01-CONTEXT.md` using GSD's 6-section CONTEXT.md format:
 
 | GSD section | Content |
 |---|---|
@@ -32,9 +32,9 @@ Write the PRD to `.harness/phases/01-discuss/01-CONTEXT.md` using GSD's 6-sectio
 | `<specifics>` | Specific user requirements ("I want it like X") |
 | `<deferred>` | Ideas that came up but belong in other phases |
 
-After writing: "CONTEXT.md written to `.harness/phases/01-discuss/01-CONTEXT.md`. Run `/harness-issues` to plan this phase."
+After writing: "CONTEXT.md written to `.planning/phases/01-discuss/01-CONTEXT.md`. Run `/harness-issues` to plan this phase."
 
-**WHAT/HOW invariant:** `<decisions>` contains only WHAT (constraints), never HOW (file paths, class names, schemas).
+**WHAT/HOW invariant:** `<decisions>` contains only system-level constraints — external integrations, compliance, performance SLAs, system boundaries. No file paths, class names, schemas, or user requirements. User requirements ("I want X") belong in `<specifics>`, not `<decisions>`.
 
 <prd-template>
 
@@ -88,4 +88,6 @@ Any further notes about the feature.
 
 </prd-template>
 
-**Spike recommendation:** If the solution approach is uncertain after writing the PRD, append: *"Solution uncertainty detected — recommend creating a `type:spike` issue (1–2 context windows (30K–150K tokens), AFK, throwaway) to validate the approach before breaking down into implementation stories."* The spike's output is a decision (proceed / pivot / split), not shippable code.
+**Spike recommendation:** If the solution approach is uncertain — whether the output is a PRD or a GSD CONTEXT.md — append after writing:
+
+> *Solution uncertainty detected — recommend creating a `type:spike` issue (1–2 context windows / 30K–150K tokens, AFK, throwaway) to validate the approach before breaking down into implementation stories. Spike output is a decision (proceed / pivot / split), not shippable code.*

@@ -19,51 +19,6 @@ npx skills@latest add ClydeShen/harness-skill
 
 Pick the skills you want and which coding agents to install them on. Then run `/setup-harness-skills` in your agent to initialise `.harness/state.json`, create GitHub labels, and configure your instruction file.
 
-### Individual skills
-
-Install only what you need:
-
-```bash
-# Detect harness gaps in any project
-npx skills@latest add ClydeShen/harness-skill@harness-audit
-
-# Session resume and recovery briefings
-npx skills@latest add ClydeShen/harness-skill@session-start
-
-# Context window handover
-npx skills@latest add ClydeShen/harness-skill@context-handover
-
-# Continuous harness governance
-npx skills@latest add ClydeShen/harness-skill@harness-guide
-
-# GitHub issue triage
-npx skills@latest add ClydeShen/harness-skill@harness-triage
-
-# Convert context to a PRD
-npx skills@latest add ClydeShen/harness-skill@harness-prd
-
-# Break a PRD into vertical-slice issues
-npx skills@latest add ClydeShen/harness-skill@harness-issues
-
-# Author a new harness-compatible skill
-npx skills@latest add ClydeShen/harness-skill@write-harness-skill
-
-# Audit stale or duplicate installed skills
-npx skills@latest add ClydeShen/harness-skill@skill-cleanup
-```
-
-**Recommended starting point** — audit any project for harness gaps before anything else:
-
-```bash
-npx skills@latest add ClydeShen/harness-skill@harness-audit
-```
-
-Then open your project in Claude Code and run:
-
-```
-/harness-audit
-```
-
 ### Recommended companion collections
 
 | Collection | Adds |

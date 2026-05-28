@@ -9,6 +9,72 @@ Agent skills for compound engineering workflows — structured sessions, context
 
 ---
 
+## Quickstart
+
+### Full collection (recommended)
+
+```bash
+npx skills@latest add ClydeShen/harness-skill
+```
+
+Pick the skills you want and which coding agents to install them on. Then run `/setup-harness-skills` in your agent to initialise `.harness/state.json`, create GitHub labels, and configure your instruction file.
+
+### Individual skills
+
+Install only what you need:
+
+```bash
+# Detect harness gaps in any project
+npx skills@latest add ClydeShen/harness-skill@harness-audit
+
+# Session resume and recovery briefings
+npx skills@latest add ClydeShen/harness-skill@session-start
+
+# Context window handover
+npx skills@latest add ClydeShen/harness-skill@context-handover
+
+# Continuous harness governance
+npx skills@latest add ClydeShen/harness-skill@harness-guide
+
+# GitHub issue triage
+npx skills@latest add ClydeShen/harness-skill@harness-triage
+
+# Convert context to a PRD
+npx skills@latest add ClydeShen/harness-skill@harness-prd
+
+# Break a PRD into vertical-slice issues
+npx skills@latest add ClydeShen/harness-skill@harness-issues
+
+# Author a new harness-compatible skill
+npx skills@latest add ClydeShen/harness-skill@write-harness-skill
+
+# Audit stale or duplicate installed skills
+npx skills@latest add ClydeShen/harness-skill@skill-cleanup
+```
+
+**Recommended starting point** — audit any project for harness gaps before anything else:
+
+```bash
+npx skills@latest add ClydeShen/harness-skill@harness-audit
+```
+
+Then open your project in Claude Code and run:
+
+```
+/harness-audit
+```
+
+### Recommended companion collections
+
+| Collection | Adds |
+|---|---|
+| [GSD Redux](https://github.com/open-gsd/get-shit-done-redux) | `gsd-*` skills: full discuss → plan → execute → verify phase lifecycle |
+| [Superpowers](https://github.com/obra/superpowers) | `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` |
+| [agentmemory](https://github.com/rohitg00/agentmemory) | Persistent memory across sessions — recommended memory system. Stop hook auto-generates session summaries; `session-start` reads past decisions on resume. |
+| [roam-code](https://github.com/Cranot/roam-code) | Codebase intelligence via MCP — `session-start` calls `roam_retrieve` to inject architecture snapshot into the session briefing. |
+
+---
+
 ## Why this framework exists
 
 Anthropic's engineering team identified a hard ceiling on what long-running agents can reliably do without external scaffolding. In [*Effective Harnesses for Long-Running Agents*](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) (2025), they describe two failure modes that appear even with frontier models:
@@ -250,72 +316,6 @@ After weeks of work, `CLAUDE.md` has grown past 200 lines, the Stop hook was rem
 ```
 
 Inspects 8 dimensions, classifies every finding into three buckets (✅ aligned / ⚠️ weak / ❌ missing), and recommends exactly one next step. The coaching loop continues after you act on each recommendation.
-
----
-
-## Quickstart
-
-### Full collection (recommended)
-
-```bash
-npx skills@latest add ClydeShen/harness-skill
-```
-
-Pick the skills you want and which coding agents to install them on. Then run `/setup-harness-skills` in your agent to initialise `.harness/state.json`, create GitHub labels, and configure your instruction file.
-
-### Individual skills
-
-Install only what you need:
-
-```bash
-# Detect harness gaps in any project
-npx skills@latest add ClydeShen/harness-skill@harness-audit
-
-# Session resume and recovery briefings
-npx skills@latest add ClydeShen/harness-skill@session-start
-
-# Context window handover
-npx skills@latest add ClydeShen/harness-skill@context-handover
-
-# Continuous harness governance
-npx skills@latest add ClydeShen/harness-skill@harness-guide
-
-# GitHub issue triage
-npx skills@latest add ClydeShen/harness-skill@harness-triage
-
-# Convert context to a PRD
-npx skills@latest add ClydeShen/harness-skill@harness-prd
-
-# Break a PRD into vertical-slice issues
-npx skills@latest add ClydeShen/harness-skill@harness-issues
-
-# Author a new harness-compatible skill
-npx skills@latest add ClydeShen/harness-skill@write-harness-skill
-
-# Audit stale or duplicate installed skills
-npx skills@latest add ClydeShen/harness-skill@skill-cleanup
-```
-
-**Recommended starting point** — audit any project for harness gaps before anything else:
-
-```bash
-npx skills@latest add ClydeShen/harness-skill@harness-audit
-```
-
-Then open your project in Claude Code and run:
-
-```
-/harness-audit
-```
-
-### Recommended companion collections
-
-| Collection | Adds |
-|---|---|
-| [GSD Redux](https://github.com/open-gsd/get-shit-done-redux) | `gsd-*` skills: full discuss → plan → execute → verify phase lifecycle |
-| [Superpowers](https://github.com/obra/superpowers) | `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` |
-| [agentmemory](https://github.com/rohitg00/agentmemory) | Persistent memory across sessions — recommended memory system. Stop hook auto-generates session summaries; `session-start` reads past decisions on resume. |
-| [roam-code](https://github.com/Cranot/roam-code) | Codebase intelligence via MCP — `session-start` calls `roam_retrieve` to inject architecture snapshot into the session briefing. |
 
 ---
 

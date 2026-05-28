@@ -284,7 +284,7 @@ tests:
         value: Explains why the Stop hook prevents premature done declarations — connects the gap to the failure mode the user is experiencing
 
   # ---------------------------------------------------------------------------
-  # Eval 13: .planning/config.json with harness key present — Already in place
+  # Eval 13: .harness/config.json with harness key present — Already in place
   # ---------------------------------------------------------------------------
   - description: "#13 planning config with harness key — GSD-compatible setup in Already in Place"
     vars:
@@ -292,12 +292,12 @@ tests:
       scaffold_files:
         - ".claude/settings.json with stop and posttooluse hooks"
         - "CLAUDE.md"
-        - ".planning/config.json with harness key"
+        - ".harness/config.json with harness key"
     assert:
       - type: llm-rubric
         value: Lists GSD-compatible planning structure in the Already in place section
       - type: llm-rubric
-        value: Does not list .planning/ as a gap when config.json with harness key is present
+        value: Does not list .harness/ as a gap when config.json with harness key is present
 
   # ---------------------------------------------------------------------------
   # Eval 14: No memory system configured — memory system gap at rank 4

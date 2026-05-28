@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: write-harness-skill skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-write-harness-skill
+    config:
+      skill_name: write-harness-skill
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-write-harness-skill.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: Requirements gathered before drafting — no premature SKILL.md
+  # ---------------------------------------------------------------------------
+  - description: "#1 gathers requirements before drafting — no premature SKILL.md"
+    vars:
+      prompt: >
+        /write-harness-skill
+        I want a new skill for my project.
+      scaffold_files:
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: Gathers requirements before drafting — asks about task domain, use cases, scripts, or reference materials
+      - type: llm-rubric
+        value: Does NOT produce a SKILL.md before understanding the requirements
+      - type: llm-rubric
+        value: Asks questions before proceeding to the draft
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: SKILL.md under 500 lines, "Use when" trigger, review checklist
+  # ---------------------------------------------------------------------------
+  - description: "#2 SKILL.md under 500 lines, Use when trigger, review checklist"
+    vars:
+      prompt: >
+        /write-harness-skill
+
+        I want a skill that helps agents write database migrations safely for a
+        Django project. It should enforce backwards-compatible migrations, check
+        for missing index creation, and verify rollback scripts exist.
+      scaffold_files:
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: Produces a SKILL.md that is under 500 lines
+      - type: llm-rubric
+        value: Description field includes "Use when [specific triggers]" phrasing so the agent knows when to load it
+      - type: llm-rubric
+        value: Presents draft for review and asks whether it covers the use cases before finalising
+
+  # ---------------------------------------------------------------------------
+  # Eval 3: Reference files split when content is large
+  # ---------------------------------------------------------------------------
+  - description: "#3 reference files used when SKILL.md would exceed 500 lines"
+    vars:
+      prompt: >
+        /write-harness-skill
+
+        I want a comprehensive skill covering our entire API design guidelines:
+        REST conventions, pagination patterns, error response format, auth header
+        requirements, rate limiting rules, versioning strategy, OpenAPI spec format,
+        and 20+ example endpoint patterns. Make it thorough.
+      scaffold_files:
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: Splits detailed content into reference files (e.g. REFERENCE.md or references/*.md) rather than cramming everything into SKILL.md
+      - type: llm-rubric
+        value: SKILL.md links to the reference files rather than duplicating their content inline
+
+  # ---------------------------------------------------------------------------
+  # Eval 4: Harness checklist — token budget, setup-harness-skills, AI footer
+  # ---------------------------------------------------------------------------
+  - description: "#4 harness checklist — token budget, setup-harness-skills, AI footer gates"
+    vars:
+      prompt: >
+        /write-harness-skill
+
+        Create a skill for triaging GitHub issues in our project. It should post
+        triage notes as comments on issues and apply labels.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Review checklist verifies or asks whether the skill's description mentions its typical token budget
+      - type: llm-rubric
+        value: Review checklist verifies or asks whether the skill references /setup-harness-skills when reading setup config
+      - type: llm-rubric
+        value: Review checklist verifies or asks whether every issue tracker post ends with the AI-generated footer

@@ -29,11 +29,11 @@ tests:
     vars:
       prompt: "My context is at 82%. Please run context-handover. I'm working on issue #42 'Add auth middleware', execute phase."
       scaffold_files:
-        - ".planning/STATE.md with idle session_status current_focus 03-execute and issue 42"
+        - ".harness/STATE.md with idle session_status current_focus 03-execute and issue 42"
         - "CLAUDE.md"
     assert:
       - type: llm-rubric
-        value: Writes .continue-here.md under .planning/phases/03-execute/ — not .claude/handoff.md or a timestamped path
+        value: Writes .continue-here.md under .harness/phases/03-execute/ — not .claude/handoff.md or a timestamped path
       - type: llm-rubric
         value: .continue-here.md includes YAML frontmatter with phase, task, status, last_updated fields
       - type: llm-rubric
@@ -70,7 +70,7 @@ tests:
       scaffold_files:
         - "CLAUDE.md"
         - "MEMORY.md"
-        - ".planning/STATE.md with idle session_status current_focus 03-execute"
+        - ".harness/STATE.md with idle session_status current_focus 03-execute"
     assert:
       - type: llm-rubric
         value: .continue-here.md does not inline the content of MEMORY.md or any source files

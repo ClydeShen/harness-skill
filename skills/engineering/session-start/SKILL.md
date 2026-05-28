@@ -9,7 +9,7 @@ Explore → Evaluate → Brief. Never ask questions before reading available sta
 
 ## State file
 
-Session state lives in `.planning/state.json`. Schema:
+Session state lives in `.harness/state.json`. Schema:
 
 ```json
 {
@@ -22,7 +22,7 @@ Session state lives in `.planning/state.json`. Schema:
   "position": {
     "phase": "01-discuss",
     "active_task": "task title string",
-    "resume_file": ".planning/phases/01-discuss/.continue-here.json",
+    "resume_file": ".harness/phases/01-discuss/.continue-here.json",
     "stopped_at": "brief description of last action"
   }
 }
@@ -33,13 +33,13 @@ Session state lives in `.planning/state.json`. Schema:
 ## Execution sequence
 
 - [ ] **1. EXPLORE** — if the `SessionStart` hook ran, state fields are already in your context window via `additionalContext` — use them directly. Otherwise read:
-  - `.planning/state.json` → `session.status`, `session.last_active`, `position.*`
-  - `.planning/config.json` → GitHub owner, repo, project board ID (harness key)
-  - `.planning/phases/XX-name/.continue-here.json` → path from `position.resume_file`
+  - `.harness/state.json` → `session.status`, `session.last_active`, `position.*`
+  - `.harness/config.json` → GitHub owner, repo, project board ID (harness key)
+  - `.harness/phases/XX-name/.continue-here.json` → path from `position.resume_file`
   - `.git/config` → remote origin (fallback if config.json absent)
   - `CLAUDE.md` / `AGENTS.md` → `## Agent skills` block present? (setup indicator)
-  - `.planning/phases/01-discuss/` → any `CONTEXT.md` files? (phase skip signal)
-  - `.planning/phases/02-plan/` → any `PLAN.md` files? (phase skip signal)
+  - `.harness/phases/01-discuss/` → any `CONTEXT.md` files? (phase skip signal)
+  - `.harness/phases/02-plan/` → any `PLAN.md` files? (phase skip signal)
   - `MEMORY.md` or top-3 memory entries relevant to active task
   - `.claude/handoff.md` → legacy fallback if .continue-here.json absent (deprecated)
 
@@ -52,7 +52,7 @@ Session state lives in `.planning/state.json`. Schema:
   > If `last_active` is absent (hook not configured), fall back to: `session.started_at` >30 minutes old.
 
   **Clean resume chain (`session.status: "idle"` or absent):**
-  - **a. `.planning/phases/XX/.continue-here.json`** — primary. Read `next_action`, `completed_work`, `remaining_work`.
+  - **a. `.harness/phases/XX/.continue-here.json`** — primary. Read `next_action`, `completed_work`, `remaining_work`.
   - **b. Memory system query** — query active memory system for entries relevant to the active task. No GitHub required. If roam MCP tools are available (`roam_context` or `roam_retrieve`), call `roam_retrieve <active_task>` and include the architecture snapshot in the briefing output.
   - **c. Mid-session recovery** (.continue-here.json stale or absent): `git log --oneline -20` + recent GitHub per-AC progress comments (`gh api repos/{owner}/{repo}/issues/{N}/comments --jq '[.[] | select(.body | startswith("Progress"))] | .[-5:]'`).
   - **d. Legacy `.claude/handoff.md`** — use only if .continue-here.json absent and no migration has run.
@@ -62,8 +62,8 @@ Session state lives in `.planning/state.json`. Schema:
 
   | Condition | Action |
   |---|---|
-  | `.planning/phases/01-discuss/` contains a `CONTEXT.md` | Skip discuss → set phase to plan |
-  | `.planning/phases/02-plan/` contains a `PLAN.md` | Skip discuss + plan → set phase to execute |
+  | `.harness/phases/01-discuss/` contains a `CONTEXT.md` | Skip discuss → set phase to plan |
+  | `.harness/phases/02-plan/` contains a `PLAN.md` | Skip discuss + plan → set phase to execute |
   | `position.phase` is `02-plan` but no CONTEXT.md in `01-discuss/` | Revert to discuss |
   | `position.phase` is `03-execute` but no PLAN.md in `02-plan/` | Revert to plan |
 
@@ -72,7 +72,7 @@ Session state lives in `.planning/state.json`. Schema:
 - [ ] **4. COLD-START** — if all of the above yield nothing (no config.json, state.json, .continue-here.json, GitHub issues):
   - Output: "No prior session state found."
   - Present what WAS found (e.g., "Found CLAUDE.md with no ## Agent skills block")
-  - Suggest: "Run `/setup-harness-skills` to initialize .planning/ or describe what you'd like to work on."
+  - Suggest: "Run `/setup-harness-skills` to initialize .harness/ or describe what you'd like to work on."
   - Do NOT default to any phase. Wait for user input.
 
 - [ ] **5. OUTPUT** — emit one of two briefing formats:

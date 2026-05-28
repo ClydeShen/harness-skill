@@ -9,7 +9,7 @@ import time
 
 import requests
 
-API_BASE = "http://localhost:8080/v1"
+API_BASE = "http://127.0.0.1:8081/v1"
 MODEL = "Qwen3.6-35B-A3B-UD-Q5_K_M.gguf"
 
 _SYSTEM = (
@@ -85,7 +85,7 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
             resp.raise_for_status()
             raw = resp.json()["choices"][0]["message"]["content"].strip()
         except requests.exceptions.ConnectionError:
-            return {"error": "llamacpp server not reachable at localhost:8080"}
+            return {"error": "llamacpp server not reachable at 127.0.0.1:8081"}
         except Exception as exc:
             return {"error": str(exc)}
 

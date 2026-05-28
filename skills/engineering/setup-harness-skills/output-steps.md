@@ -156,10 +156,10 @@ Idempotent — skip lines already present:
 
 ```
 .claude/handoff.md
-.planning/phases/*/.continue-here.json
+.harness/phases/*/.continue-here.json
 ```
 
-`.claude/harness.json` and `.planning/state.json` are NOT gitignored — committed as shared team config.
+`.claude/harness.json` and `.harness/state.json` are NOT gitignored — committed as shared team config.
 
 ## Step 9 — Write seed files to `docs/agents/`
 
@@ -173,13 +173,22 @@ docs/agents/github-project.md   ← github-project.md
 docs/agents/session-config.md   ← session-config.md
 ```
 
-## Step 10 — Print setup summary
+## Step 10 — Write `.harness/settings.json`
+
+Always write — this file is consumed by `context-handover` for session budget planning and by `harness-audit` for model-aware gap detection.
+
+```json
+{
+  "version": "1.0",
+  "model": {
+    "type": "claude-sonnet
 
 ```
 ✅ ## Agent skills block written to CLAUDE.md
 ✅ .claude/harness.json written
 ✅ GitHub labels created (N labels)
 ✅ docs/agents/ seed files written
+✅ .harness/settings.json written (model: claude-sonnet-4, 1M context)
 ⚠️ Branch protection: requires admin:repo permission — set manually
-📁 Files written: docs/agents/issue-tracker.md, triage-labels.md, domain.md, github-project.md, session-config.md
+📁 Files written: docs/agents/issue-tracker.md, triage-labels.md, domain.md, github-project.md, session-config.md, .harness/settings.json
 ```

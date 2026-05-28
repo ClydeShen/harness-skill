@@ -8,7 +8,7 @@ Usage:
 
 Each skill has a dedicated config in evals/promptfoo/<skill-name>.yaml.
 Both the response provider and the LLM judge connect to a llamacpp server
-running at localhost:8080 (see evals/promptfoo/provider.py and grader.py).
+running at 127.0.0.1:8081 (see evals/promptfoo/provider.py and grader.py).
 
 The --filter flag is forwarded to promptfoo's --filter-pattern to run
 only tests whose description matches the given regex (e.g. "#2").

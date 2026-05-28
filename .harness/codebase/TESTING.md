@@ -100,7 +100,7 @@ scaffold_files:
   - "no .github/workflows/"
 ```
 
-The helper matches substrings case-insensitively to create real files in a temp dir. Supported hints include: `package.json`, `tsconfig.json`, `.github/workflows/ci.yml` (with or without lint), `CLAUDE.md` (250-line, 90-line, or basic), `AGENTS.md`, `.claude/settings.json` (full hooks or PostToolUse-only), `.planning/STATE.md` (idle or interrupted), `.planning/config.json` (with or without harness key), `docs/agents/` (five seed files), `.kiro/`, `.gemini/`, `requirements.txt`, `MEMORY.md`, `.git/config`.
+The helper matches substrings case-insensitively to create real files in a temp dir. Supported hints include: `package.json`, `tsconfig.json`, `.github/workflows/ci.yml` (with or without lint), `CLAUDE.md` (250-line, 90-line, or basic), `AGENTS.md`, `.claude/settings.json` (full hooks or PostToolUse-only), `.harness/STATE.md` (idle or interrupted), `.harness/config.json` (with or without harness key), `docs/agents/` (five seed files), `.kiro/`, `.gemini/`, `requirements.txt`, `MEMORY.md`, `.git/config`.
 
 ---
 

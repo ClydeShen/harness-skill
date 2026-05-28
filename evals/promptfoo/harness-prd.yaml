@@ -1,0 +1,120 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: harness-prd skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-harness-prd
+    config:
+      skill_name: harness-prd
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-harness-prd.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: Synthesizes from context — no interview, explores codebase first
+  # ---------------------------------------------------------------------------
+  - description: "#1 synthesizes from context — no interview, codebase explored first"
+    vars:
+      prompt: >
+        /harness-prd
+        We've been discussing adding a user authentication feature. Please write the PRD.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "src/index.ts"
+    assert:
+      - type: llm-rubric
+        value: Does NOT interview the user before synthesizing — proceeds from existing conversation context
+      - type: llm-rubric
+        value: Explores the codebase to understand the current state before writing the PRD
+      - type: llm-rubric
+        value: Sketches major modules and checks with the user before writing the full PRD
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: PRD uses correct template sections
+  # ---------------------------------------------------------------------------
+  - description: "#2 PRD contains required template sections"
+    vars:
+      prompt: >
+        /harness-prd
+        Write a PRD for the payment integration feature we discussed. Include Stripe
+        and support for one-time and recurring payments.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "src/index.ts with existing API routes"
+    assert:
+      - type: llm-rubric
+        value: PRD contains a Problem Statement section
+      - type: llm-rubric
+        value: PRD contains a Solution section and User Stories section
+      - type: llm-rubric
+        value: PRD contains a Technical Constraints section (or equivalent) that describes WHAT the system must respect — not HOW to build it
+
+  # ---------------------------------------------------------------------------
+  # Eval 3: WHAT/HOW invariant — no file paths or class names in constraints
+  # ---------------------------------------------------------------------------
+  - description: "#3 WHAT/HOW invariant — no implementation details in Technical Constraints"
+    vars:
+      prompt: >
+        /harness-prd
+        Write the PRD for adding CSV export to our reporting module.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "src/reports/index.ts"
+    assert:
+      - type: llm-rubric
+        value: Technical Constraints section does NOT include file paths, class names, module names, or schema decisions
+      - type: llm-rubric
+        value: Technical Constraints section contains only constraints about WHAT the system must do — external integrations, compliance, performance SLAs, system boundaries
+
+  # ---------------------------------------------------------------------------
+  # Eval 4: GSD output path — writes to .harness/phases/01-discuss/
+  # ---------------------------------------------------------------------------
+  - description: "#4 GSD output — CONTEXT.md path and next-step message"
+    vars:
+      prompt: >
+        /harness-prd
+        Write the PRD for the notification system feature. Use GSD-compatible output.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - ".harness/state.json"
+    assert:
+      - type: icontains
+        value: ".harness/phases/01-discuss"
+      - type: llm-rubric
+        value: Mentions writing to .harness/phases/01-discuss/01-CONTEXT.md or equivalent GSD path
+      - type: llm-rubric
+        value: After writing, suggests running /harness-issues to plan the phase
+
+  # ---------------------------------------------------------------------------
+  # Eval 5: Spike recommendation when approach is uncertain
+  # ---------------------------------------------------------------------------
+  - description: "#5 spike recommendation on uncertain approach"
+    vars:
+      prompt: >
+        /harness-prd
+        We want to add real-time collaborative editing. Not sure if we should use
+        CRDTs, OT, or a third-party service. Please write the PRD.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Appends a spike recommendation because the solution approach is uncertain — mentions validating the approach before breaking down into implementation stories
+      - type: llm-rubric
+        value: Describes the spike as throwaway work producing a decision (proceed/pivot/split), not shippable code

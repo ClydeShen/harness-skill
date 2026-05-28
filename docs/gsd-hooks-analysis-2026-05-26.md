@@ -66,7 +66,7 @@ SessionStart is a third hook type worth surfacing as an optional recommendation.
 
 - **Full 6-command GSD workflow** (`/gsd-new-project` → `/gsd-execute-phase` → `/gsd-ship`):
   Competing orchestration system; importing wholesale would replace current skills.
-- **`.planning/` artifact structure** (`STATE.md`, `REQUIREMENTS.md`, `ROADMAP.md`):
+- **`.harness/` artifact structure** (`STATE.md`, `REQUIREMENTS.md`, `ROADMAP.md`):
   GSD-specific; conflicts with current `.claude/session.json` + `docs/agents/` approach.
   Mixing both would confuse users.
 - **36 specialised subagents**: GSD-specific parallelisation architecture; out of scope

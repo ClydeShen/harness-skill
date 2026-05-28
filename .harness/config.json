@@ -9,6 +9,6 @@
     "label_set": "default",
     "domain": "single-context",
     "board": "Harness Skill Task Board",
-    "session_state": ".planning/STATE.md"
+    "session_state": ".harness/STATE.md"
   }
 }

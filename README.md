@@ -27,7 +27,7 @@ These are harness problems, not model capability problems. This framework is the
 - **Named anti-patterns** — Fuzzy Done, Proxy Signal, Confidence Exit, Planning=Done. When an agent fails, you can say which pattern it hit. ([anti-patterns.md](./skills/engineering/harness-guide/references/anti-patterns.md))
 - **A session state machine** — `STATE.md` tracks phase, status, and active task. Every session starts with a briefing; every session ends with a handoff. An interrupted session leaves a detectable fingerprint.
 - **Four-layer recoverable state** — Intent (STATE.md + CLAUDE.md) → Position (.continue-here.md + GitHub issue) → Evidence (git log + issue comments) → Memory (agentmemory / memobank / mem0 / letta). Any interruption is recoverable without human intervention.
-- **Glue between issue tracker, agent, and memory** — skills read from and write to GitHub Issues, `.planning/`, and the memory system as a coordinated unit.
+- **Glue between issue tracker, agent, and memory** — skills read from and write to GitHub Issues, `.harness/`, and the memory system as a coordinated unit.
 - **A behavioral baseline** — CLAUDE.md derived from [Karpathy's observations on LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876) plus a fifth section (Harness Discipline) that enforces session boundary discipline.
 
 ---
@@ -209,7 +209,7 @@ Close gap #1 first. Nothing else matters until the agent cannot declare done wit
 /setup-harness-skills
 ```
 
-One-time interactive setup: writes `CLAUDE.md`, creates GitHub labels, initialises `.planning/STATE.md`. Shows a draft before writing anything.
+One-time interactive setup: writes `CLAUDE.md`, creates GitHub labels, initialises `.harness/STATE.md`. Shows a draft before writing anything.
 
 ### Sustained multi-day feature work
 

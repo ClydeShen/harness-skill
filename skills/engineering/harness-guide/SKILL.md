@@ -37,8 +37,8 @@ description: |
 Read these files before doing or saying anything. Do not ask questions during this phase.
 
 1. `CLAUDE.md` / `AGENTS.md` — instruction file quality: line count, key commands present, staleness signals
-2. `.planning/state.json` — session discipline: `session.status`, `position.active_task`, phase tracking
-3. `.planning/config.json` — GSD/harness configuration
+2. `.harness/state.json` — session discipline: `session.status`, `position.active_task`, phase tracking
+3. `.harness/config.json` — GSD/harness configuration
 4. `.claude/settings.json` — Stop hook and PostToolUse hook presence and validity
 5. `.github/workflows/*.yml` — CI: runs lint AND build? or build-only?
 6. `.pre-commit-config.yaml` or `.husky/` — pre-commit presence
@@ -58,7 +58,7 @@ Practices matching Harness and Compound Engineering best practices. Examples:
 - Stop hook present and well-formed
 - CLAUDE.md / AGENTS.md under 200 lines with key commands
 - CI runs lint + build
-- `.planning/` with `state.json` present and `session.status` field valid
+- `.harness/` with `state.json` present and `session.status` field valid
 - Memory system configured (memobank, mem0, letta, MEMORY.md)
 - Evals covering observable behavior, not just happy path
 - Pre-commit configured

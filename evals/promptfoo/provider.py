@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from scaffold_helper import scaffold
 
 REPO_ROOT = Path(__file__).parent.parent.parent
-API_BASE = "http://localhost:8080/v1"
+API_BASE = "http://127.0.0.1:8081/v1"
 MODEL = "qwen2.5-coder-32b-instruct-q5_k_m.gguf"
 
 _SYSTEM_CACHE: dict[str, str] = {}
@@ -92,6 +92,6 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
             output = resp.json()["choices"][0]["message"]["content"]
             return {"output": output}
         except requests.exceptions.ConnectionError:
-            return {"error": "llamacpp server not reachable at localhost:8080"}
+            return {"error": "llamacpp server not reachable at 127.0.0.1:8081"}
         except Exception as exc:
             return {"error": str(exc)}

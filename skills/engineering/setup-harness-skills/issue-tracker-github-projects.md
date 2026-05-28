@@ -36,5 +36,5 @@ Column tracks `status:` label. When label changes, item moves automatically.
 
 - Board ID: read from `.claude/harness.json` → `github.project_v2_id`
 - Board name: read from `.claude/harness.json` → `github.project_board_name`
-- Active issue: `.planning/state.json` → `position.active_task` (title); issue number from GitHub issue body
+- Active issue: `.harness/state.json` → `position.active_task` (title); issue number from GitHub issue body
 - Active item ID: `.claude/harness.json` → `github.project_v2_id` (board-level; item ID resolved via GraphQL)

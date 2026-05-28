@@ -3,15 +3,15 @@ _Generated: 2026-05-27_
 
 ## Technical Debt
 
-**Dual config-file schema (harness.json vs .planning/config.json):**
-`setup-harness-skills` writes `.claude/harness.json` in Step 2 of `output-steps.md`, but `SKILL.md` line 27 also marks `.claude/harness.json` as deprecated and describes a migration path to `.planning/config.json`. Skills `session-start`, `context-handover`, `harness-audit`, and `harness-guide` all reference `.planning/config.json` as the canonical location, yet `output-steps.md` and `session-config.md` still document `.claude/harness.json` as the authoritative schema with "Written by: setup-harness-skills". The migration is described in prose but is not enforced — new installs via `setup-harness-skills` still produce `.claude/harness.json`. Any project set up after the migration announcement will have a stale `.claude/harness.json` that skills read as legacy fallback, creating silent discrepancies.
+**Dual config-file schema (harness.json vs .harness/config.json):**
+`setup-harness-skills` writes `.claude/harness.json` in Step 2 of `output-steps.md`, but `SKILL.md` line 27 also marks `.claude/harness.json` as deprecated and describes a migration path to `.harness/config.json`. Skills `session-start`, `context-handover`, `harness-audit`, and `harness-guide` all reference `.harness/config.json` as the canonical location, yet `output-steps.md` and `session-config.md` still document `.claude/harness.json` as the authoritative schema with "Written by: setup-harness-skills". The migration is described in prose but is not enforced — new installs via `setup-harness-skills` still produce `.claude/harness.json`. Any project set up after the migration announcement will have a stale `.claude/harness.json` that skills read as legacy fallback, creating silent discrepancies.
 - Files: `skills/engineering/setup-harness-skills/output-steps.md`, `skills/engineering/setup-harness-skills/session-config.md`, `skills/engineering/setup-harness-skills/SKILL.md`
-- Fix approach: Update `output-steps.md` Step 2 to write `.planning/config.json` harness namespace directly instead of `.claude/harness.json`. Deprecate `session-config.md`'s harness.json schema section and point readers at the config.json schema. Remove legacy fallback references from session-start and context-handover once migration is complete.
+- Fix approach: Update `output-steps.md` Step 2 to write `.harness/config.json` harness namespace directly instead of `.claude/harness.json`. Deprecate `session-config.md`'s harness.json schema section and point readers at the config.json schema. Remove legacy fallback references from session-start and context-handover once migration is complete.
 
 **Legacy `.claude/session.json` still documented and supported:**
-`session-config.md` documents `.claude/session.json` with a full schema, and `context-handover/SKILL.md` line 93 still writes `last_handover`/`next_session_hint` back to `session.json`. `session-start/SKILL.md` lists `.claude/session.json` as a fallback on the explore step. The `.gitignore` gitignores it. There is no mechanism to detect when migration to `.planning/STATE.md` is complete and stop writing to the legacy path.
+`session-config.md` documents `.claude/session.json` with a full schema, and `context-handover/SKILL.md` line 93 still writes `last_handover`/`next_session_hint` back to `session.json`. `session-start/SKILL.md` lists `.claude/session.json` as a fallback on the explore step. The `.gitignore` gitignores it. There is no mechanism to detect when migration to `.harness/STATE.md` is complete and stop writing to the legacy path.
 - Files: `skills/engineering/setup-harness-skills/session-config.md`, `skills/engineering/context-handover/SKILL.md`, `skills/engineering/session-start/SKILL.md`
-- Fix approach: Add a migration gate — if `.planning/STATE.md` exists, stop writing `session.json`. Mark `session-config.md` as "legacy reference only".
+- Fix approach: Add a migration gate — if `.harness/STATE.md` exists, stop writing `session.json`. Mark `session-config.md` as "legacy reference only".
 
 **`skill.json` only present for two of ten engineering skills:**
 Only `harness-audit` and `harness-guide` have a `skill.json`. The remaining eight engineering skills (`setup-harness-skills`, `context-handover`, `session-start`, `triage`, `to-prd`, `to-issues`, `zoom-out`, `grill-with-docs`) and all five productivity skills lack this metadata file. `plugin.json` declares all 15 skills without relying on `skill.json`, so this has no runtime impact, but it creates inconsistent structure and makes skills not independently publishable via skills.sh per-skill install.
@@ -57,11 +57,11 @@ Only `harness-audit`, `harness-guide`, `context-handover`, `session-start`, and 
 - Files: `.github/workflows/sync-status.yml`
 
 **`context-handover` GitHub comment references deprecated `.claude/handoff.md` path:**
-The GitHub handover comment template in `context-handover/SKILL.md` line 87 still shows `**Handoff doc:** '.claude/handoff.md'` — the old pre-migration path. The actual handoff doc is now written to `.planning/phases/XX-name/.continue-here.md`. A session resuming from the GitHub comment would look in the wrong location.
+The GitHub handover comment template in `context-handover/SKILL.md` line 87 still shows `**Handoff doc:** '.claude/handoff.md'` — the old pre-migration path. The actual handoff doc is now written to `.harness/phases/XX-name/.continue-here.md`. A session resuming from the GitHub comment would look in the wrong location.
 - Files: `skills/engineering/context-handover/SKILL.md`
 
 **`setup-harness-skills` output-steps.md writes `.claude/harness.json` but SKILL.md gitignore block omits it:**
-`output-steps.md` line 117 states "`.claude/harness.json` is NOT gitignored — it is committed as shared team config." But the `.gitignore` additions block in `SKILL.md` only adds `.planning/phases/*/.continue-here.md`. If a developer follows the SKILL.md output section rather than reading output-steps.md, `.claude/harness.json` may not be committed.
+`output-steps.md` line 117 states "`.claude/harness.json` is NOT gitignored — it is committed as shared team config." But the `.gitignore` additions block in `SKILL.md` only adds `.harness/phases/*/.continue-here.md`. If a developer follows the SKILL.md output section rather than reading output-steps.md, `.claude/harness.json` may not be committed.
 - Files: `skills/engineering/setup-harness-skills/SKILL.md`, `skills/engineering/setup-harness-skills/output-steps.md`
 
 ---
@@ -76,12 +76,12 @@ CLAUDE.md line 105 states "`evals/evals.json` captures acceptance criteria in le
 The prd-template section still uses "Technical Constraints" as the section header. `evals/evals.json` eval #1 checks for "Problem Statement, Solution, User Stories, Implementation Decisions" — a mismatch with the template's actual header. The PRD template and the dual output (GitHub issue vs GSD CONTEXT.md format) create ambiguity about what the canonical output is.
 - Files: `skills/engineering/to-prd/SKILL.md`
 
-**`setup-harness-skills` Step 2 writes to `.claude/harness.json` but SKILL.md migration section says to write to `.planning/config.json`:**
-These are contradictory instructions in the same skill's files. An agent following `output-steps.md` will create `.claude/harness.json`. An agent reading the migration section of `SKILL.md` will write to `.planning/config.json`. There is no authoritative signal about which is current.
+**`setup-harness-skills` Step 2 writes to `.claude/harness.json` but SKILL.md migration section says to write to `.harness/config.json`:**
+These are contradictory instructions in the same skill's files. An agent following `output-steps.md` will create `.claude/harness.json`. An agent reading the migration section of `SKILL.md` will write to `.harness/config.json`. There is no authoritative signal about which is current.
 - Files: `skills/engineering/setup-harness-skills/output-steps.md` (Step 2), `skills/engineering/setup-harness-skills/SKILL.md` (lines 90, 103)
 
 **`harness-audit` Check #8 refers to `docs/agents/` but `setup-harness-skills` `output-steps.md` uses the same directory name via `session-config.md` which lists it under a deprecated `harness.json` schema:**
-The five files expected by `harness-audit` Check #8 (`issue-tracker.md`, `triage-labels.md`, `domain.md`, `github-project.md`, `session-config.md`) match the files written in `output-steps.md` Step 9. However, `session-config.md` (the file written to `docs/agents/`) describes the deprecated `.claude/session.json` schema, not the current `.planning/STATE.md` + `.planning/config.json` schema. Skills reading this seed file will receive outdated configuration guidance.
+The five files expected by `harness-audit` Check #8 (`issue-tracker.md`, `triage-labels.md`, `domain.md`, `github-project.md`, `session-config.md`) match the files written in `output-steps.md` Step 9. However, `session-config.md` (the file written to `docs/agents/`) describes the deprecated `.claude/session.json` schema, not the current `.harness/STATE.md` + `.harness/config.json` schema. Skills reading this seed file will receive outdated configuration guidance.
 - Files: `skills/engineering/setup-harness-skills/session-config.md`, `skills/engineering/harness-audit/SKILL.md`
 
 ---
@@ -101,7 +101,7 @@ Only `harness-audit` and `harness-guide` have `skill.json`. Adding it to the rem
 - Files: All skill directories lacking `skill.json`
 
 **Consolidate session-config.md to document current schema only:**
-`session-config.md` documents both the legacy `.claude/session.json` and the current `.planning/STATE.md` + `.planning/config.json` approach on the same file. Splitting into a clearly labelled "legacy" section vs "current" section — or removing the `.claude/session.json` schema entirely once migration is confirmed — would reduce confusion.
+`session-config.md` documents both the legacy `.claude/session.json` and the current `.harness/STATE.md` + `.harness/config.json` approach on the same file. Splitting into a clearly labelled "legacy" section vs "current" section — or removing the `.claude/session.json` schema entirely once migration is confirmed — would reduce confusion.
 - Files: `skills/engineering/setup-harness-skills/session-config.md`
 
 **`write-a-skill` review checklist could enforce consistency across this repo's own skills:**
@@ -124,8 +124,8 @@ Only `harness-audit` and `harness-guide` have `skill.json`. Adding it to the rem
 Evals are numbered 1–15 but eval #16 appears between #15 (skill collections) and #15 (skill collections re-numbered) in `harness-audit.yaml`. The numbering jump from #14 to #16 to #15 at the end of the file is confusing and could cause issues if the `--filter "#15"` flag is used — it would match both the hooks schema eval and the collections eval.
 - Files: `evals/promptfoo/harness-audit.yaml`
 
-**No eval for `setup-harness-skills` migration path (`.claude/harness.json` → `.planning/config.json`):**
-`setup-harness-skills` has 4 evals covering new project setup, update of existing harness, no instruction file, and GSD already installed. None of them test the migration scenario described in `SKILL.md` — detecting `.claude/harness.json`, migrating its values to `.planning/config.json`, and confirming before deleting old files.
+**No eval for `setup-harness-skills` migration path (`.claude/harness.json` → `.harness/config.json`):**
+`setup-harness-skills` has 4 evals covering new project setup, update of existing harness, no instruction file, and GSD already installed. None of them test the migration scenario described in `SKILL.md` — detecting `.claude/harness.json`, migrating its values to `.harness/config.json`, and confirming before deleting old files.
 - Files: `evals/promptfoo/setup-harness-skills.yaml`
 
 **`grill-with-docs` has no eval for CONTEXT.md update behavior:**

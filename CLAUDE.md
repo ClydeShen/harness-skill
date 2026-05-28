@@ -125,7 +125,7 @@ Install via `bash scripts/link-skills.sh`. Invoke with `/skill-name`.
 | `harness-audit` | Detect harness gaps and output paste-ready fix snippets |
 | `setup-harness-skills` | One-time project harness configuration |
 | `context-handover` | Package session context for handoff to next session |
-| `session-start` | Resume from last session state in `.planning/STATE.md` |
+| `session-start` | Resume from last session state in `.harness/STATE.md` |
 | `harness-triage` | Triage GitHub issues with effort calibration and agent brief generation |
 | `harness-prd` | Convert conversation context into a GSD-compatible PRD |
 | `harness-issues` | Break a PRD into vertical-slice issues with enforced AC template and PLAN.md |

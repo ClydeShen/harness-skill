@@ -55,10 +55,10 @@ No signal → **Gap: No memory system configured.** Why: mid-session interruptio
 - All present → "Already in place" — do NOT suggest `/setup-harness-skills`
 - Missing → after gaps, add: **"Optional: Run `/setup-harness-skills`"** for long-running work.
 
-Also check `.planning/config.json`:
+Also check `.harness/config.json`:
 - Absent → note "no GSD-compatible planning structure" (optional gap, not in top-5 priority)
 - Present without `harness` key → "GSD detected but harness skills not configured" → after gaps, add: "GSD detected. Run `/setup-harness-skills` to configure GitHub integration."
-- Present with `harness` key → **Already in place**: "GSD-compatible planning structure (.planning/)"
+- Present with `harness` key → **Already in place**: "GSD-compatible planning structure (.harness/)"
 
 ### 9. Recommended skill collections
 Check `~/.claude/skills/` (or equivalent platform path) for these collections:

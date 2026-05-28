@@ -43,6 +43,36 @@
         "Asks the user which instruction file to create (CLAUDE.md or AGENTS.md) — presents both options",
         "Does NOT make the choice unilaterally or default to one without asking"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Set up harness skills for this project. I'm using Claude Code with Sonnet 4.",
+      "files": [
+        "package.json",
+        "CLAUDE.md"
+      ],
+      "expectations": [
+        "Asks about context window and model type (Section F) after completing Sections A through E",
+        "Defaults to Claude Code Sonnet 4 with 1M context window when user mentions Sonnet 4",
+        "Writes .harness/settings.json with model.type, model.context_window, and session.max_tokens_per_turn",
+        "Uses 1000000 for context_window and 8000 for max_tokens_per_turn with Sonnet 4",
+        "Reports the model and context size in the setup summary line"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Set up harness skills. I'm running a local Qwen2.5-Coder-32B model at 127.0.0.1:8081 with 128K context.",
+      "files": [
+        "package.json",
+        "CLAUDE.md"
+      ],
+      "expectations": [
+        "Asks about context window and model type (Section F) after completing Sections A through E",
+        "Recognizes custom model and asks for model name + context window size",
+        "Writes .harness/settings.json with the custom model name and 128000 context_window",
+        "Sets max_tokens_per_turn to half of context_window (64000) for custom models",
+        "Does NOT default to Claude settings when user specifies a non-Claude model"
+      ]
     }
   ]
 }

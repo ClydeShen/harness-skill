@@ -4,7 +4,7 @@
 
 **Goal:** Align the harness-engineering skill collection with GSD Redux artifact structure so projects using this collection produce GSD-compatible files natively, while enriching GSD's lifecycle with context-handover, session-start state machine, grill-with-docs integration, and system-agnostic memory detection.
 
-**Architecture:** Skills write to `.planning/` in GSD-compatible format (STATE.md, .continue-here.md, config.json harness namespace, phases/ directories). `session-start` gains a write step that initiates a state machine (`session_status: in_progress`); `context-handover` closes it (`session_status: idle`). Interrupted sessions are detected by the next `session-start` reading a stale `in_progress` timestamp.
+**Architecture:** Skills write to `.harness/` in GSD-compatible format (STATE.md, .continue-here.md, config.json harness namespace, phases/ directories). `session-start` gains a write step that initiates a state machine (`session_status: in_progress`); `context-handover` closes it (`session_status: idle`). Interrupted sessions are detected by the next `session-start` reading a stale `in_progress` timestamp.
 
 **Tech Stack:** Markdown SKILL.md files, YAML promptfoo eval configs, Python scaffold_helper.py, ADR markdown docs.
 
@@ -35,7 +35,7 @@ Write `docs/adr/0003-gsd-file-structure-adoption.md` with this exact content:
 
 This collection used its own artifact locations (.claude/session.json, .claude/handoff.md,
 .claude/harness.json) and its own phase vocabulary (Design/Product/Execution/Testing).
-GSD Redux (open-gsd/get-shit-done-redux) uses .planning/STATE.md, .planning/phases/XX/,
+GSD Redux (open-gsd/get-shit-done-redux) uses .harness/STATE.md, .harness/phases/XX/,
 and the verbs discuss/plan/execute/verify.
 
 Users who adopt this collection and later install GSD face a migration. Users running both
@@ -44,23 +44,23 @@ simultaneously have two parallel session-state stores.
 ## Decision
 
 This collection writes GSD-compatible artifacts from day one:
-- .planning/STATE.md replaces .claude/session.json
-- .planning/phases/XX/.continue-here.md replaces .claude/handoff.md
-- .planning/config.json (harness namespace) replaces .claude/harness.json
+- .harness/STATE.md replaces .claude/session.json
+- .harness/phases/XX/.continue-here.md replaces .claude/handoff.md
+- .harness/config.json (harness namespace) replaces .claude/harness.json
 - Phase vocabulary: discuss / plan / execute / verify
 
 GSD ignores the `harness` namespace in config.json (unknown keys pass through).
-When GSD is installed later, it reads the existing .planning/ artifacts directly.
+When GSD is installed later, it reads the existing .harness/ artifacts directly.
 
 ## Consequences
 
-- setup-harness-skills writes .planning/ in GSD format
+- setup-harness-skills writes .harness/ in GSD format
 - session-start reads STATE.md as the primary source and writes session_status on begin
 - context-handover writes .continue-here.md in GSD format and session_status: idle on exit
-- to-prd creates .planning/phases/01-discuss/CONTEXT.md
-- to-issues creates .planning/phases/02-plan/PLAN.md + GitHub Issues
-- harness-engineering extends gap detection for .planning/ and memory systems
-- All skill evals updated: fixture scaffolds use .planning/ paths
+- to-prd creates .harness/phases/01-discuss/CONTEXT.md
+- to-issues creates .harness/phases/02-plan/PLAN.md + GitHub Issues
+- harness-engineering extends gap detection for .harness/ and memory systems
+- All skill evals updated: fixture scaffolds use .harness/ paths
 - Old .claude/ artifacts (session.json, handoff.md, harness.json) are deprecated;
   setup-harness-skills migrates existing values on re-run
 ```
@@ -153,25 +153,25 @@ Per-phase trigger points: discuss ≥70% used, plan ≥70% used, execute ≥70% 
 
 In `### session.json`, add a deprecation note at the top:
 ```
-> **Deprecated.** Replaced by `.planning/STATE.md` (GSD-compatible). See ADR 0003.
+> **Deprecated.** Replaced by `.harness/STATE.md` (GSD-compatible). See ADR 0003.
 > setup-harness-skills migrates existing values on re-run.
 ```
 
 In `### handoff.md`, add:
 ```
-> **Deprecated.** Replaced by `.planning/phases/XX/.continue-here.md` (GSD format). See ADR 0003.
+> **Deprecated.** Replaced by `.harness/phases/XX/.continue-here.md` (GSD format). See ADR 0003.
 ```
 
 In `### harness.json`, add:
 ```
-> **Deprecated.** Replaced by `.planning/config.json` with `harness` namespace. See ADR 0003.
+> **Deprecated.** Replaced by `.harness/config.json` with `harness` namespace. See ADR 0003.
 ```
 
 - [ ] **Step 7: Update remaining scattered occurrences**
 
 Find and replace in CONTEXT.md:
 - "Execution phase agent" → "execute phase agent"
-- "Execution phase issues" → "execute phase issues"  
+- "Execution phase issues" → "execute phase issues"
 - "phase:execution" → "phase:execute" (label values)
 - "phase:design" → "phase:discuss"
 - "phase:product" → "phase:plan"
@@ -262,7 +262,7 @@ git commit -m "refactor: rename phase vocabulary in all SKILL.md files"
 
 ## Chunk 2: Gateway — scaffold_helper.py + setup-harness-skills
 
-### Task 4: Add .planning/ Scaffold Patterns to scaffold_helper.py
+### Task 4: Add .harness/ Scaffold Patterns to scaffold_helper.py
 
 **Files:**
 - Modify: `evals/promptfoo/scaffold_helper.py`
@@ -274,9 +274,9 @@ These patterns are needed by every subsequent eval that tests GSD-compatible beh
 After the `.claude/handoff.md` block (line ~321), add:
 
 ```python
-# .planning/STATE.md — idle state (clean prior session)
+# .harness/STATE.md — idle state (clean prior session)
 if "state.md" in desc and "idle" in desc:
-    planning = root / ".planning"
+    planning = root / ".harness"
     planning.mkdir(exist_ok=True)
     import re
     phase_match = re.search(r"current[_ ]focus[:\s]+(\S+)", desc)
@@ -299,7 +299,7 @@ if "state.md" in desc and "idle" in desc:
 
         ## Project Reference
 
-        See: .planning/PROJECT.md (updated 2026-05-26)
+        See: .harness/PROJECT.md (updated 2026-05-26)
 
         **Core value:** Harness engineering skill collection
         **Current focus:** {phase}
@@ -316,12 +316,12 @@ if "state.md" in desc and "idle" in desc:
         session_started:
         last_session: 2026-05-26 14:30
         Stopped at: Finished auth middleware, starting route handlers next.
-        Resume file: .planning/phases/{phase}/.continue-here.md
+        Resume file: .harness/phases/{phase}/.continue-here.md
     """))
 
-# .planning/STATE.md — in_progress with stale timestamp (interrupted session)
+# .harness/STATE.md — in_progress with stale timestamp (interrupted session)
 if "state.md" in desc and "interrupted" in desc:
-    planning = root / ".planning"
+    planning = root / ".harness"
     planning.mkdir(exist_ok=True)
     import re
     task_match = re.search(r"issue (\d+)", desc)
@@ -342,7 +342,7 @@ if "state.md" in desc and "interrupted" in desc:
 
         ## Project Reference
 
-        See: .planning/PROJECT.md (updated 2026-05-26)
+        See: .harness/PROJECT.md (updated 2026-05-26)
 
         **Core value:** Harness engineering skill collection
         **Current focus:** 03-execute
@@ -360,21 +360,21 @@ if "state.md" in desc and "interrupted" in desc:
         session_started: 2026-05-25T10:15:00Z
         last_session: 2026-05-24 18:00
         Stopped at: Writing auth middleware tests.
-        Resume file: .planning/phases/03-execute/.continue-here.md
+        Resume file: .harness/phases/03-execute/.continue-here.md
     """))
 ```
 
 - [ ] **Step 2: Add .continue-here.md scaffold handler**
 
 ```python
-# .planning/phases/XX/.continue-here.md
+# .harness/phases/XX/.continue-here.md
 if ".continue-here.md" in desc or "continue-here" in desc:
     import re
     phase_match = re.search(r"phase[:\s]+(\S+)", desc)
     phase = phase_match.group(1) if phase_match else "03-execute"
-    phase_dir = root / ".planning" / "phases" / phase
+    phase_dir = root / ".harness" / "phases" / phase
     phase_dir.mkdir(parents=True, exist_ok=True)
-    (planning_dir := root / ".planning").mkdir(exist_ok=True)
+    (planning_dir := root / ".harness").mkdir(exist_ok=True)
     task_match = re.search(r"task (\d+)", desc)
     total_match = re.search(r"total[_ ]tasks (\d+)", desc)
     task_num = task_match.group(1) if task_match else "2"
@@ -420,12 +420,12 @@ if ".continue-here.md" in desc or "continue-here" in desc:
     """))
 ```
 
-- [ ] **Step 3: Add .planning/config.json scaffold handler**
+- [ ] **Step 3: Add .harness/config.json scaffold handler**
 
 ```python
-# .planning/config.json
+# .harness/config.json
 if "planning config" in desc or "planning/config" in desc:
-    planning = root / ".planning"
+    planning = root / ".harness"
     planning.mkdir(exist_ok=True)
     has_harness = "harness key" in desc or "with harness" in desc
     config: dict = {
@@ -458,7 +458,7 @@ Expected: `OK`
 
 ```bash
 git add evals/promptfoo/scaffold_helper.py
-git commit -m "feat(evals): add .planning/ scaffold patterns for STATE.md, .continue-here.md, config.json"
+git commit -m "feat(evals): add .harness/ scaffold patterns for STATE.md, .continue-here.md, config.json"
 ```
 
 ---
@@ -468,7 +468,7 @@ git commit -m "feat(evals): add .planning/ scaffold patterns for STATE.md, .cont
 **Files:**
 - Modify: `skills/engineering/setup-harness-skills/SKILL.md`
 
-- [ ] **Step 1: Update Step 1 — Explore (add .planning/ reads)**
+- [ ] **Step 1: Update Step 1 — Explore (add .harness/ reads)**
 
 Find the Step 1 explore list:
 ```
@@ -485,10 +485,10 @@ Replace with:
 2. `CLAUDE.md` / `AGENTS.md` → existing `## Agent skills` block?
 3. `CONTEXT.md` → present?
 4. `docs/agents/` → prior setup files?
-5. `.planning/config.json` → prior GSD or harness setup? (read harness key if present)
-6. `.planning/STATE.md` → prior session state?
-7. `.planning/PROJECT.md` → prior project context?
-8. `.claude/harness.json` → old config to migrate? (deprecated — migrate values to .planning/config.json)
+5. `.harness/config.json` → prior GSD or harness setup? (read harness key if present)
+6. `.harness/STATE.md` → prior session state?
+7. `.harness/PROJECT.md` → prior project context?
+8. `.claude/harness.json` → old config to migrate? (deprecated — migrate values to .harness/config.json)
 ```
 
 - [ ] **Step 2: Update Section E — Session State**
@@ -504,33 +504,33 @@ Replace:
 ```
 ## Section E — Session State Location
 
-> "`.planning/STATE.md` tracks active phase, session status, and last-session context. This follows GSD's format — install GSD at any time and it reads this file directly. Confirm this path or override?"
+> "`.harness/STATE.md` tracks active phase, session status, and last-session context. This follows GSD's format — install GSD at any time and it reads this file directly. Confirm this path or override?"
 ```
 
 - [ ] **Step 3: Update Output section**
 
-Find the output description and add the .planning/ file creation steps:
+Find the output description and add the .harness/ file creation steps:
 
 After "After all five sections, show the draft of what will be written and confirm before writing." add:
 
 ```
-### .planning/ files written by setup-harness-skills
+### .harness/ files written by setup-harness-skills
 
-1. `.planning/config.json` — GSD defaults + `harness` namespace (idempotent merge; never overwrites GSD keys)
-2. `.planning/STATE.md` — from GSD state template (only if absent)
-3. `.planning/PROJECT.md` — from GSD project template (only if absent)
-4. `.planning/ROADMAP.md` — stub with four phase entries: 01-discuss, 02-plan, 03-execute, 04-verify (only if absent)
+1. `.harness/config.json` — GSD defaults + `harness` namespace (idempotent merge; never overwrites GSD keys)
+2. `.harness/STATE.md` — from GSD state template (only if absent)
+3. `.harness/PROJECT.md` — from GSD project template (only if absent)
+4. `.harness/ROADMAP.md` — stub with four phase entries: 01-discuss, 02-plan, 03-execute, 04-verify (only if absent)
 
 ### .gitignore additions
 
 ```
-.planning/phases/*/.continue-here.md   # handoff docs — ephemeral, never commit
+.harness/phases/*/.continue-here.md   # handoff docs — ephemeral, never commit
 ```
 
 ### Migration (when old .claude/ artifacts exist)
 
-- `.claude/harness.json` → merge values into `.planning/config.json` harness namespace
-- `.claude/session.json` → copy Session Continuity values into `.planning/STATE.md`
+- `.claude/harness.json` → merge values into `.harness/config.json` harness namespace
+- `.claude/session.json` → copy Session Continuity values into `.harness/STATE.md`
 - `.claude/handoff.md` → map into `.continue-here.md` XML sections (lossy — preserves content in `<context>`)
 - Old files are NOT deleted — user confirms before removal
 ```
@@ -547,7 +547,7 @@ Expected: all existing evals pass.
 
 ```bash
 git add skills/engineering/setup-harness-skills/SKILL.md
-git commit -m "feat(setup-harness-skills): migrate to .planning/ structure, GSD-compatible artifacts"
+git commit -m "feat(setup-harness-skills): migrate to .harness/ structure, GSD-compatible artifacts"
 ```
 
 ---
@@ -571,7 +571,7 @@ Find:
 
 Replace:
 ```
-1. `.planning/STATE.md` → `Current Position.Phase` field — use if present
+1. `.harness/STATE.md` → `Current Position.Phase` field — use if present
 2. `.claude/session.json` → `current_phase` — legacy fallback (deprecated)
 3. Active GitHub issue labels → `phase:discuss / plan / execute / verify`
 4. Issue title/body keywords — "design"/"spec"/"ADR" → discuss; "PRD"/"story" → plan; "implement"/"build"/"fix" → execute; "test"/"QA" → verify
@@ -591,9 +591,9 @@ Find:
 
 Replace:
 ```
-- [ ] **2. Update `.planning/STATE.md` Session Continuity** — write `session_status: idle`, `last_session`, `Stopped at`, `Resume file` fields. Budget: <1% of remaining context.
+- [ ] **2. Update `.harness/STATE.md` Session Continuity** — write `session_status: idle`, `last_session`, `Stopped at`, `Resume file` fields. Budget: <1% of remaining context.
 
-- [ ] **3. Write `.planning/phases/XX-name/.continue-here.md`** — use GSD's exact template. Path: derive XX-name from STATE.md `Current Position.Phase`. Rules:
+- [ ] **3. Write `.harness/phases/XX-name/.continue-here.md`** — use GSD's exact template. Path: derive XX-name from STATE.md `Current Position.Phase`. Rules:
   - YAML frontmatter: phase, task, total_tasks, status, last_updated
   - XML sections: current_state, completed_work, remaining_work, decisions_made, blockers, context, next_action
   - Reference artifacts by path only — never inline content
@@ -655,8 +655,8 @@ Find:
 
 Replace:
 ```
-| No `.planning/` directory | Note "run /setup-harness-skills first"; write `.claude/handoff.md` as emergency fallback only |
-| No `.continue-here.md` path resolvable | Write to `.planning/phases/XX-current/.continue-here.md` using STATE.md `current_focus` value |
+| No `.harness/` directory | Note "run /setup-harness-skills first"; write `.claude/handoff.md` as emergency fallback only |
+| No `.continue-here.md` path resolvable | Write to `.harness/phases/XX-current/.continue-here.md` using STATE.md `current_focus` value |
 | No `docs/agents/` | Skip GitHub comment; still write .continue-here.md |
 | No `session.json` or STATE.md | Use phase fallback chain; create STATE.md from inferred values |
 | No GitHub remote | Skip issue update silently |
@@ -674,7 +674,7 @@ Find:
 
 Replace:
 ```
-- "Handover complete. Resume file: `.planning/phases/XX-name/.continue-here.md`."
+- "Handover complete. Resume file: `.harness/phases/XX-name/.continue-here.md`."
 - "**Start your next session with `/session-start`.**"
 - "**To compact this session now, type `/compact`.**"
 ```
@@ -707,7 +707,7 @@ scaffold_files:
 Replace:
 ```yaml
 scaffold_files:
-  - ".planning/STATE.md with idle session_status current_focus 03-execute and issue 42"
+  - ".harness/STATE.md with idle session_status current_focus 03-execute and issue 42"
   - "CLAUDE.md"
 ```
 
@@ -719,7 +719,7 @@ Update assertions — replace:
 With:
 ```yaml
 - type: llm-rubric
-  value: Writes .continue-here.md under .planning/phases/03-execute/ — not .claude/handoff.md or a timestamped path
+  value: Writes .continue-here.md under .harness/phases/03-execute/ — not .claude/handoff.md or a timestamped path
 - type: llm-rubric
   value: .continue-here.md includes YAML frontmatter with phase, task, status, last_updated fields
 - type: llm-rubric
@@ -750,7 +750,7 @@ Replace `scaffold_files`:
 scaffold_files:
   - "CLAUDE.md"
   - "MEMORY.md"
-  - ".planning/STATE.md with idle session_status current_focus 03-execute"
+  - ".harness/STATE.md with idle session_status current_focus 03-execute"
 ```
 
 Update assertion:
@@ -775,7 +775,7 @@ Expected: all 3 pass.
 
 ```bash
 git add evals/promptfoo/context-handover.yaml
-git commit -m "test(evals): update context-handover fixtures to .planning/ paths and GSD format"
+git commit -m "test(evals): update context-handover fixtures to .harness/ paths and GSD format"
 ```
 
 ---
@@ -806,14 +806,14 @@ Find:
 Replace:
 ```
 - [ ] **1. EXPLORE** — read project state before asking anything:
-  - `.planning/STATE.md` → session_status, session_started, Current Position (phase, active task, status)
-  - `.planning/STATE.md` → Session Continuity.Resume file → path to .continue-here.md
-  - `.planning/config.json` → GitHub owner, repo, project board ID (harness key)
-  - `.planning/phases/XX-name/.continue-here.md` → path from STATE.md Resume file
+  - `.harness/STATE.md` → session_status, session_started, Current Position (phase, active task, status)
+  - `.harness/STATE.md` → Session Continuity.Resume file → path to .continue-here.md
+  - `.harness/config.json` → GitHub owner, repo, project board ID (harness key)
+  - `.harness/phases/XX-name/.continue-here.md` → path from STATE.md Resume file
   - `.git/config` → remote origin (fallback if config.json absent)
   - `CLAUDE.md` / `AGENTS.md` → `## Agent skills` block present? (setup indicator)
-  - `.planning/phases/01-discuss/` → any `CONTEXT.md` files? (phase skip signal)
-  - `.planning/phases/02-plan/` → any `PLAN.md` files? (phase skip signal)
+  - `.harness/phases/01-discuss/` → any `CONTEXT.md` files? (phase skip signal)
+  - `.harness/phases/02-plan/` → any `PLAN.md` files? (phase skip signal)
   - `MEMORY.md` or top-3 memory entries relevant to active task
   - `.claude/session.json` → legacy fallback if STATE.md absent (deprecated)
   - `.claude/handoff.md` → legacy fallback if .continue-here.md absent (deprecated)
@@ -829,7 +829,7 @@ After Step 1 (EXPLORE), insert:
   - Set `session_started: <current ISO timestamp>`
   - Set `Active task: #N — [title]` in Current Position (if known from prior state or user context)
   - Budget: <1% of remaining context
-  
+
   This makes the state machine transition observable: context-handover sets `session_status: idle`; session-start sets `session_status: in_progress`. A session that is interrupted before context-handover fires leaves `in_progress` in place — detected by the next session-start reading a stale `session_started` timestamp.
 ```
 
@@ -843,7 +843,7 @@ Replace the four-tier chain with the new chain:
   **Detect interrupted session:** if STATE.md `session_status` is `in_progress` AND `session_started` timestamp is >30 minutes old → this is an interrupted session. Output a **Recovery briefing** (see Step 6b).
 
   **Clean resume chain (session_status: idle or absent):**
-  - **a. `.planning/phases/XX/.continue-here.md`** — primary. Read `<next_action>`, `<completed_work>`, `<remaining_work>`.
+  - **a. `.harness/phases/XX/.continue-here.md`** — primary. Read `<next_action>`, `<completed_work>`, `<remaining_work>`.
   - **b. Memory system query** — query active memory system for entries relevant to the active task. No GitHub required.
   - **c. Mid-session recovery** (.continue-here.md stale or absent): `git log --oneline -20` + recent GitHub per-AC progress comments (`gh api repos/{owner}/{repo}/issues/{N}/comments --jq '[.[] | select(.body | startswith("Progress"))] | .[-5:]'`).
   - **d. Legacy `.claude/handoff.md`** — use only if .continue-here.md absent and no migration has run.
@@ -852,15 +852,15 @@ Replace the four-tier chain with the new chain:
 
 - [ ] **Step 4: Update EVALUATE step (now Step 4)**
 
-Update the phase skip/revert table to use .planning/ artifact signals:
+Update the phase skip/revert table to use .harness/ artifact signals:
 
 ```
 - [ ] **4. EVALUATE** — apply phase skip/revert (observable checks only):
 
   | Condition | Action |
   |---|---|
-  | `.planning/phases/01-discuss/` contains a `CONTEXT.md` | Skip discuss → set phase to plan |
-  | `.planning/phases/02-plan/` contains a `PLAN.md` | Skip discuss + plan → set phase to execute |
+  | `.harness/phases/01-discuss/` contains a `CONTEXT.md` | Skip discuss → set phase to plan |
+  | `.harness/phases/02-plan/` contains a `PLAN.md` | Skip discuss + plan → set phase to execute |
   | STATE.md `current_focus` is `02-plan` but no CONTEXT.md in `01-discuss/` | Revert to discuss |
   | STATE.md `current_focus` is `03-execute` but no PLAN.md in `02-plan/` | Revert to plan |
 
@@ -930,8 +930,8 @@ Three fixture updates + one new integration eval for interrupted recovery.
 Replace `scaffold_files`:
 ```yaml
 scaffold_files:
-  - ".planning/STATE.md with idle session_status current_focus 03-execute and issue 7 effort 1"
-  - ".planning/phases/03-execute/.continue-here.md with task 1 total_tasks 3"
+  - ".harness/STATE.md with idle session_status current_focus 03-execute and issue 7 effort 1"
+  - ".harness/phases/03-execute/.continue-here.md with task 1 total_tasks 3"
   - "CLAUDE.md"
 ```
 
@@ -957,7 +957,7 @@ assert:
 Scaffold is already minimal (`package.json`). Update one assertion wording to match new cold-start message:
 ```yaml
 - type: llm-rubric
-  value: Suggests running /setup-harness-skills to initialize .planning/ or asks user what to work on
+  value: Suggests running /setup-harness-skills to initialize .harness/ or asks user what to work on
 ```
 
 - [ ] **Step 3: Update eval #3 — reads artifacts before asking questions**
@@ -967,13 +967,13 @@ Update scaffold:
 scaffold_files:
   - "package.json"
   - "CLAUDE.md"
-  - ".planning/STATE.md with idle session_status current_focus 02-plan"
+  - ".harness/STATE.md with idle session_status current_focus 02-plan"
 ```
 
 Update assertion:
 ```yaml
 - type: llm-rubric
-  value: Does not ask questions that could be answered by reading .planning/STATE.md or git config
+  value: Does not ask questions that could be answered by reading .harness/STATE.md or git config
 ```
 
 - [ ] **Step 4: Add eval #4 — interrupted session recovery (NEW integration eval)**
@@ -987,8 +987,8 @@ Update assertion:
     vars:
       prompt: "/session-start"
       scaffold_files:
-        - ".planning/STATE.md with interrupted session_status and stale timestamp and issue 42"
-        - ".planning/phases/03-execute/.continue-here.md with task 2 total_tasks 5"
+        - ".harness/STATE.md with interrupted session_status and stale timestamp and issue 42"
+        - ".harness/phases/03-execute/.continue-here.md with task 2 total_tasks 5"
         - "CLAUDE.md"
     assert:
       - type: llm-rubric
@@ -1017,7 +1017,7 @@ Expected: all 4 pass. If eval #4 fails, re-check the interrupted STATE.md scaffo
 
 ```bash
 git add evals/promptfoo/session-start.yaml
-git commit -m "test(evals): update session-start fixtures to .planning/ paths, add interrupted-recovery integration eval"
+git commit -m "test(evals): update session-start fixtures to .harness/ paths, add interrupted-recovery integration eval"
 ```
 
 ---
@@ -1036,7 +1036,7 @@ Find the instruction about publishing and writing output. Add before "Write the 
 ```
 ## GSD-compatible output
 
-Write the PRD to `.planning/phases/01-discuss/01-CONTEXT.md` using GSD's 6-section CONTEXT.md format:
+Write the PRD to `.harness/phases/01-discuss/01-CONTEXT.md` using GSD's 6-section CONTEXT.md format:
 
 | GSD section | Content |
 |---|---|
@@ -1047,7 +1047,7 @@ Write the PRD to `.planning/phases/01-discuss/01-CONTEXT.md` using GSD's 6-secti
 | `<specifics>` | Specific user requirements ("I want it like X") |
 | `<deferred>` | Ideas that came up but belong in other phases |
 
-After writing: "CONTEXT.md written to `.planning/phases/01-discuss/01-CONTEXT.md`. Run `/to-issues` to plan this phase."
+After writing: "CONTEXT.md written to `.harness/phases/01-discuss/01-CONTEXT.md`. Run `/to-issues` to plan this phase."
 
 **WHAT/HOW invariant:** `<decisions>` contains only WHAT (constraints), never HOW (file paths, class names, schemas).
 ```
@@ -1062,13 +1062,13 @@ After step 3 "Write the PRD using the template below", add note: "For discuss-ph
 cd evals/promptfoo && promptfoo eval --config to-prd.yaml --no-cache
 ```
 
-Update any failing eval assertions that check for `docs/superpowers/specs/` output path — replace with `.planning/phases/01-discuss/` assertions.
+Update any failing eval assertions that check for `docs/superpowers/specs/` output path — replace with `.harness/phases/01-discuss/` assertions.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add skills/engineering/to-prd/SKILL.md evals/promptfoo/to-prd.yaml
-git commit -m "feat(to-prd): write GSD-compatible CONTEXT.md to .planning/phases/01-discuss/"
+git commit -m "feat(to-prd): write GSD-compatible CONTEXT.md to .harness/phases/01-discuss/"
 ```
 
 ---
@@ -1083,7 +1083,7 @@ git commit -m "feat(to-prd): write GSD-compatible CONTEXT.md to .planning/phases
 After step 5 "Publish the issues to the issue tracker", add:
 
 ```
-### 6. Write .planning/phases/02-plan/02-PLAN.md (dual output)
+### 6. Write .harness/phases/02-plan/02-PLAN.md (dual output)
 
 In addition to GitHub Issues, write a GSD PLAN.md file. One task block per issue:
 
@@ -1103,7 +1103,7 @@ In addition to GitHub Issues, write a GSD PLAN.md file. One task block per issue
 [leave blank — agent decides HOW]
 ```
 
-Path: `.planning/phases/02-plan/02-PLAN.md`. Create `.planning/phases/02-plan/` if absent.
+Path: `.harness/phases/02-plan/02-PLAN.md`. Create `.harness/phases/02-plan/` if absent.
 ```
 
 - [ ] **Step 2: Update mid-session execution rules**
@@ -1119,13 +1119,13 @@ Add to the "Mid-session execution rules" section:
 cd evals/promptfoo && promptfoo eval --config to-issues.yaml --no-cache
 ```
 
-Update failing assertions to check for `.planning/phases/02-plan/02-PLAN.md` output.
+Update failing assertions to check for `.harness/phases/02-plan/02-PLAN.md` output.
 
 - [ ] **Step 4: Commit**
 
 ```bash
 git add skills/engineering/to-issues/SKILL.md evals/promptfoo/to-issues.yaml
-git commit -m "feat(to-issues): add dual output PLAN.md to .planning/phases/02-plan/"
+git commit -m "feat(to-issues): add dual output PLAN.md to .harness/phases/02-plan/"
 ```
 
 ---
@@ -1135,7 +1135,7 @@ git commit -m "feat(to-issues): add dual output PLAN.md to .planning/phases/02-p
 **Files:**
 - Modify: `skills/engineering/harness-engineering/SKILL.md`
 
-Two changes: memory system detection at rank 4, extended step for .planning/ detection.
+Two changes: memory system detection at rank 4, extended step for .harness/ detection.
 
 - [ ] **Step 1: Insert memory system step at rank 4**
 
@@ -1155,15 +1155,15 @@ Check for any of these signals (one positive signal = gap closed):
 No signal → **Gap: No memory system configured.** Why: mid-session interruption recovery falls back to GitHub per-AC comments (requires GitHub) or cold git-log reconstruction — no local recovery path exists without a memory system.
 ```
 
-- [ ] **Step 2: Add .planning/ detection to step 8 (formerly 7) Onboarding config**
+- [ ] **Step 2: Add .harness/ detection to step 8 (formerly 7) Onboarding config**
 
 Extend step 8 (onboarding config) with:
 
 ```
-Also check `.planning/config.json`:
+Also check `.harness/config.json`:
 - Absent → note "no GSD-compatible planning structure" (optional gap, not in top-5 priority)
 - Present without `harness` key → "GSD detected but harness skills not configured" → after gaps, add: "GSD detected. Run `/setup-harness-skills` to configure GitHub integration."
-- Present with `harness` key → **Already in place**: "GSD-compatible planning structure (.planning/)"
+- Present with `harness` key → **Already in place**: "GSD-compatible planning structure (.harness/)"
 ```
 
 - [ ] **Step 3: Run harness-engineering evals**
@@ -1180,7 +1180,7 @@ Add two scenarios to `evals/promptfoo/harness-engineering.yaml`:
 
 ```yaml
   # ---------------------------------------------------------------------------
-  # Eval N+1: .planning/config.json with harness key present — Already in place
+  # Eval N+1: .harness/config.json with harness key present — Already in place
   # ---------------------------------------------------------------------------
   - description: "#N+1 planning config with harness key — GSD-compatible setup in Already in Place"
     vars:
@@ -1188,12 +1188,12 @@ Add two scenarios to `evals/promptfoo/harness-engineering.yaml`:
       scaffold_files:
         - ".claude/settings.json with stop and posttooluse hooks"
         - "CLAUDE.md"
-        - ".planning/config.json with harness key"
+        - ".harness/config.json with harness key"
     assert:
       - type: llm-rubric
         value: Lists GSD-compatible planning structure in the Already in place section
       - type: llm-rubric
-        value: Does not list .planning/ as a gap when config.json with harness key is present
+        value: Does not list .harness/ as a gap when config.json with harness key is present
 
   # ---------------------------------------------------------------------------
   # Eval N+2: No memory system configured — memory system gap at rank 4
@@ -1226,7 +1226,7 @@ Expected: all evals including 2 new ones pass.
 
 ```bash
 git add skills/engineering/harness-engineering/SKILL.md evals/promptfoo/harness-engineering.yaml
-git commit -m "feat(harness-engineering): add memory system detection rank 4, extend .planning/ gap check"
+git commit -m "feat(harness-engineering): add memory system detection rank 4, extend .harness/ gap check"
 ```
 
 ---
@@ -1246,12 +1246,12 @@ git commit -m "feat(harness-engineering): add memory system detection rank 4, ex
     vars:
       prompt: "/setup-harness-skills"
       scaffold_files:
-        - ".planning/config.json without harness key"
+        - ".harness/config.json without harness key"
         - "CLAUDE.md"
         - ".git/config with remote origin"
     assert:
       - type: llm-rubric
-        value: Detects .planning/config.json is present (GSD installed)
+        value: Detects .harness/config.json is present (GSD installed)
       - type: llm-rubric
         value: Adds harness namespace to config.json without overwriting existing GSD keys
       - type: llm-rubric
@@ -1260,10 +1260,10 @@ git commit -m "feat(harness-engineering): add memory system detection rank 4, ex
         value: Notes that GSD is already installed and confirms the integration
 ```
 
-- [ ] **Step 2: Add missing `.planning/config.json` scaffold handler to scaffold_helper.py**
+- [ ] **Step 2: Add missing `.harness/config.json` scaffold handler to scaffold_helper.py**
 
 The handler for "without harness key" variant:
-In scaffold_helper.py, the existing `.planning/config.json` handler already sets `has_harness = "harness key" in desc or "with harness" in desc`. The "without harness key" case already falls through to `config = {"model_profile": "balanced", "commit_docs": True}` — no extra code needed.
+In scaffold_helper.py, the existing `.harness/config.json` handler already sets `has_harness = "harness key" in desc or "with harness" in desc`. The "without harness key" case already falls through to `config = {"model_profile": "balanced", "commit_docs": True}` — no extra code needed.
 
 - [ ] **Step 3: Run setup-harness-skills evals**
 

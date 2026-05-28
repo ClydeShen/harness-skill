@@ -1,0 +1,119 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: harness-issues skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-harness-issues
+    config:
+      skill_name: harness-issues
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-harness-issues.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: Vertical slices — thin end-to-end slices, HITL/AFK labelled, quiz first
+  # ---------------------------------------------------------------------------
+  - description: "#1 vertical slices — HITL/AFK labelled, user quizzed before publish"
+    vars:
+      prompt: >
+        /harness-issues
+        Break down the authentication feature from our PRD into implementation issues.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "docs/prd.md with a feature spec for user authentication"
+    assert:
+      - type: llm-rubric
+        value: Breaks the plan into vertical slices — each slice cuts through all integration layers end-to-end, not a single horizontal layer
+      - type: llm-rubric
+        value: Each slice is labelled either HITL or AFK
+      - type: llm-rubric
+        value: Presents the breakdown to the user and quizzes them (granularity, dependencies, HITL/AFK classification) before publishing
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: Enforced issue template — Story, Confidence, AC table, DoD, Effort, Dependencies
+  # ---------------------------------------------------------------------------
+  - description: "#2 enforced issue template — all required sections present"
+    vars:
+      prompt: >
+        /harness-issues
+        Create issues for the payment integration feature. We have a PRD ready.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "docs/prd.md with payment integration spec"
+    assert:
+      - type: llm-rubric
+        value: Published issues contain a Story section (As a [role], I want [capability], so that [benefit])
+      - type: llm-rubric
+        value: Published issues contain an Acceptance Criteria table with Criterion, Type, and Source columns
+      - type: llm-rubric
+        value: Published issues contain a Definition of Done checklist and an Effort estimate
+
+  # ---------------------------------------------------------------------------
+  # Eval 3: Fetch from tracker — reads parent, publishes in dependency order, no modify
+  # ---------------------------------------------------------------------------
+  - description: "#3 from issue reference — reads parent, publishes blockers first"
+    vars:
+      prompt: >
+        /harness-issues #5
+        Break down issue #5 from the tracker into implementation issues.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Fetches issue #5 from the tracker and reads its full body and comments before drafting
+      - type: llm-rubric
+        value: Publishes issues in dependency order — blocking issues are created first so real IDs can be referenced
+      - type: llm-rubric
+        value: Does NOT close or modify the parent issue #5
+
+  # ---------------------------------------------------------------------------
+  # Eval 4: Three creation gates enforced
+  # ---------------------------------------------------------------------------
+  - description: "#4 three creation gates — estimable, size ≤8, demoable"
+    vars:
+      prompt: >
+        /harness-issues
+        Create issues for a vague feature: "improve the admin dashboard". No spec exists.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Does NOT immediately create issues — flags that the feature is not estimable or not specific enough before creation
+      - type: llm-rubric
+        value: Asks the user to refine the scope before publishing — mentions that stories must be estimable before issue creation
+
+  # ---------------------------------------------------------------------------
+  # Eval 5: Dual output — both GitHub Issues and PLAN.md
+  # ---------------------------------------------------------------------------
+  - description: "#5 dual output — PLAN.md written alongside GitHub issues"
+    vars:
+      prompt: >
+        /harness-issues
+        Break down the CSV export feature into issues and create the PLAN.md.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "docs/prd.md with CSV export spec"
+    assert:
+      - type: icontains
+        value: ".harness/phases/02-plan"
+      - type: llm-rubric
+        value: Writes a PLAN.md file at .harness/phases/02-plan/02-PLAN.md in addition to publishing GitHub issues
+      - type: llm-rubric
+        value: Each PLAN.md task block contains a title, type, effort, what-to-build, and acceptance criteria

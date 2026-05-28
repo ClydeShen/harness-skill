@@ -1,0 +1,15 @@
+{
+    "version":  "1.0",
+    "session":  {
+                    "status":  "in_progress",
+                    "started_at":  "2026-05-28T14:45:00Z",
+                    "last_active":  "2026-05-28T14:30:00Z",
+                    "last_session":  "2026-05-28T14:30:00Z"
+                },
+    "position":  {
+                     "phase":  "01-discuss",
+                     "active_task":  "Eval coverage for v2.6.0 renamed skills",
+                     "resume_file":  ".harness/phases/01-discuss/.continue-here.md",
+                     "stopped_at":  "Created 4 yaml eval files (harness-triage, harness-prd, harness-issues, write-harness-skill). Updated provider/grader endpoints to 127.0.0.1:8081. Evals not yet run — awaiting promptfoo on PATH + model at 8081."
+                 }
+}

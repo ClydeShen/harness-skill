@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # SessionStart hook — transition state to in_progress and inject context into Claude.
 #
-# Reads .planning/state.json, atomically sets session.status = "in_progress"
+# Reads .harness/state.json, atomically sets session.status = "in_progress"
 # and session.started_at = now, then emits the current position as
 # additionalContext so Claude receives state without reading files.
 #
 # Requires: jq
-# No-op if .planning/state.json absent (cold start).
+# No-op if .harness/state.json absent (cold start).
 
-STATE=".planning/state.json"
+STATE=".harness/state.json"
 if [ ! -f "$STATE" ]; then exit 0; fi
 
 command -v jq >/dev/null 2>&1 || { echo '{}'; exit 0; }

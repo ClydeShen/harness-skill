@@ -1,0 +1,33 @@
+{
+  "version": "1.0",
+  "phase": "01-discuss",
+  "task": 1,
+  "total_tasks": 1,
+  "status": "completed",
+  "last_updated": "2026-05-28T14:02:15Z",
+  "current_state": "v2.6.0 shipped. Dedup vs mattpocock/skills complete. Repo has clean identity — no verbatim copies, adapted skills carry harness-prefixed names.",
+  "completed_work": [
+    "Deep content comparison of all overlapping skills between this repo and mattpocock/skills",
+    "Confirmed 5 as verbatim copies: caveman, grill-me, handoff, zoom-out, grill-with-docs — deleted",
+    "Confirmed 4 as adapted (not copies): triage, to-prd, to-issues, write-a-skill — renamed",
+    "Renamed: triage→harness-triage, to-prd→harness-prd, to-issues→harness-issues, write-a-skill→write-harness-skill",
+    "Updated SKILL.md name: frontmatter and descriptions for all 4 renamed skills",
+    "Fixed all internal cross-references (effort-calibration path, /to-issues→/harness-issues, /triage→/harness-triage)",
+    "Updated plugin.json to v2.6.0 with 10 skills (was 15)",
+    "Updated skills/engineering/README.md, skills/productivity/README.md, CLAUDE.md, README.md",
+    "Updated all evals/evals.json prompt strings to use new skill names",
+    "Deleted stale eval output JSONs for deleted skills",
+    "Committed as 865cd1c (not yet pushed)"
+  ],
+  "remaining_work": [],
+  "decisions_made": [
+    "Verbatim copies deleted — users assumed to have mattpocock/skills installed",
+    "Adapted skills get harness- prefix to signal framework integration and avoid name collision",
+    "grill-with-docs and zoom-out kept in README Mermaid diagram — still valid via mattpocock/skills",
+    "triage-labels.md filename references unchanged — it is a project file name, not a skill",
+    "grill-me reference in harness-audit/references/scenarios.md unchanged — valid via mattpocock/skills"
+  ],
+  "blockers": [],
+  "context": "Clean session. v2.6.0 committed, not yet pushed. Collection is now 10 skills. No open threads.",
+  "next_action": "Push to remote (git push), then start new work or run /harness-audit on a target project."
+}

@@ -16,4 +16,4 @@ Clyde Shen
 - `CLAUDE.md` / `AGENTS.md` — agent instructions
 - `CONTEXT.md` — domain context
 - `docs/adr/` — architectural decisions
-- `.planning/STATE.md` — active session state
+- `.harness/STATE.md` — active session state

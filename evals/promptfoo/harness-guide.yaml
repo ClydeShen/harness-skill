@@ -106,7 +106,7 @@ tests:
       prompt: >
         Run harness-guide on my project. It has: .claude/settings.json with
         Stop and PostToolUse hooks, CLAUDE.md at 90 lines, CI running lint
-        and build, .pre-commit-config.yaml, .planning/STATE.md tracking active
+        and build, .pre-commit-config.yaml, .harness/STATE.md tracking active
         task, and memobank configured with MEMORY.md. The only thing missing
         is evals — no evals/ directory exists.
       scaffold_files:
@@ -114,7 +114,7 @@ tests:
         - "CLAUDE.md at 90 lines"
         - ".github/workflows/ci.yml running lint and build"
         - ".pre-commit-config.yaml"
-        - ".planning/STATE.md with session_status and active_task"
+        - ".harness/STATE.md with session_status and active_task"
         - "MEMORY.md present"
         - "no evals/"
     assert:

@@ -1,0 +1,30 @@
+project:
+  name: harness-engineering-skill
+  description: ''
+memory:
+  token_budget: 2000
+  top_k: 5
+embedding:
+  engine: lancedb
+  provider: llamacpp
+  model: bge-m3-Q8_0.gguf
+  dimensions: 1536
+  base_url: http://localhost:8081/v1
+search:
+  use_tags: true
+  use_summary: true
+review:
+  enabled: true
+lifecycle:
+  experimental_ttl_days: 3
+  active_to_review_days: 7
+  review_to_deprecated_days: 30
+  review_recall_threshold: 3
+  decay_window_days: 180
+capture:
+  provider: llamacpp
+  model: qwen2.5-coder-32b-instruct-q5_k_m.gguf
+  base_url: http://localhost:8080/v1
+reranker:
+  enabled: true
+  provider: jina

@@ -80,7 +80,7 @@ Agent executes skill phases (Detect → Interview → Output, or
                               Inspect → Classify → Recommend, etc.)
      │
      ▼
-Agent reads/writes project files (.planning/, .claude/, docs/agents/, GitHub)
+Agent reads/writes project files (.harness/, .claude/, docs/agents/, GitHub)
 ```
 
 ### Eval Execution
@@ -114,19 +114,19 @@ Pass/fail verdict per assertion → evals/promptfoo/output-<skill>.json
 ### Session State Flow (cross-session continuity)
 ```
 /setup-harness-skills
-     │ writes .planning/config.json, STATE.md, PROJECT.md, ROADMAP.md
+     │ writes .harness/config.json, STATE.md, PROJECT.md, ROADMAP.md
      ▼
 /session-start (start of session)
      │ reads STATE.md → detects session_status (idle / in_progress / interrupted)
-     │ reads .planning/phases/<phase>/.continue-here.md
+     │ reads .harness/phases/<phase>/.continue-here.md
      │ sets session_status: in_progress
      ▼
 Work: /triage, /to-prd, /to-issues, /harness-guide, etc.
-     │ reads/writes .planning/, docs/agents/, GitHub issues
+     │ reads/writes .harness/, docs/agents/, GitHub issues
      ▼
 /context-handover (≥70–80% context used)
      │ invokes memory system
-     │ writes .planning/phases/<phase>/.continue-here.md
+     │ writes .harness/phases/<phase>/.continue-here.md
      │ sets STATE.md session_status: idle
      │ posts GitHub progress comment (if docs/agents/ configured)
      ▼
@@ -177,7 +177,7 @@ The memory system is treated as a black box. Any of `memobank`, `mem0`, `letta`,
 - `.claude-plugin/plugin.json` — consumed by `npx skills` discovery
 
 **Session state bootstrap:**
-- `skills/engineering/setup-harness-skills/SKILL.md` — first-run setup; writes `.planning/config.json`, `STATE.md`, `PROJECT.md`, `ROADMAP.md`, `docs/agents/`
+- `skills/engineering/setup-harness-skills/SKILL.md` — first-run setup; writes `.harness/config.json`, `STATE.md`, `PROJECT.md`, `ROADMAP.md`, `docs/agents/`
 
 ## Anti-Patterns
 
@@ -202,4 +202,4 @@ The memory system is treated as a black box. Any of `memobank`, `mem0`, `letta`,
 
 **Eval grader:** Retries up to 3 times on non-parseable verdicts; falls back to keyword matching (`PASS`/`FAIL` in response) before returning a forced-fail verdict.
 
-**Skills:** Graceful degradation tables in `context-handover/SKILL.md` and `session-start/SKILL.md` specify fallback behaviour for each missing artifact (no `.planning/`, no `docs/agents/`, no memory system, no GitHub remote).
+**Skills:** Graceful degradation tables in `context-handover/SKILL.md` and `session-start/SKILL.md` specify fallback behaviour for each missing artifact (no `.harness/`, no `docs/agents/`, no memory system, no GitHub remote).

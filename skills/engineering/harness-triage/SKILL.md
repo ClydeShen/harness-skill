@@ -79,7 +79,14 @@ Show counts and a one-line summary per issue. Let the maintainer pick.
 
 ## Quick state override
 
-If the maintainer says "move #42 to ready-for-agent", trust them and apply the role directly. Confirm what you're about to do (role changes, comment, close), then act. Skip grilling. If moving to `ready-for-agent` without a grilling session, ask whether they want to write an agent brief.
+If the maintainer says "move #42 to ready-for-agent", trust them and apply the role directly. Skip grilling entirely. Confirm the mechanical steps first, then ask separately about a brief:
+
+```
+I'll apply `ready-for-agent`, remove `needs-triage`, and post a triage note.
+Shall I proceed? Also — would you like me to write an agent brief for this issue?
+```
+
+Do not ask for category, type, or effort fields before the state change. Those belong in a brief, which is optional and separate.
 
 ## Agent brief template
 

@@ -1,6 +1,6 @@
 # Session Config
 
-**State file:** `.planning/STATE.md`
+**State file:** `.harness/STATE.md`
 **GSD-compatible:** yes
 
 ## Phases

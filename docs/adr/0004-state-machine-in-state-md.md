@@ -4,7 +4,7 @@
 
 ## Context
 
-`session-start` previously only *read* `.planning/STATE.md`. The file was written
+`session-start` previously only *read* `.harness/STATE.md`. The file was written
 exclusively by `context-handover` at the end of a clean session. This meant that
 if a session was interrupted before context-handover fired, STATE.md was stale —
 it reflected the state from the *previous* session's handover, not the interrupted

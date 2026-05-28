@@ -89,12 +89,12 @@ tests:
     vars:
       prompt: "/setup-harness-skills"
       scaffold_files:
-        - ".planning/config.json without harness key"
+        - ".harness/config.json without harness key"
         - "CLAUDE.md"
         - ".git/config with remote origin"
     assert:
       - type: llm-rubric
-        value: Detects .planning/config.json is present (GSD installed)
+        value: Detects .harness/config.json is present (GSD installed)
       - type: llm-rubric
         value: Adds harness namespace to config.json without overwriting existing GSD keys
       - type: llm-rubric

@@ -21,10 +21,10 @@ Before asking anything, read and report a **one-line summary**:
 2. `CLAUDE.md` / `AGENTS.md` → existing `## Agent skills` block?
 3. `CONTEXT.md` → present?
 4. `docs/agents/` → prior setup files?
-5. `.planning/config.json` → prior GSD or harness setup? (read harness key if present)
-6. `.planning/state.json` → prior session state?
-7. `.planning/PROJECT.md` → prior project context?
-8. `.claude/harness.json` → old config to migrate? (deprecated — migrate values to .planning/config.json)
+5. `.harness/config.json` → prior GSD or harness setup? (read harness key if present)
+6. `.harness/state.json` → prior session state?
+7. `.harness/PROJECT.md` → prior project context?
+8. `.claude/harness.json` → old config to migrate? (deprecated — migrate values to .harness/config.json)
 9. `~/.claude/skills/` → any `gsd-*` skill present? Any of `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` present?
 
 Example: "Found CLAUDE.md with no Agent skills block, no docs/agents/, GitHub remote owner/repo."
@@ -79,30 +79,44 @@ After confirming the board, inform the user of the two sizing fields (no new que
 
 ## Section E — Session State Location
 
-> "`.planning/state.json` tracks active phase, session status, and last-session context as machine-readable JSON. Three hooks (`SessionStart`, `Stop`, `PostToolUse`) maintain it automatically. Confirm this path or override?"
+> "`.harness/state.json` tracks active phase, session status, and last-session context as machine-readable JSON. Three hooks (`SessionStart`, `Stop`, `PostToolUse`) maintain it automatically. Confirm this path or override?"
+
+## Section F — Context Window & Model
+
+> "Which model are you using? This determines the context window size and affects session budget calculations."
+
+1. **Claude Code** (Claude Sonnet 4) — 1M context (1,000,000 tokens) ✅ default
+2. **Claude Code** (Claude Sonnet 3.5) — 200K context (200,000 tokens)
+3. **Claude Code** (Claude Haiku 3.5) — 200K context (200,000 tokens)
+4. **Custom model** — specify model name + context window in tokens
+
+Wait for answer before proceeding.
+
+If custom: ask for model name (e.g. `qwen2.5-coder-32b`) and context window size in tokens.
 
 ## Output
 
 After all five sections, show the draft of what will be written and confirm before writing. Then execute the 10-step output sequence in `output-steps.md` — it covers: `## Agent skills` block, `harness.json`, GitHub labels, milestones, Project v2 board, branch protection, CI scaffold, `.gitignore`, and seed files to `docs/agents/`.
 
-### .planning/ files written by setup-harness-skills
+### .harness/ files written by setup-harness-skills
 
-1. `.planning/config.json` — GSD defaults + `harness` namespace (idempotent merge; never overwrites GSD keys)
-2. `.planning/state.json` — session state JSON (only if absent; see `session-config.md` for schema)
-3. `.planning/PROJECT.md` — from GSD project template (only if absent)
-4. `.planning/ROADMAP.md` — stub with four phase entries: 01-discuss, 02-plan, 03-execute, 04-verify (only if absent)
+1. `.harness/config.json` — GSD defaults + `harness` namespace (idempotent merge; never overwrites GSD keys)
+2. `.harness/state.json` — session state JSON (only if absent; see `session-config.md` for schema)
+3. `.harness/PROJECT.md` — from GSD project template (only if absent)
+4. `.harness/ROADMAP.md` — stub with four phase entries: 01-discuss, 02-plan, 03-execute, 04-verify (only if absent)
+5. `.harness/settings.json` — model type + context window size (always written; idempotent merge)
 
 ### .gitignore additions
 
 ```
-.planning/phases/*/.continue-here.json   # resume context — ephemeral, never commit
+.harness/phases/*/.continue-here.json   # resume context — ephemeral, never commit
 ```
 
 ### Migration (when old .claude/ artifacts exist)
 
-- `.claude/harness.json` → merge values into `.planning/config.json` harness namespace
-- `.claude/session.json` → extract phase/task values into `.planning/state.json` position fields
-- `.planning/STATE.md` → extract session fields into `.planning/state.json` (then delete STATE.md)
+- `.claude/harness.json` → merge values into `.harness/config.json` harness namespace
+- `.claude/session.json` → extract phase/task values into `.harness/state.json` position fields
+- `.harness/STATE.md` → extract session fields into `.harness/state.json` (then delete STATE.md)
 - `.claude/handoff.md` → map into `.continue-here.json` fields (lossy — preserves content in `context`)
 - Old files are NOT deleted — user confirms before removal
 

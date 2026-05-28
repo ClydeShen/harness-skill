@@ -2,7 +2,7 @@
 
 ## state.json schema
 
-**Location:** `.planning/state.json` (committed — shared across sessions and agents)
+**Location:** `.harness/state.json` (committed — shared across sessions and agents)
 
 ```json
 {
@@ -16,7 +16,7 @@
   "position": {
     "phase": "01-discuss",
     "active_task": "task title string",
-    "resume_file": ".planning/phases/01-discuss/.continue-here.json",
+    "resume_file": ".harness/phases/01-discuss/.continue-here.json",
     "stopped_at": "brief description of last action"
   }
 }
@@ -58,7 +58,7 @@ Using `last_active` (not `started_at`) eliminates false positives on long active
 
 ## .continue-here.json schema
 
-**Location:** `.planning/phases/XX-name/.continue-here.json` (gitignored — ephemeral per session)
+**Location:** `.harness/phases/XX-name/.continue-here.json` (gitignored — ephemeral per session)
 
 ```json
 {
@@ -79,6 +79,34 @@ Using `last_active` (not `started_at`) eliminates false positives on long active
 ```
 
 Written by: `context-handover`. Read by: `session-start`. Validated by: PostToolUse hook.
+
+## settings.json schema
+
+**Location:** `.harness/settings.json` (committed — shared team config)
+
+```json
+{
+  "version": "1.0",
+  "model": {
+    "type": "claude-sonnet-4",
+    "context_window": 1000000
+  },
+  "session": {
+    "max_tokens_per_turn": 8000
+  }
+}
+```
+
+**Fields:**
+
+| Field | Type | Description |
+|---|---|---|
+| `version` | string | Schema version — never change manually |
+| `model.type` | string | Model identifier: `claude-sonnet-4`, `claude-sonnet-3.5`, `claude-haiku-3.5`, or custom name |
+| `model.context_window` | integer | Total context window in tokens |
+| `session.max_tokens_per_turn` | integer | Max tokens per single Claude turn (default: half of context_window, min 1000) |
+
+**Written by:** `setup-harness-skills` (Step 11). **Read by:** `context-handover` (session budget planning), `harness-audit` (model-aware gap detection).
 
 ## harness.json schema
 

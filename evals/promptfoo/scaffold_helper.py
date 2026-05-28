@@ -340,9 +340,9 @@ def scaffold(tmpdir: str, files: list) -> None:
               merge = refs/heads/main
         """))
 
-    # .planning/STATE.md — idle state (clean prior session)
+    # .harness/STATE.md — idle state (clean prior session)
     if "state.md" in desc and "idle" in desc:
-        planning = root / ".planning"
+        planning = root / ".harness"
         planning.mkdir(exist_ok=True)
         import re
         phase_match = re.search(r"current[_ ]focus[:\s]+(\S+)", desc)
@@ -365,7 +365,7 @@ def scaffold(tmpdir: str, files: list) -> None:
 
             ## Project Reference
 
-            See: .planning/PROJECT.md (updated 2026-05-26)
+            See: .harness/PROJECT.md (updated 2026-05-26)
 
             **Core value:** Harness engineering skill collection
             **Current focus:** {phase}
@@ -382,12 +382,12 @@ def scaffold(tmpdir: str, files: list) -> None:
             session_started:
             last_session: 2026-05-26 14:30
             Stopped at: Finished auth middleware, starting route handlers next.
-            Resume file: .planning/phases/{phase}/.continue-here.md
+            Resume file: .harness/phases/{phase}/.continue-here.md
         """))
 
-    # .planning/STATE.md — in_progress with stale timestamp (interrupted session)
+    # .harness/STATE.md — in_progress with stale timestamp (interrupted session)
     if "state.md" in desc and "interrupted" in desc:
-        planning = root / ".planning"
+        planning = root / ".harness"
         planning.mkdir(exist_ok=True)
         import re
         task_match = re.search(r"issue (\d+)", desc)
@@ -408,7 +408,7 @@ def scaffold(tmpdir: str, files: list) -> None:
 
             ## Project Reference
 
-            See: .planning/PROJECT.md (updated 2026-05-26)
+            See: .harness/PROJECT.md (updated 2026-05-26)
 
             **Core value:** Harness engineering skill collection
             **Current focus:** 03-execute
@@ -426,17 +426,17 @@ def scaffold(tmpdir: str, files: list) -> None:
             session_started: 2026-05-25T10:15:00Z
             last_session: 2026-05-24 18:00
             Stopped at: Writing auth middleware tests.
-            Resume file: .planning/phases/03-execute/.continue-here.md
+            Resume file: .harness/phases/03-execute/.continue-here.md
         """))
 
-    # .planning/phases/XX/.continue-here.md
+    # .harness/phases/XX/.continue-here.md
     if ".continue-here.md" in desc or "continue-here" in desc:
         import re
         phase_match = re.search(r"phase[:\s]+(\S+)", desc)
         phase = phase_match.group(1) if phase_match else "03-execute"
-        phase_dir = root / ".planning" / "phases" / phase
+        phase_dir = root / ".harness" / "phases" / phase
         phase_dir.mkdir(parents=True, exist_ok=True)
-        (root / ".planning").mkdir(exist_ok=True)
+        (root / ".harness").mkdir(exist_ok=True)
         task_match = re.search(r"task (\d+)", desc)
         total_match = re.search(r"total[_ ]tasks (\d+)", desc)
         task_num = task_match.group(1) if task_match else "2"
@@ -481,9 +481,9 @@ def scaffold(tmpdir: str, files: list) -> None:
             </next_action>
         """))
 
-    # .planning/config.json
+    # .harness/config.json
     if "planning config" in desc or "planning/config" in desc:
-        planning = root / ".planning"
+        planning = root / ".harness"
         planning.mkdir(exist_ok=True)
         has_harness = "harness key" in desc or "with harness" in desc
         config: dict = {

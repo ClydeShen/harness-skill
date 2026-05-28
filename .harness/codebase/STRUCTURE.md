@@ -39,7 +39,7 @@ harness-engineering-skill/
 │   │   │   ├── SKILL.md
 │   │   │   ├── phase-budgets.md   # Per-phase session budget tables (shared with session-start)
 │   │   │   └── evals/evals.json
-│   │   ├── session-start/         # Resume from .planning/STATE.md
+│   │   ├── session-start/         # Resume from .harness/STATE.md
 │   │   │   ├── SKILL.md
 │   │   │   └── evals/evals.json
 │   │   ├── triage/                # Issue triage state machine
@@ -99,7 +99,7 @@ harness-engineering-skill/
 │   ├── goals/                     # Project goals and eval-verification notes
 │   └── superpowers/               # Plans and specs
 │
-├── .planning/                     # GSD-compatible session state
+├── .harness/                     # GSD-compatible session state
 │   ├── config.json                # GSD config + harness namespace
 │   ├── STATE.md                   # Active phase, session_status, continuity
 │   ├── PROJECT.md                 # Project context
@@ -128,7 +128,7 @@ Detects agent-harness gaps (Stop hook, PostToolUse hook, instruction file, memor
 Continuous coaching loop: Inspect → Classify (aligned / weak / missing) → Recommend one next step. References `references/anti-patterns.md` by name when classifying weak patterns.
 
 ### `skills/engineering/setup-harness-skills/`
-One-time onboarding gateway. Explores existing project state before asking questions, then walks through five sections (issue tracker, instruction file, labels, domain docs, GitHub board) one at a time. Writes `.planning/config.json`, `STATE.md`, `PROJECT.md`, `ROADMAP.md`, `docs/agents/` seed files, and the `## Agent skills` block in CLAUDE.md/AGENTS.md. Output sequence is delegated to `output-steps.md`.
+One-time onboarding gateway. Explores existing project state before asking questions, then walks through five sections (issue tracker, instruction file, labels, domain docs, GitHub board) one at a time. Writes `.harness/config.json`, `STATE.md`, `PROJECT.md`, `ROADMAP.md`, `docs/agents/` seed files, and the `## Agent skills` block in CLAUDE.md/AGENTS.md. Output sequence is delegated to `output-steps.md`.
 
 ### `skills/engineering/context-handover/` + `skills/engineering/session-start/`
 Together they implement the session state machine. `context-handover` transitions `session_status: in_progress → idle` and writes `.continue-here.md`. `session-start` reads `STATE.md`, transitions `idle → in_progress`, and detects interrupted sessions (stale `in_progress` timestamp). Phase budget tables shared via `context-handover/phase-budgets.md`.
@@ -137,7 +137,7 @@ Together they implement the session state machine. `context-handover` transition
 Issue state-machine driver. Moves issues through: unlabeled → needs-triage → (needs-info | ready-for-agent | ready-for-human | wontfix). Posts AI-generated comments with disclaimer. Agent-brief format defined in `AGENT-BRIEF.md`; out-of-scope knowledge base in `OUT-OF-SCOPE.md`.
 
 ### `skills/engineering/to-prd/` + `skills/engineering/to-issues/`
-Planning pipeline. `to-prd` synthesises conversation context into a PRD (issue tracker or GSD CONTEXT.md format). `to-issues` breaks a PRD into tracer-bullet vertical-slice issues, enforcing three creation gates (estimable, ≤8 context windows, demoable). Both also write GSD-format local files (`.planning/phases/01-discuss/01-CONTEXT.md`, `.planning/phases/02-plan/02-PLAN.md`).
+Planning pipeline. `to-prd` synthesises conversation context into a PRD (issue tracker or GSD CONTEXT.md format). `to-issues` breaks a PRD into tracer-bullet vertical-slice issues, enforcing three creation gates (estimable, ≤8 context windows, demoable). Both also write GSD-format local files (`.harness/phases/01-discuss/01-CONTEXT.md`, `.harness/phases/02-plan/02-PLAN.md`).
 
 ### `skills/productivity/write-a-skill/`
 Documents the conventions for creating new skills: SKILL.md structure, description requirements (≤1024 chars, trigger phrases), when to add `references/` files, and a review checklist including the AI-generated footer requirement.
@@ -152,7 +152,7 @@ Eval response provider. Resolves `skills/*/<skill_name>/` via glob, loads SKILL.
 LLM judge. Receives promptfoo's rubric prompt, returns a JSON verdict. Handles Qwen3 `<think>` preambles via bracket-matching JSON extraction. Retries up to 3 times. Judge model: `Qwen3.6-35B-A3B-UD-Q5_K_M.gguf`.
 
 ### `evals/promptfoo/scaffold_helper.py`
-Interprets plain-English `scaffold_files` hints from YAML test vars into real filesystem trees. Handles: `package.json`, `tsconfig.json`, `.github/workflows/ci.yml` (with/without lint), `CLAUDE.md` (various line counts), `AGENTS.md`, `.claude/settings.json` (Stop+PostToolUse or PostToolUse-only), `.planning/STATE.md` (idle/interrupted), `.planning/phases/<phase>/.continue-here.md`, `.planning/config.json` (with/without harness key), `.git/config` (with remote origin), `docs/agents/` seed files, `.kiro/`, `.gemini/`, and more.
+Interprets plain-English `scaffold_files` hints from YAML test vars into real filesystem trees. Handles: `package.json`, `tsconfig.json`, `.github/workflows/ci.yml` (with/without lint), `CLAUDE.md` (various line counts), `AGENTS.md`, `.claude/settings.json` (Stop+PostToolUse or PostToolUse-only), `.harness/STATE.md` (idle/interrupted), `.harness/phases/<phase>/.continue-here.md`, `.harness/config.json` (with/without harness key), `.git/config` (with remote origin), `docs/agents/` seed files, `.kiro/`, `.gemini/`, and more.
 
 ## Naming Conventions
 

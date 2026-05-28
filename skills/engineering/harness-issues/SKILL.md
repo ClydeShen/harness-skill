@@ -164,7 +164,7 @@ Check each story against all three gates before creating the issue:
 2. **Size gate:** A story estimated at >8 context windows must be split. Above this, scope is too large to track and hand over reliably. (8 windows ≈ 1.2M tokens total — approaches model limit)
 3. **Vertical slice gate:** Every issue must deliver a **demoable user-facing outcome**. Ask: *"Can this story be demonstrated to a stakeholder end-to-end without implementing any other story first?"* If no → restructure into a vertical slice before creation.
 
-### 6. Write .planning/phases/02-plan/02-PLAN.md (dual output)
+### 6. Write .harness/phases/02-plan/02-PLAN.md (dual output)
 
 In addition to GitHub Issues, write a GSD PLAN.md file. One task block per issue:
 
@@ -184,7 +184,7 @@ In addition to GitHub Issues, write a GSD PLAN.md file. One task block per issue
 [leave blank — agent decides HOW]
 ```
 
-Path: `.planning/phases/02-plan/02-PLAN.md`. Create `.planning/phases/02-plan/` if absent.
+Path: `.harness/phases/02-plan/02-PLAN.md`. Create `.harness/phases/02-plan/` if absent.
 
 ## Mid-session execution rules
 

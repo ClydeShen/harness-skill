@@ -1,0 +1,38 @@
+{
+  "phase": "01",
+  "phase_name": "discuss",
+  "timestamp": "2026-05-27T14:00:00Z",
+  "areas_completed": ["交付形态"],
+  "areas_remaining": ["Hooks 覆盖策略", "Subagent 委托模型", "跨 session 恢复机制"],
+  "decisions": {
+    "交付形态": [
+      {
+        "question": "\"Harness Engineering System\" 应该以什么形式交付？",
+        "answer": "新增一个 skill（但用户随后更正为扩展 setup-harness-skills）",
+        "options_presented": ["新增一个 skill", "扩展 setup-harness-skills", "Hooks 脚本库 + 现有 skill 引用"]
+      },
+      {
+        "question": "新 skill 的名字和定位是什么？",
+        "answer": "在 setup-harness-skills 这个已有的 skill 里拓展，认为这是 setup 的一部分",
+        "options_presented": ["hooks-harness", "agent-harness", "harness-ops"]
+      },
+      {
+        "question": "在 setup-harness-skills 中，hooks 配置应该是哪个随倒入 Step？",
+        "answer": "独立新 Step（推荐）",
+        "options_presented": ["独立新 Step", "嵌入 Step 1（指令文件）", "嵌入 Step 2（settings.json）"]
+      },
+      {
+        "question": "Hooks 脚本本体应该存放在哪里？",
+        "answer": "用户纠正：hooks 脚本是 setup 过程写入用户目标项目的产物，位于用户项目 .claude/hooks/（官方推荐目录）。此 repo 存储的是 hooks 模板/参考实现。",
+        "options_presented": [".claude/hooks/*.sh", "scripts/hooks/*.sh", "You decide"]
+      }
+    ]
+  },
+  "deferred_ideas": [],
+  "canonical_refs": [
+    "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    "https://code.claude.com/docs/en/hooks",
+    ".harness/codebase/ARCHITECTURE.md",
+    ".harness/codebase/CONCERNS.md"
+  ]
+}

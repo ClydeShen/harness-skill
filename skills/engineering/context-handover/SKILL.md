@@ -10,7 +10,7 @@ Saves session state so the next session can resume without information loss.
 
 ## State files
 
-`.planning/state.json` — session lifecycle (read/write):
+`.harness/state.json` — session lifecycle (read/write):
 ```json
 {
   "version": "1.0",
@@ -19,7 +19,7 @@ Saves session state so the next session can resume without information loss.
 }
 ```
 
-`.planning/phases/XX-name/.continue-here.json` — resume context (write):
+`.harness/phases/XX-name/.continue-here.json` — resume context (write):
 ```json
 {
   "version": "1.0",
@@ -47,7 +47,7 @@ Do NOT invoke `/compact` programmatically. Instruct the user to type it.
 
 ## Phase detection (priority order)
 
-1. `.planning/state.json` → `position.phase` — use if present
+1. `.harness/state.json` → `position.phase` — use if present
 2. Active GitHub issue labels → `phase:discuss / plan / execute / verify`
 3. Issue title/body keywords — "design"/"spec"/"ADR" → discuss; "PRD"/"story" → plan; "implement"/"build"/"fix" → execute; "test"/"QA" → verify
 4. Default to `execute` — note "phase inferred by default" in handoff doc
@@ -60,14 +60,14 @@ Do NOT invoke `/compact` programmatically. Instruct the user to type it.
   - If no memory system is detected — write key decisions into the `decisions_made` array of `.continue-here.json` (fallback).
   - Budget: <5% of remaining context.
 
-- [ ] **2. Write `.planning/state.json`** — atomic read → mutate → write:
+- [ ] **2. Write `.harness/state.json`** — atomic read → mutate → write:
   - Set `session.status: "idle"`
   - Set `session.last_session: <current ISO timestamp>`
   - Set `position.stopped_at: <one-line description of last action>`
   - Set `position.resume_file: <path to .continue-here.json>`
   - Budget: <1% of remaining context.
 
-- [ ] **3. Write `.planning/phases/XX-name/.continue-here.json`** — derive XX-name from `position.phase`. Rules:
+- [ ] **3. Write `.harness/phases/XX-name/.continue-here.json`** — derive XX-name from `position.phase`. Rules:
   - All string values: factual, no padding. `completed_work` and `remaining_work` are arrays of strings.
   - Reference artifacts by path only — never inline content.
   - `next_action`: one concrete sentence starting with a verb.
@@ -89,7 +89,7 @@ Do NOT invoke `/compact` programmatically. Instruct the user to type it.
   ```
 
 - [ ] **5. Output to user:**
-  - "Handover complete. Resume file: `.planning/phases/XX-name/.continue-here.json`."
+  - "Handover complete. Resume file: `.harness/phases/XX-name/.continue-here.json`."
   - "**Start your next session with `/session-start`.**"
   - "**To compact this session now, type `/compact`.**"
 
@@ -97,9 +97,9 @@ Do NOT invoke `/compact` programmatically. Instruct the user to type it.
 
 | Missing | Action |
 |---|---|
-| No `.planning/` directory | Note "run /setup-harness-skills first"; skip state write |
+| No `.harness/` directory | Note "run /setup-harness-skills first"; skip state write |
 | No `state.json` | Create it from inferred values; use phase fallback chain for `position.phase` |
-| No `.continue-here.json` path resolvable | Write to `.planning/phases/XX-current/.continue-here.json` using `position.phase` |
+| No `.continue-here.json` path resolvable | Write to `.harness/phases/XX-current/.continue-here.json` using `position.phase` |
 | No `docs/agents/` | Skip GitHub comment; still write .continue-here.json |
 | No GitHub remote | Skip issue update silently |
 | No memory system | Write key decisions in `decisions_made` array of .continue-here.json |

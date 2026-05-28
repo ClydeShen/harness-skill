@@ -7,7 +7,7 @@
 # Requires: jq
 # No-op if state.json absent or session is not in_progress.
 
-STATE=".planning/state.json"
+STATE=".harness/state.json"
 if [ ! -f "$STATE" ]; then exit 0; fi
 
 command -v jq >/dev/null 2>&1 || exit 0

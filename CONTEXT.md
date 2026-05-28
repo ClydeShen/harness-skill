@@ -65,7 +65,7 @@ _Avoid_: treating memobank as the only valid implementation.
 No signal found → **Gap: No memory system configured.** Gap message: "Mid-session interruption recovery relies on GitHub per-AC comments (requires GitHub) or cold git-log reconstruction. Recommended: configure a persistent memory system (mem0, letta, memobank, or equivalent)." Priority: rank 4 in the gap list (after stop hook, instruction file, PostToolUse hook — before CI).
 
 ### Recovery State
-The minimum information an agent needs after an interruption to resume correctly: (1) **Purpose** — active task, current phase, next step; (2) **Constraints** — project rules (CLAUDE.md), domain config (.planning/config.json), CONTEXT.md glossary. Purpose comes from `.planning/STATE.md` + `.planning/phases/XX/.continue-here.md`. Constraints come from version-controlled project files. Both must be reconstructible without human intervention, at any interruption point.
+The minimum information an agent needs after an interruption to resume correctly: (1) **Purpose** — active task, current phase, next step; (2) **Constraints** — project rules (CLAUDE.md), domain config (.harness/config.json), CONTEXT.md glossary. Purpose comes from `.harness/STATE.md` + `.harness/phases/XX/.continue-here.md`. Constraints come from version-controlled project files. Both must be reconstructible without human intervention, at any interruption point.
 
 Recovery chain (use first that applies):
 1. STATE.md Session Continuity + `.continue-here.md` `<next_action>` — clean handover
@@ -76,7 +76,7 @@ Recovery chain (use first that applies):
 **Interrupted session detection:** `session-start` reads STATE.md Session Continuity `session_status: in_progress` with a stale `session_started` timestamp — signals no context-handover fired. Recovery briefing includes `git log` diff since `session_started`.
 
 ### STATE.md Session State Machine
-A two-level state model embedded in `.planning/STATE.md`. The YAML frontmatter `status` field is GSD's project-level status (`in_progress` / `completed`) — not touched by session state transitions. Session state lives in the **Session Continuity** markdown section:
+A two-level state model embedded in `.harness/STATE.md`. The YAML frontmatter `status` field is GSD's project-level status (`in_progress` / `completed`) — not touched by session state transitions. Session state lives in the **Session Continuity** markdown section:
 
 ```markdown
 ## Session Continuity
@@ -85,7 +85,7 @@ session_status: idle | in_progress
 session_started: 2026-05-26T14:30:00Z   ← written by session-start
 last_session: 2026-05-26 14:30          ← written by context-handover
 Stopped at: [1-sentence summary]        ← written by context-handover
-Resume file: .planning/phases/XX/.continue-here.md
+Resume file: .harness/phases/XX/.continue-here.md
 ```
 
 Transitions:
@@ -229,17 +229,17 @@ As a [role], I want [capability], so that [benefit].
 **Vertical slice (first principle):** Every story must deliver a **demoable user-facing outcome** — a thin end-to-end cut through all layers (schema, API, UI, tests) that can be demonstrated to a stakeholder without any other story being implemented first. Horizontal slices ("implement the database schema for auth") violate this principle and must be restructured before the issue is created. This is the first-principles derivation of the vertical slice rule, not a process convention.
 
 ### harness.json
-> **Deprecated.** Replaced by `.planning/config.json` with `harness` namespace. See ADR 0003.
+> **Deprecated.** Replaced by `.harness/config.json` with `harness` namespace. See ADR 0003.
 
 The static project configuration file, written by `setup-harness-skills` to `.claude/harness.json` in the user's project. **Version-controlled (committed)** — shared team config analogous to `package.json`. Separates static config (what the project is) from dynamic session state (what is happening right now — see `session.json`). Contains: GitHub owner, repo, default branch, Project v2 board ID, docs_agents_dir, specs_dir, and issue_tracker type. All skills read this file with null-safety. Updated only when the user re-runs `setup-harness-skills` to change a setting.
 
 ### handoff.md
-> **Deprecated.** Replaced by `.planning/phases/XX/.continue-here.md` (GSD format). See ADR 0003.
+> **Deprecated.** Replaced by `.harness/phases/XX/.continue-here.md` (GSD format). See ADR 0003.
 
 The unified context handover document at `.claude/handoff.md` in the user's project. A single file overwritten in place on every `context-handover` invocation — no timestamped copies. **Gitignored** (agent working file — per-agent ephemeral state). Contains: last-updated timestamp, phase, session summary, next step, artifact references (paths/URLs only, never inlined content), and suggested skills. Read by `session-start` as the primary local continuity artifact. Distinct from the GitHub issue comment (durable remote record for humans) and from `session.json` (machine-readable state).
 
 ### session.json
-> **Deprecated.** Replaced by `.planning/STATE.md` (GSD-compatible). See ADR 0003.
+> **Deprecated.** Replaced by `.harness/STATE.md` (GSD-compatible). See ADR 0003.
 > setup-harness-skills migrates existing values on re-run.
 
 The dynamic session state file at `.claude/session.json` in the user's project. **Gitignored** (agent working file — changes every session). Tracks: current phase, active task (GitHub issue number, title, effort estimate, project board item ID), last handover timestamp, and next session hint. Written by `session-start` (initialize) and `context-handover` (update). Read by `session-start`, `context-handover`, and `harness-engineering`. Distinct from `harness.json` (version-controlled team config) and `handoff.md` (human-readable continuity document).

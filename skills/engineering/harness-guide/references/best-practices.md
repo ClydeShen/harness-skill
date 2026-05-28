@@ -78,11 +78,11 @@ Reference: [Effective Harnesses for Long-Running Agents](https://www.anthropic.c
 
 ## Session Discipline
 
-**What:** `.planning/state.json` tracking `session.status`, `position.active_task`, and phase. Three hooks (`SessionStart`, `Stop`, `PostToolUse`) maintain it automatically. One task active at a time.
+**What:** `.harness/state.json` tracking `session.status`, `position.active_task`, and phase. Three hooks (`SessionStart`, `Stop`, `PostToolUse`) maintain it automatically. One task active at a time.
 
 **Why:** Without a session state machine, context handover is lossy, interruptions lose all progress, and task scope drifts across sessions.
 
-**Signal of alignment:** `.planning/state.json` present with `session.status` and `position.active_task` fields. `.continue-here.json` present for active tasks.
+**Signal of alignment:** `.harness/state.json` present with `session.status` and `position.active_task` fields. `.continue-here.json` present for active tasks.
 
 ---
 

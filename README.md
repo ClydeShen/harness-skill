@@ -117,7 +117,7 @@ CW 3  [████████████░░░░░░░░░░░░�
 
 - Maximum: **8 context windows**. Any issue estimated above this must be split into smaller tasks before the agent starts. Beyond 8, handoff drift compounds: each session-to-session transfer carries a small loss of precision, and enough transfers make the original intent unrecoverable. ([Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents))
 
-The `/to-issues` skill enforces this ceiling at creation time. An issue scoped above 8 CW cannot be created — the agent must break it down first.
+The `/harness-issues` skill enforces this ceiling at creation time. An issue scoped above 8 CW cannot be created — the agent must break it down first.
 
 ### Session boundary: trigger at 70%, not later
 
@@ -177,7 +177,7 @@ flowchart TD
 ```mermaid
 flowchart LR
     subgraph PHASES["Phase skills — invoke by need"]
-        DISC["discuss<br/>/grill-with-docs · /to-prd · /triage"]
+        DISC["discuss<br/>/grill-with-docs · /harness-prd · /harness-triage"]
         EXEC["execute<br/>/zoom-out · systematic-debugging"]
         VER["verify<br/>/gsd-verify-work · /gsd-code-review"]
         DISC -.->|"or skip"| EXEC -.->|"or skip"| VER
@@ -308,6 +308,6 @@ bash scripts/link-skills.sh
 | [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) — Anthropic Engineering | Context as a finite, depletable resource; compaction strategy; structured note-taking across sessions |
 | [Compound Engineering with AI — The Definitive Guide](https://ai.sulat.com/compound-engineering-with-ai-the-definitive-guide-05530cf717dd) | Compound of time: each session makes subsequent sessions more effective; 40/10/40/10 cycle (Plan/Work/Review/Compound) |
 | [Andrej Karpathy — LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876) | CLAUDE.md behavioral baseline: Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution |
-| [mattpocock/skills](https://github.com/mattpocock/skills) | Direct source: `grill-me`, `handoff`, `zoom-out`, `caveman`, `write-a-skill`, `setup-matt-pocock-skills`, `to-prd`, `to-issues`, `triage`, `grill-with-docs` — kept verbatim, extended, or rewritten |
+| [mattpocock/skills](https://github.com/mattpocock/skills) | `harness-triage`, `harness-prd`, `harness-issues`, `write-harness-skill` adapted (MIT License); `grill-me`, `handoff`, `zoom-out`, `caveman`, `grill-with-docs` used verbatim from that collection — install separately |
 | [obra/superpowers](https://github.com/obra/superpowers) | Companion collection: `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` |
 | [open-gsd/get-shit-done-redux](https://github.com/open-gsd/get-shit-done-redux) | Recommended companion: discuss → plan → execute → verify phase lifecycle |

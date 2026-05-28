@@ -2,7 +2,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/to-prd",
+      "prompt": "/harness-prd",
       "files": [
         "package.json",
         "CLAUDE.md"
@@ -16,7 +16,7 @@
     },
     {
       "id": 2,
-      "prompt": "/to-prd",
+      "prompt": "/harness-prd",
       "files": [
         "package.json",
         "CLAUDE.md",

@@ -2,7 +2,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/triage",
+      "prompt": "/harness-triage",
       "files": [
         "package.json",
         "CLAUDE.md"
@@ -16,7 +16,7 @@
     },
     {
       "id": 2,
-      "prompt": "/triage #42",
+      "prompt": "/harness-triage #42",
       "files": [
         "package.json",
         "CLAUDE.md"
@@ -30,7 +30,7 @@
     },
     {
       "id": 3,
-      "prompt": "/triage Move #42 to ready-for-agent",
+      "prompt": "/harness-triage Move #42 to ready-for-agent",
       "files": [
         "package.json",
         "CLAUDE.md"

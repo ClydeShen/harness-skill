@@ -2,7 +2,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "/write-a-skill",
+      "prompt": "/write-harness-skill",
       "files": [
         "package.json"
       ],
@@ -15,7 +15,7 @@
     },
     {
       "id": 2,
-      "prompt": "/write-a-skill\n\nI want a skill that helps agents write database migrations safely",
+      "prompt": "/write-harness-skill\n\nI want a skill that helps agents write database migrations safely",
       "files": [
         "package.json"
       ],

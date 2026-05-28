@@ -1,6 +1,6 @@
 ---
-name: to-issues
-description: Break a plan, spec, or PRD into independently-grabbable issues on the project issue tracker using tracer-bullet vertical slices. Use when user wants to convert a plan into issues, create implementation tickets, or break down work into issues.
+name: harness-issues
+description: Break a plan, spec, or PRD into independently-grabbable issues using tracer-bullet vertical slices with enforced AC templates, creation gates, and dual output to GitHub Issues + PLAN.md. Use when user wants to convert a plan into issues, create implementation tickets, or break down work into issues.
 ---
 
 # To Issues
@@ -110,7 +110,7 @@ Minimum 1 happy path + 1 sad path per story. Valid source types (exactly three):
 - [ ] Implementation notes written if agent deviated from spec
 
 ### Effort estimate
-Unit = token budget. 1 ≈ 30K–60K tokens (single slice). See [Effort calibration table](../triage/references/effort-calibration.md).
+Unit = token budget. 1 ≈ 30K–60K tokens (single slice). See [Effort calibration table](../harness-triage/references/effort-calibration.md).
 
 ---
 
@@ -118,7 +118,7 @@ Unit = token budget. 1 ≈ 30K–60K tokens (single slice). See [Effort calibrat
 
 ## Enforced issue template
 
-Every issue created by `/to-issues` must follow this exact structure:
+Every issue created by `/harness-issues` must follow this exact structure:
 
 ```markdown
 ## Story

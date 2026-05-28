@@ -1,6 +1,6 @@
 ---
-name: write-a-skill
-description: Create new agent skills with proper structure, progressive disclosure, and bundled resources. Use when user wants to create, write, or build a new skill.
+name: write-harness-skill
+description: Create new harness-compatible agent skills with proper structure, progressive disclosure, and bundled resources — includes harness-specific checklist (token budget, setup-harness-skills reference, AI footer, creation gates). Use when user wants to create, write, or build a new skill.
 ---
 
 # Writing Skills

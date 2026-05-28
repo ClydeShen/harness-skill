@@ -34,9 +34,9 @@ skills/
       evals/evals.json
       references/
     setup-harness-skills/  context-handover/  session-start/
-    triage/  to-prd/  to-issues/  zoom-out/  grill-with-docs/
+    harness-triage/  harness-prd/  harness-issues/  harness-guide/
   productivity/
-    caveman/  grill-me/  handoff/  write-a-skill/
+    write-harness-skill/  skill-cleanup/
 evals/
   run_evals.py               ← promptfoo runner (discovers all skill configs)
   promptfoo/
@@ -126,17 +126,13 @@ Install via `bash scripts/link-skills.sh`. Invoke with `/skill-name`.
 | `setup-harness-skills` | One-time project harness configuration |
 | `context-handover` | Package session context for handoff to next session |
 | `session-start` | Resume from last session state in `.planning/STATE.md` |
-| `triage` | Triage GitHub issues with canonical labels |
-| `to-prd` | Convert conversation context into a PRD issue |
-| `to-issues` | Break a PRD into scoped GitHub issues |
-| `zoom-out` | Step back and reframe current work |
-| `grill-with-docs` | Stress-test a plan against domain docs and ADRs |
+| `harness-triage` | Triage GitHub issues with effort calibration and agent brief generation |
+| `harness-prd` | Convert conversation context into a GSD-compatible PRD |
+| `harness-issues` | Break a PRD into vertical-slice issues with enforced AC template and PLAN.md |
 | `harness-guide` | Continuously guide project toward Harness and Compound Engineering best practices |
 
 ### Productivity
 | Skill | Purpose |
 |---|---|
-| `caveman` | Simplify ideas to first principles |
-| `grill-me` | Interview-style plan stress-test |
-| `handoff` | Compact conversation into a handoff document |
-| `write-a-skill` | Create a new agent skill with proper structure |
+| `write-harness-skill` | Create a new harness-compatible agent skill with proper structure |
+| `skill-cleanup` | Scan installed skills, detect stale/renamed/duplicate entries |

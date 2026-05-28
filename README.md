@@ -1,11 +1,9 @@
 # Harness Engineering Skills
 
-[![skills.sh](https://skills.sh/b/ClydeShen/harness-skill)](https://skills.sh/ClydeShen/harness-skill)
-[![CI](https://github.com/ClydeShen/harness-skill/actions/workflows/ci.yml/badge.svg)](https://github.com/ClydeShen/harness-skill/actions/workflows/ci.yml)
+[![skills.sh](https://skills.sh/b/clydeshen/harness-skill)](https://skills.sh/b/clydeshen/harness-skill)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-2.6.0-blue)](https://github.com/ClydeShen/harness-skill/releases)
 [![GitHub last commit](https://img.shields.io/github/last-commit/ClydeShen/harness-skill)](https://github.com/ClydeShen/harness-skill/commits/main)
-[![GitHub stars](https://img.shields.io/github/stars/ClydeShen/harness-skill?style=social)](https://github.com/ClydeShen/harness-skill/stargazers)
 
 Agent skills for compound engineering workflows — structured sessions, context handover, issue lifecycle, and harness health.
 

@@ -7,7 +7,7 @@ prompts:
 
 providers:
   - id: python:provider.py
-    label: llamacpp-context-handover
+    label: omlx-context-handover
     config:
       skill_name: context-handover
 
@@ -23,43 +23,41 @@ outputPath: output-context-handover.json
 tests:
 
   # ---------------------------------------------------------------------------
-  # Eval 1: execute phase, STATE.md present, issue #42
+  # Eval 1: execute phase, state.json present, issue #42
   # ---------------------------------------------------------------------------
-  - description: "#1 execute phase handover — STATE.md + issue #42"
+  - description: "#1 execute phase handover — state.json + issue #42"
     vars:
       prompt: "My context is at 82%. Please run context-handover. I'm working on issue #42 'Add auth middleware', execute phase."
       scaffold_files:
-        - ".harness/STATE.md with idle session_status current_focus 03-execute and issue 42"
+        - ".harness/state.json with status in_progress phase 03-execute active_task issue 42"
         - "CLAUDE.md"
     assert:
       - type: llm-rubric
-        value: Writes .continue-here.md under .harness/phases/03-execute/ — not .claude/handoff.md or a timestamped path
+        value: Writes .continue-here.json under .harness/phases/03-execute/ — not .claude/handoff.md or a timestamped path
       - type: llm-rubric
-        value: .continue-here.md includes YAML frontmatter with phase, task, status, last_updated fields
+        value: .continue-here.json includes JSON fields phase, task, status, last_updated, next_action, completed_work, remaining_work
       - type: llm-rubric
-        value: .continue-here.md includes XML sections including <next_action> and <completed_work>
-      - type: llm-rubric
-        value: Updates STATE.md Session Continuity to session_status idle
+        value: Updates .harness/state.json session.status to idle
       - type: llm-rubric
         value: Instructs user to type /compact — does NOT invoke /compact programmatically
       - type: llm-rubric
         value: Instructs user to start next session with /session-start
 
   # ---------------------------------------------------------------------------
-  # Eval 2: No STATE.md — falls back gracefully
+  # Eval 2: No state.json — falls back gracefully
   # ---------------------------------------------------------------------------
-  - description: "#2 no STATE.md — fallback chain, still writes handoff"
+  - description: "#2 no state.json — fallback chain, still writes handoff"
     vars:
       prompt: "Please do a context handover. I'm getting close to the limit."
       scaffold_files:
         - "package.json"
     assert:
       - type: llm-rubric
-        value: Still writes a .continue-here.md or fallback handoff doc despite missing STATE.md
+        value: Still writes a .continue-here.json or fallback handoff doc despite missing state.json
       - type: llm-rubric
-        value: Does NOT error or refuse because STATE.md is absent
+        value: Does NOT error or refuse because state.json is absent
       - type: llm-rubric
-        value: Notes somewhere that phase was inferred (not from STATE.md)
+        value: Notes somewhere that phase was inferred (not from state.json)
 
   # ---------------------------------------------------------------------------
   # Eval 3: User states next session focus — references artifacts by path
@@ -70,13 +68,13 @@ tests:
       scaffold_files:
         - "CLAUDE.md"
         - "MEMORY.md"
-        - ".harness/STATE.md with idle session_status current_focus 03-execute"
+        - ".harness/state.json with status in_progress phase 03-execute"
     assert:
       - type: llm-rubric
-        value: .continue-here.md does not inline the content of MEMORY.md or any source files
+        value: .continue-here.json does not inline the content of MEMORY.md or any source files
       - type: llm-rubric
-        value: .continue-here.md references MEMORY.md by path only
+        value: .continue-here.json references MEMORY.md by path only
       - type: llm-rubric
-        value: <next_action> reflects the user's stated focus on writing tests
+        value: next_action field reflects the user's stated focus on writing tests
       - type: llm-rubric
         value: Instructs user to type /compact

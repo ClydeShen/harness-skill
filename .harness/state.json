@@ -3,12 +3,12 @@
   "session": {
     "status": "idle",
     "started_at": "2026-05-29T03:00:00Z",
-    "last_session": "2026-05-29T05:35:00Z"
+    "last_session": "2026-05-29T09:45:00Z"
   },
   "position": {
-    "phase": "01-discuss",
-    "active_task": "Configure promptfoo eval provider for local llama.cpp",
-    "resume_file": ".harness/phases/01-discuss/.continue-here.json",
-    "stopped_at": "Created .env.local pointing to llama.cpp on port 8081 with qwen2.5-coder-32b-instruct-q5_k_m.gguf; evals not yet run"
+    "phase": "03-execute",
+    "active_task": "Implement .github template fix for setup-harness-skills (issue #10)",
+    "resume_file": ".harness/phases/03-execute/.continue-here.json",
+    "stopped_at": "Design spec approved, issue #10 created and moved to Ready for Agent, sync-status CI fixed and pushed"
   }
 }

@@ -119,6 +119,10 @@ After all five sections, show the draft of what will be written and confirm befo
 - `.claude/handoff.md` → map into `.continue-here.json` fields (lossy — preserves content in `context`)
 - Old files are NOT deleted — user confirms before removal
 
+### .claude/harness.json — project_fields (written by Step 5)
+
+When a GitHub Project v2 board is configured, Step 5 appends a `project_fields` key with field IDs and option maps. Downstream skills (`harness-triage`, `harness-issues`) read this key before syncing board fields. If absent, those skills skip board sync and print a warning.
+
 Print a setup summary at the end: ✅ completed · ⚠️ requires manual action · 📁 files written.
 
 Then: "Run `/session-start` to begin your first session."

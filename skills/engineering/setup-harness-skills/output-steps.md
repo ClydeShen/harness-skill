@@ -81,9 +81,85 @@ gh api repos/{owner}/{repo}/milestones --method POST --field title="v1.0"
 ## Step 5 — Create GitHub Project v2 board
 
 Only if user opted in during Section D:
-- Create board via `gh project create`
-- Add `Effort (windows)` number field
-- Write `project_v2_id` and `project_board_name` back to `harness.json`
+
+1. Create board and add `Effort (windows)` number field:
+   ```bash
+   PROJECT_NUMBER=$(gh project create --owner "$OWNER" --title "$BOARD_NAME" --format json --jq '.number')
+   gh project field-create $PROJECT_NUMBER --owner "$OWNER" \
+     --name "Effort (windows)" --data-type "NUMBER"
+   ```
+
+2. Create `Priority` and `Size` single-select fields if not already present (idempotent — check existing fields first):
+   ```bash
+   # Check existing fields before creating
+   EXISTING=$(gh project field-list $PROJECT_NUMBER --owner "$OWNER" --format json --jq '[.fields[].name]')
+
+   # Create Priority if absent
+   echo "$EXISTING" | grep -q '"Priority"' || \
+     gh project field-create $PROJECT_NUMBER --owner "$OWNER" \
+       --name "Priority" --data-type "SINGLE_SELECT" \
+       --single-select-options "P1,P2,P3"
+
+   # Create Size if absent
+   echo "$EXISTING" | grep -q '"Size"' || \
+     gh project field-create $PROJECT_NUMBER --owner "$OWNER" \
+       --name "Size" --data-type "SINGLE_SELECT" \
+       --single-select-options "XS,S,M,L,XL"
+   ```
+
+3. Query field metadata to capture IDs and option maps:
+   ```bash
+   PROJECT_ID=$(gh project view $PROJECT_NUMBER --owner "$OWNER" --format json --jq '.id')
+
+   gh api graphql -f query='
+   query($board: ID!) {
+     node(id: $board) {
+       ... on ProjectV2 {
+         fields(first: 20) {
+           nodes {
+             ... on ProjectV2SingleSelectField { id name options { id name } }
+             ... on ProjectV2Field { id name dataType }
+           }
+         }
+       }
+     }
+   }' -f board="$PROJECT_ID"
+   ```
+
+   Map results:
+   - Field named `Priority` → `project_fields.priority` (`id` + `options` map `{P1: <id>, P2: <id>, P3: <id>}`)
+   - Field named `Size` → `project_fields.size` (`id` + `options` map `{XS: <id>, S: <id>, M: <id>, L: <id>, XL: <id>}`)
+   - Field named `Effort (windows)` → `project_fields.effort` (`id` only)
+   - Skip any field not found (partial population is valid).
+
+4. Merge `project_fields` key into `.claude/harness.json` (idempotent — merge over existing values; never overwrite keys already present):
+   ```json
+   {
+     "project_fields": {
+       "priority": {
+         "id": "<PVTSSF_... from board>",
+         "options": { "P1": "<option-id>", "P2": "<option-id>", "P3": "<option-id>" }
+       },
+       "size": {
+         "id": "<PVTSSF_... from board>",
+         "options": {
+           "XS": "<option-id>",
+           "S":  "<option-id>",
+           "M":  "<option-id>",
+           "L":  "<option-id>",
+           "XL": "<option-id>"
+         }
+       },
+       "effort": {
+         "id": "<PVTF_... from board>"
+       }
+     }
+   }
+   ```
+
+5. Write `project_v2_id`, `project_board_name`, and `project_number` back to `harness.json`.
+
+**Graceful degradation:** If the board has no Priority/Size/Effort (windows) fields, omit the corresponding sub-key. Downstream skills check for key presence before calling mutations.
 
 ## Step 6 — Configure branch protection
 

@@ -34,6 +34,10 @@ nul
 evals/run_results.log
 
 # Harness session handoff docs — ephemeral, never commit
+.harness/phases/*/.continue-here.json
+.harness/state.json
+
+# Legacy harness paths (pre-rename)
 .planning/phases/*/.continue-here.md
 
 # memobank

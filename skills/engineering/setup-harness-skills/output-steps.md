@@ -100,10 +100,42 @@ If this fails (insufficient permissions): record as "Requires manual action" in 
 
 ## Step 7 — Scaffold `.github/workflows/ci.yml`
 
-Stack-specific based on files detected in Step 1:
-- Node.js (`package.json` present): Node CI template
-- Python (`requirements.txt` / `pyproject.toml`): Python CI template
-- Unknown stack: minimal placeholder CI
+**Idempotency guard:** Before writing, check for any `*.yml` in `.github/workflows/`. If any exist, skip this step and record in the setup summary:
+
+```
+⚠️ CI scaffold skipped — existing workflows found
+```
+
+**When no workflows exist:** Write a minimal stack-agnostic placeholder:
+
+```yaml
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # TODO: add your build/test steps here
+```
+
+Record in the setup summary: `✅ .github/workflows/ci.yml written (placeholder — customize for your stack)`
+
+## Step 7a — Write harness issue templates to `.github/ISSUE_TEMPLATE/`
+
+Copy from this skill's `github-issue-templates/` folder to `.github/ISSUE_TEMPLATE/` in the target project.
+
+Idempotent: skip any file that already exists at the destination.
+
+Files to copy:
+- `github-issue-templates/harness-issue.md` → `.github/ISSUE_TEMPLATE/harness-issue.md`
+- `github-issue-templates/bug-report.md` → `.github/ISSUE_TEMPLATE/bug-report.md`
+
+Record in the setup summary:
+```
+✅ .github/ISSUE_TEMPLATE/harness-issue.md written
+✅ .github/ISSUE_TEMPLATE/bug-report.md written
+```
 
 ## Step 8 — Write `.claude/hooks/` and configure `.claude/settings.json`
 

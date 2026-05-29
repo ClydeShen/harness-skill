@@ -39,7 +39,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       issues: write
-      projects: write
     steps:
       - name: Map label to status option ID
         id: map
@@ -116,7 +115,6 @@ jobs:
     permissions:
       issues: write
       pull-requests: read
-      projects: write
     steps:
       - name: Get linked closing issues
         id: linked
@@ -231,7 +229,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       issues: read
-      projects: write
     steps:
       - name: Backfill
         env:

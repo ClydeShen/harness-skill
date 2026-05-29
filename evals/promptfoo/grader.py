@@ -79,7 +79,6 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
                     "messages": messages,
                     "temperature": 0,
                     "max_tokens": 512,
-                    "chat_template_kwargs": {"enable_thinking": False},
                 },
                 timeout=120,
             )

@@ -77,6 +77,38 @@ Show counts and a one-line summary per issue. Let the maintainer pick.
    - `wontfix` (enhancement) — write to `.out-of-scope/`, link to it from a comment, then close ([OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)).
    - `needs-triage` — apply the role. Optional comment if there's partial progress.
 
+## Board field sync
+
+**Trigger:** After the maintainer confirms `ready-for-agent` or `ready-for-human` AND the agent brief comment is posted.
+
+**Guard:** Read `.claude/harness.json` → `project_fields`. If absent or empty:
+```
+⚠️ project_fields not in harness.json — skipping board field sync. Run /setup-harness-skills to populate.
+```
+Do not block the triage outcome — continue even if sync is skipped.
+
+**Effort-to-Size mapping:**
+
+| Effort (windows) | Size |
+|---|---|
+| 1 | XS |
+| 2 | S |
+| 3–4 | M |
+| 5–6 | L |
+| 7+ | XL |
+
+**Sequence:**
+
+1. Read `github.project_v2_id` from `.claude/harness.json` — this is the `projectId` for all mutations.
+2. Query `repository.issue.projectItems` to get the board item ID. If the issue is not yet on the board, call `addProjectV2ItemByContentId(projectId, contentId: issueNodeId)` to add it and capture the new item ID.
+3. Parse Effort integer from the agent brief text (`**Effort:** N` line).
+4. Derive Size from Effort using the mapping above.
+5. Ask maintainer for Priority — one question, after brief is confirmed: `"Priority? P1 / P2 / P3 / skip"` — default skip.
+6. Call `updateProjectV2ItemFieldValue` for Effort (number), Size (singleSelectOptionId), and Priority (if not skipped).
+7. Print confirmation: `✅ Board fields updated — Effort: N, Size: X, Priority: Pn` (or `Priority: not set`).
+
+**Error handling:** If any mutation fails (e.g. token lacks project scope), print `⚠️ Board field update failed: <error>` and continue — do not block the triage outcome.
+
 ## Quick state override
 
 If the maintainer says "move #42 to ready-for-agent", trust them and apply the role directly. Skip grilling entirely. Confirm the mechanical steps first, then ask separately about a brief:

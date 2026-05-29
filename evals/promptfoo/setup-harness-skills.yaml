@@ -101,3 +101,40 @@ tests:
         value: Does NOT create a new config.json from scratch — merges into existing
       - type: llm-rubric
         value: Notes that GSD is already installed and confirms the integration
+
+  # ---------------------------------------------------------------------------
+  # Eval 5: CI idempotency — existing workflows detected, Step 7 skipped
+  # ---------------------------------------------------------------------------
+  - description: "#5 CI idempotency — skips Step 7 when workflows exist"
+    vars:
+      prompt: "/setup-harness-skills"
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - ".github/workflows/test.yml with existing workflow"
+    assert:
+      - type: llm-rubric
+        value: Detects existing .github/workflows/*.yml file during the explore step
+      - type: llm-rubric
+        value: Skips CI scaffold (Step 7) and records "CI scaffold skipped — existing workflows found" in the setup summary
+      - type: llm-rubric
+        value: Does NOT overwrite or modify the existing workflow file
+
+  # ---------------------------------------------------------------------------
+  # Eval 6: Issue templates written — Step 7a
+  # ---------------------------------------------------------------------------
+  - description: "#6 issue templates — Step 7a writes harness-issue.md and bug-report.md"
+    vars:
+      prompt: "/setup-harness-skills"
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+    assert:
+      - type: llm-rubric
+        value: Writes .github/ISSUE_TEMPLATE/harness-issue.md with Story / Confidence / Acceptance Criteria / Definition of Done / Effort / Dependencies sections
+      - type: llm-rubric
+        value: Writes .github/ISSUE_TEMPLATE/bug-report.md with What's broken / Steps to reproduce / Expected behavior / Acceptance Criteria / Definition of Done sections
+      - type: llm-rubric
+        value: Records "✅ .github/ISSUE_TEMPLATE/harness-issue.md written" and "✅ .github/ISSUE_TEMPLATE/bug-report.md written" in the setup summary
+      - type: llm-rubric
+        value: Step 7a is idempotent — skips any file that already exists at the destination

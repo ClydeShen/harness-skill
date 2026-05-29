@@ -28,9 +28,7 @@ tests:
   - description: "#1 new project — explore-first, CLAUDE.md present"
     vars:
       prompt: "I'm starting a new Next.js project and want to use harness skills. Please set up the harness."
-      scaffold_files:
-        - "package.json with next.js"
-        - "CLAUDE.md"
+      scaffold_files: '["package.json with next.js", "CLAUDE.md"]'
     assert:
       - type: llm-rubric
         value: Explores project state first (reads .git/config, existing instruction files, docs/agents/) before asking any questions
@@ -53,11 +51,7 @@ tests:
   - description: "#2 update existing harness — docs/agents/ already configured"
     vars:
       prompt: "I want to update the harness setup. I already ran setup before — docs/agents/ exists with config files."
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
-        - "docs/agents/issue-tracker.md with github issues config"
-        - "docs/agents/triage-labels.md"
+      scaffold_files: '["package.json", "CLAUDE.md", "docs/agents/issue-tracker.md with github issues config", "docs/agents/triage-labels.md"]'
     assert:
       - type: llm-rubric
         value: Detects existing docs/agents/ config files during the explore step and notes them explicitly
@@ -72,8 +66,7 @@ tests:
   - description: "#3 no instruction file — asks CLAUDE.md or AGENTS.md"
     vars:
       prompt: "Set up harness skills for this project. There is no CLAUDE.md or AGENTS.MD yet."
-      scaffold_files:
-        - "package.json"
+      scaffold_files: '["package.json"]'
     assert:
       - type: llm-rubric
         value: Detects that neither CLAUDE.md nor AGENTS.md exists during the explore step
@@ -88,10 +81,7 @@ tests:
   - description: "#4 GSD already installed — configure harness namespace without overwriting GSD keys"
     vars:
       prompt: "/setup-harness-skills"
-      scaffold_files:
-        - ".harness/config.json without harness key"
-        - "CLAUDE.md"
-        - ".git/config with remote origin"
+      scaffold_files: '[".harness/config.json without harness key", "CLAUDE.md", ".git/config with remote origin"]'
     assert:
       - type: llm-rubric
         value: Detects .harness/config.json is present (GSD installed)
@@ -108,10 +98,7 @@ tests:
   - description: "#5 CI idempotency — skips Step 7 when workflows exist"
     vars:
       prompt: "/setup-harness-skills"
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
-        - ".github/workflows/test.yml with existing workflow"
+      scaffold_files: '["package.json", "CLAUDE.md", ".github/workflows/test.yml with existing workflow"]'
     assert:
       - type: llm-rubric
         value: Detects existing .github/workflows/*.yml file during the explore step
@@ -126,9 +113,7 @@ tests:
   - description: "#6 issue templates — Step 7a writes harness-issue.md and bug-report.md"
     vars:
       prompt: "/setup-harness-skills"
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
+      scaffold_files: '["package.json", "CLAUDE.md"]'
     assert:
       - type: llm-rubric
         value: Writes .github/ISSUE_TEMPLATE/harness-issue.md with Story / Confidence / Acceptance Criteria / Definition of Done / Effort / Dependencies sections
@@ -145,10 +130,7 @@ tests:
   - description: "#7 project_fields written — Step 5 queries board metadata and writes project_fields"
     vars:
       prompt: "/setup-harness-skills"
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
-        - ".claude/harness.json with project_v2_id set to PVT_abc123"
+      scaffold_files: '["package.json", "CLAUDE.md", ".claude/harness.json with project_v2_id"]'
     assert:
       - type: llm-rubric
         value: After creating the board, queries board field metadata using gh api graphql to retrieve field IDs for Priority, Size, and Effort (windows)
@@ -163,10 +145,7 @@ tests:
   - description: "#8 project_fields idempotent — re-run merges, never overwrites existing keys"
     vars:
       prompt: "/setup-harness-skills"
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
-        - ".claude/harness.json with project_fields.priority already populated"
+      scaffold_files: '["package.json", "CLAUDE.md", ".claude/harness.json with project_fields populated"]'
     assert:
       - type: llm-rubric
         value: When project_fields already contains populated keys, the skill merges over existing values and does NOT overwrite keys that are already present

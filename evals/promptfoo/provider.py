@@ -9,6 +9,7 @@ Config (set in promptfooconfig per provider):
               Resolved to skills/<category>/<skill_name>/ under the repo root.
 """
 
+import json
 import os
 import sys
 import tempfile
@@ -66,7 +67,16 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
         _SYSTEM_CACHE[skill_name] = _load_system_prompt(skill_dir)
 
     system_prompt = _SYSTEM_CACHE[skill_name]
-    scaffold_files = context.get("vars", {}).get("scaffold_files") or []
+    # scaffold_files may be a JSON string (to prevent promptfoo list expansion)
+    # or already a list (when called programmatically).
+    raw = context.get("vars", {}).get("scaffold_files") or []
+    if isinstance(raw, str):
+        try:
+            scaffold_files = json.loads(raw)
+        except (ValueError, json.JSONDecodeError):
+            scaffold_files = [raw] if raw else []
+    else:
+        scaffold_files = raw
 
     with tempfile.TemporaryDirectory(prefix="pf_proj_") as project_dir:
         if scaffold_files:

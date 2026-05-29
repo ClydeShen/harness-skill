@@ -30,10 +30,7 @@ tests:
       prompt: >
         /harness-issues
         Break down the authentication feature from our PRD into implementation issues.
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
-        - "docs/prd.md with a feature spec for user authentication"
+      scaffold_files: '["package.json", "CLAUDE.md", "docs/prd.md with a feature spec for user authentication"]'
     assert:
       - type: llm-rubric
         value: Breaks the plan into vertical slices — each slice cuts through all integration layers end-to-end, not a single horizontal layer
@@ -50,10 +47,7 @@ tests:
       prompt: >
         /harness-issues
         Create issues for the payment integration feature. We have a PRD ready.
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
-        - "docs/prd.md with payment integration spec"
+      scaffold_files: '["package.json", "CLAUDE.md", "docs/prd.md with payment integration spec"]'
     assert:
       - type: llm-rubric
         value: Published issues contain a Story section (As a [role], I want [capability], so that [benefit])
@@ -70,9 +64,7 @@ tests:
       prompt: >
         /harness-issues #5
         Break down issue #5 from the tracker into implementation issues.
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
+      scaffold_files: '["package.json", "CLAUDE.md"]'
     assert:
       - type: llm-rubric
         value: Fetches issue #5 from the tracker and reads its full body and comments before drafting
@@ -89,9 +81,7 @@ tests:
       prompt: >
         /harness-issues
         Create issues for a vague feature: "improve the admin dashboard". No spec exists.
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
+      scaffold_files: '["package.json", "CLAUDE.md"]'
     assert:
       - type: llm-rubric
         value: Does NOT immediately create issues — flags that the feature is not estimable or not specific enough before creation
@@ -106,10 +96,7 @@ tests:
       prompt: >
         /harness-issues
         Break down the CSV export feature into issues and create the PLAN.md.
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
-        - "docs/prd.md with CSV export spec"
+      scaffold_files: '["package.json", "CLAUDE.md", "docs/prd.md with CSV export spec"]'
     assert:
       - type: icontains
         value: ".harness/phases/02-plan"
@@ -126,11 +113,7 @@ tests:
       prompt: >
         /harness-issues
         Break down the CSV export feature into issues and sync board fields.
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
-        - "docs/prd.md with CSV export spec including Effort estimates and priority:p2 labels"
-        - ".claude/harness.json with project_fields populated"
+      scaffold_files: '["package.json", "CLAUDE.md", "docs/prd.md with CSV export spec", ".claude/harness.json with project_fields populated"]'
     assert:
       - type: llm-rubric
         value: After each issue is created, fetches the issue node ID and adds it to the project board
@@ -147,11 +130,7 @@ tests:
       prompt: >
         /harness-issues
         Create issues for the search feature.
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
-        - "docs/prd.md with search feature spec"
-        - ".claude/harness.json WITHOUT project_fields key"
+      scaffold_files: '["package.json", "CLAUDE.md", "docs/prd.md with search feature spec", ".claude/harness.json without project_fields"]'
     assert:
       - type: llm-rubric
         value: When project_fields is absent from harness.json, prints a warning containing "project_fields not in harness.json" and mentions running /setup-harness-skills

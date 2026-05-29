@@ -1,6 +1,8 @@
 name: Sync status labels and PRs to project board
 
 on:
+  push:
+    branches: [main]
   issues:
     types: [labeled]
   pull_request:
@@ -19,6 +21,16 @@ env:
   REPO: harness-skill
 
 jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # No-op: push events don't need sync — ensures the run isn't marked failed
+  # ─────────────────────────────────────────────────────────────────────────────
+  no-op:
+    name: No-op (push)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Push event — no sync needed"
+
   # ─────────────────────────────────────────────────────────────────────────────
   # Job 1: status:* label applied to an issue → move board column
   # ─────────────────────────────────────────────────────────────────────────────

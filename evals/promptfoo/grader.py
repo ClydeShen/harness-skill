@@ -5,12 +5,13 @@ returns a JSON verdict: {"pass": bool, "score": float, "reason": str}.
 """
 
 import json
+import os
 import time
 
 import requests
 
-API_BASE = "http://127.0.0.1:8081/v1"
-MODEL = "Qwen3.6-35B-A3B-UD-Q5_K_M.gguf"
+API_BASE = os.getenv("EVAL_API_BASE", "http://localhost:8080/v1")
+MODEL = os.getenv("EVAL_GRADER_MODEL", "default-model")
 
 _SYSTEM = (
     "You are a strict pass/fail evaluator for LLM responses. "
@@ -85,7 +86,7 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
             resp.raise_for_status()
             raw = resp.json()["choices"][0]["message"]["content"].strip()
         except requests.exceptions.ConnectionError:
-            return {"error": "llamacpp server not reachable at 127.0.0.1:8081"}
+            return {"error": f"llamacpp server not reachable at {API_BASE}"}
         except Exception as exc:
             return {"error": str(exc)}
 

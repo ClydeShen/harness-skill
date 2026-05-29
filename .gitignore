@@ -27,6 +27,9 @@ node_modules/
 # GoalBuddy planning artifacts
 docs/goals/
 
+# Local env overrides — machine-specific, never commit
+.env.local
+
 # Windows NUL device artifact
 nul
 

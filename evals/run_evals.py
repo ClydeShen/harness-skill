@@ -8,19 +8,30 @@ Usage:
 
 Each skill has a dedicated config in evals/promptfoo/<skill-name>.yaml.
 Both the response provider and the LLM judge connect to a llamacpp server
-running at 127.0.0.1:8081 (see evals/promptfoo/provider.py and grader.py).
+configured via EVAL_API_BASE (see .env.local / .env.example).
 
 The --filter flag is forwarded to promptfoo's --filter-pattern to run
 only tests whose description matches the given regex (e.g. "#2").
 """
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).parent.parent
 PROMPTFOO_DIR = Path(__file__).parent / "promptfoo"
+
+# Load .env.local from repo root if present
+_env_local = REPO_ROOT / ".env.local"
+if _env_local.exists():
+    for line in _env_local.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            key, _, value = line.partition("=")
+            os.environ.setdefault(key.strip(), value.strip())
 PROMPTFOO_EXE = shutil.which("promptfoo") or shutil.which("promptfoo.cmd") or "promptfoo"
 
 

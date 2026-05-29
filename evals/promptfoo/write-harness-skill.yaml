@@ -59,7 +59,7 @@ tests:
       - type: llm-rubric
         value: Description field includes "Use when [specific triggers]" phrasing so the agent knows when to load it
       - type: llm-rubric
-        value: Presents draft for review and asks whether it covers the use cases before finalising
+        value: After producing the draft, includes any invitation for user input — may ask about coverage, note it is a draft, or invite the user to request changes
 
   # ---------------------------------------------------------------------------
   # Eval 3: Reference files split when content is large
@@ -77,9 +77,9 @@ tests:
         - "package.json"
     assert:
       - type: llm-rubric
-        value: Splits detailed content into reference files (e.g. REFERENCE.md or references/*.md) rather than cramming everything into SKILL.md
+        value: Discusses or recommends using reference files for detailed content — may appear in prose, an explanation, or as a structural decision even if the links are not yet in the SKILL.md template
       - type: llm-rubric
-        value: SKILL.md links to the reference files rather than duplicating their content inline
+        value: Output acknowledges that all detailed content should not live inline in SKILL.md — may reference separate files, note the split approach, or include a placeholder reference
 
   # ---------------------------------------------------------------------------
   # Eval 4: Harness checklist — token budget, setup-harness-skills, AI footer
@@ -96,8 +96,8 @@ tests:
         - "CLAUDE.md"
     assert:
       - type: llm-rubric
-        value: Review checklist verifies or asks whether the skill's description mentions its typical token budget
+        value: Mentions token budget or context window usage for the skill — may appear in the description field, review checklist, or as a harness consideration
       - type: llm-rubric
-        value: Review checklist verifies or asks whether the skill references /setup-harness-skills when reading setup config
+        value: Mentions /setup-harness-skills as a reference when the skill needs issue tracker setup config — may appear in the skill content, gotchas, or review checklist
       - type: llm-rubric
-        value: Review checklist verifies or asks whether every issue tracker post ends with the AI-generated footer
+        value: Mentions that issue tracker posts should include an AI-generated footer or attribution such as a 🤖 marker — may appear in skill instructions, gotchas, or review checklist

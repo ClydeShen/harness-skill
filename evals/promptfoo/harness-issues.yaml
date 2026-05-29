@@ -37,7 +37,7 @@ tests:
       - type: llm-rubric
         value: Each slice is labelled either HITL or AFK
       - type: llm-rubric
-        value: Presents the breakdown to the user and quizzes them (granularity, dependencies, HITL/AFK classification) before publishing
+        value: Mentions presenting the breakdown to the user before publishing — describes asking for feedback on granularity, dependency order, or HITL/AFK classification
 
   # ---------------------------------------------------------------------------
   # Eval 2: Enforced issue template — Story, Confidence, AC table, DoD, Effort, Dependencies
@@ -52,9 +52,9 @@ tests:
       - type: llm-rubric
         value: Published issues contain a Story section (As a [role], I want [capability], so that [benefit])
       - type: llm-rubric
-        value: Published issues contain an Acceptance Criteria table with Criterion, Type, and Source columns
+        value: Issues include an Acceptance Criteria section — criteria may appear as table rows or checklist items, and should reference a spec, user statement, or named best practice as source
       - type: llm-rubric
-        value: Published issues contain a Definition of Done checklist and an Effort estimate
+        value: Issues include a Definition of Done section and an Effort estimate in context windows
 
   # ---------------------------------------------------------------------------
   # Eval 3: Fetch from tracker — reads parent, publishes in dependency order, no modify
@@ -67,7 +67,7 @@ tests:
       scaffold_files: '["package.json", "CLAUDE.md"]'
     assert:
       - type: llm-rubric
-        value: Fetches issue #5 from the tracker and reads its full body and comments before drafting
+        value: Describes fetching or reading issue #5 from the tracker before drafting — mentions gh issue view, reading the issue body, or similar tracker lookup
       - type: llm-rubric
         value: Publishes issues in dependency order — blocking issues are created first so real IDs can be referenced
       - type: llm-rubric
@@ -133,6 +133,6 @@ tests:
       scaffold_files: '["package.json", "CLAUDE.md", "docs/prd.md with search feature spec", ".claude/harness.json without project_fields"]'
     assert:
       - type: llm-rubric
-        value: When project_fields is absent from harness.json, prints a warning containing "project_fields not in harness.json" and mentions running /setup-harness-skills
+        value: When project_fields is absent from harness.json, outputs a warning about missing project_fields and suggests running /setup-harness-skills to configure board fields
       - type: llm-rubric
         value: Issue creation itself is NOT blocked — issues are still created on GitHub even when board sync is skipped

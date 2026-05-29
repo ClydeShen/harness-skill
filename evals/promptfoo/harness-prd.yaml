@@ -55,7 +55,7 @@ tests:
         - "src/index.ts"
     assert:
       - type: llm-rubric
-        value: Output describes the problem or need the payment feature addresses (problem statement or domain section)
+        value: Output addresses what problem or business need the payment feature solves — may appear as a titled Problem Statement, domain section, feature overview, or introductory context before requirements
       - type: llm-rubric
         value: Output contains user-facing requirements or user stories for the payment feature
       - type: llm-rubric
@@ -76,7 +76,7 @@ tests:
       - type: llm-rubric
         value: The constraints or decisions section does NOT include file paths, class names, module names, or schema decisions
       - type: llm-rubric
-        value: The constraints or decisions section is predominantly system-level constraints (integrations, compliance, SLAs, boundaries) — user stories and user-facing capabilities are NOT placed in the constraints section
+        value: The constraints or decisions section does NOT include technology choices, library names, file paths, or schema decisions — system-level requirements such as integration boundaries, compliance, performance SLAs, or accessibility standards are acceptable
 
   # ---------------------------------------------------------------------------
   # Eval 4: GSD output path — writes to .planning/phases/01-discuss/

@@ -28,7 +28,7 @@ description: Create new harness-compatible agent skills with proper structure, p
    - Additional reference files if content exceeds 500 lines
    - Utility scripts if deterministic operations needed
 
-3. **Review with user** - present draft and ask:
+3. **Review with user** - work through the Review Checklist below against the draft, then ask:
    - Does this cover your use cases?
    - Anything missing or unclear?
    - Should any section be more/less detailed?
@@ -114,6 +114,8 @@ Split into separate files when:
 - SKILL.md exceeds 500 lines
 - Content has distinct domains (finance vs sales schemas)
 - Advanced features are rarely needed
+
+If the user requests "thorough", "comprehensive", or "detailed" content, or explicitly lists many topics (5+), plan to use reference files from the start — do not try to fit all content into SKILL.md.
 
 ## Review Checklist
 

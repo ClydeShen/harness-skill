@@ -55,6 +55,40 @@ For each approved slice, publish a new issue to the issue tracker. Use the issue
 
 Publish issues in dependency order (blockers first) so you can reference real issue identifiers in the "Blocked by" field.
 
+#### Per-issue board field sync
+
+After each issue is created, sync its fields to the project board:
+
+**Guard:** Read `.claude/harness.json` → `project_fields`. If absent:
+```
+⚠️ project_fields not in harness.json — skipping board field sync. Run /setup-harness-skills to populate.
+```
+Issue creation is NOT blocked — continue even if sync is skipped.
+
+**Effort-to-Size mapping:**
+
+| Effort (windows) | Size |
+|---|---|
+| 1 | XS |
+| 2 | S |
+| 3–4 | M |
+| 5–6 | L |
+| 7+ | XL |
+
+**Sequence per issue:**
+
+1. Read `github.project_v2_id` from `.claude/harness.json` — this is the `projectId` for all mutations.
+2. Capture the issue number from `gh issue create` output.
+3. Fetch issue node ID: `gh issue view N --json id --jq '.id'`.
+4. Add to project board: `addProjectV2ItemByContentId(projectId, contentId: nodeId)` → capture item ID.
+5. Parse Effort integer from the issue body (`Estimate: **N context window(s)**` line).
+6. Derive Size from Effort using the mapping above.
+7. Resolve Priority from labels: `priority:p1 → P1`, `priority:p2 → P2`, `priority:p3 → P3`; skip if no priority label present.
+8. Call `updateProjectV2ItemFieldValue` for Effort (number) and Size (singleSelectOptionId); call for Priority if resolved.
+9. Print per-issue confirmation: `✅ #N board fields — Effort: N, Size: X, Priority: Pn / not set`.
+
+**Error handling:** Mutation failure is non-blocking — print `⚠️ Board field update failed for #N: <error>` and continue to the next issue.
+
 <issue-template>
 ## Parent
 

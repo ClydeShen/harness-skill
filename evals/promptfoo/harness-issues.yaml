@@ -117,3 +117,43 @@ tests:
         value: Writes a PLAN.md file at .harness/phases/02-plan/02-PLAN.md in addition to publishing GitHub issues
       - type: llm-rubric
         value: Each PLAN.md task block contains a title, type, effort, what-to-build, and acceptance criteria
+
+  # ---------------------------------------------------------------------------
+  # Eval 6: board field sync per issue — Effort, Size, Priority set after each creation
+  # ---------------------------------------------------------------------------
+  - description: "#6 board field sync per issue — syncs fields after each issue is created"
+    vars:
+      prompt: >
+        /harness-issues
+        Break down the CSV export feature into issues and sync board fields.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "docs/prd.md with CSV export spec including Effort estimates and priority:p2 labels"
+        - ".claude/harness.json with project_fields populated"
+    assert:
+      - type: llm-rubric
+        value: After each issue is created, fetches the issue node ID and adds it to the project board
+      - type: llm-rubric
+        value: Parses Effort from the issue body (Estimate line) and derives Size using the XS/S/M/L/XL mapping
+      - type: llm-rubric
+        value: Maps priority:p2 label to board Priority field value P2; prints per-issue confirmation with Effort, Size, and Priority
+
+  # ---------------------------------------------------------------------------
+  # Eval 7: board sync guard — skips with warning if project_fields absent
+  # ---------------------------------------------------------------------------
+  - description: "#7 board sync guard — skips per-issue sync when project_fields absent"
+    vars:
+      prompt: >
+        /harness-issues
+        Create issues for the search feature.
+      scaffold_files:
+        - "package.json"
+        - "CLAUDE.md"
+        - "docs/prd.md with search feature spec"
+        - ".claude/harness.json WITHOUT project_fields key"
+    assert:
+      - type: llm-rubric
+        value: When project_fields is absent from harness.json, prints a warning containing "project_fields not in harness.json" and mentions running /setup-harness-skills
+      - type: llm-rubric
+        value: Issue creation itself is NOT blocked — issues are still created on GitHub even when board sync is skipped

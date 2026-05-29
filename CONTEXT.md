@@ -136,7 +136,7 @@ The first action in every `context-handover` execution. The agent invokes the ac
 ### Implementation Notes
 A running artifact (markdown file) maintained during an execute phase session when the agent makes decisions not covered by the spec. Captures: decisions not in the spec, things changed from the original plan, tradeoffs accepted, and anything the next session or human reviewer should know. Not created for every issue — only when the agent deviated from the spec.
 
-Path: `docs/implementation-notes/YYYY-MM-DD-issue-NNN.md` (version controlled, permanent institutional knowledge). The agent links the file path in a closing GitHub issue comment. Distinct from CLAUDE.md (project-level institutional knowledge that applies universally) and the handoff document (session state for the next agent session).
+Path: `.harness/implementation-notes.md`. The agent links the file in a closing GitHub issue comment. Distinct from CLAUDE.md (project-level institutional knowledge that applies universally) and the handoff document (session state for the next agent session).
 
 ### Project Phase
 One of four project-level phases: discuss, plan, execute, verify. The default order is discuss → plan → execute → verify, but phases can be **skipped** or **reversed** based on existing artifacts:

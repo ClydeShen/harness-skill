@@ -1,11 +1,12 @@
 ---
 name: setup-harness-skills
 description: >
-  Sets up an ## Agent skills block in AGENTS.md/CLAUDE.md and docs/agents/ so
-  harness skills know the issue tracker, triage labels, domain docs, GitHub
-  Project board, and session state location. Run before first use of triage,
-  to-prd, to-issues, context-handover, or session-start — or if those skills
-  appear to be missing context. Typically consumes <30% of a context window.
+  Creates CLAUDE.md/AGENTS.md from the harness template (if absent) and
+  configures docs/agents/ so harness skills know the issue tracker, triage
+  labels, domain docs, GitHub Project board, and session state location. Run
+  before first use of triage, to-prd, to-issues, context-handover, or
+  session-start — or if those skills appear to be missing context. Typically
+  consumes <30% of a context window.
 disable-model-invocation: true
 ---
 
@@ -18,7 +19,7 @@ One-time gateway. **Explore first**, then ask questions one section at a time. N
 Before asking anything, read and report a **one-line summary**:
 
 1. `.git/config` → remote origin (owner/repo)
-2. `CLAUDE.md` / `AGENTS.md` → existing `## Agent skills` block?
+2. `CLAUDE.md` / `AGENTS.md` → present?
 3. `CONTEXT.md` → present?
 4. `docs/agents/` → prior setup files?
 5. `.harness/config.json` → prior GSD or harness setup? (read harness key if present)
@@ -27,7 +28,7 @@ Before asking anything, read and report a **one-line summary**:
 8. `.claude/harness.json` → old config to migrate? (deprecated — migrate values to .harness/config.json)
 9. `~/.claude/skills/` → any `gsd-*` skill present? Any of `brainstorming`, `systematic-debugging`, `writing-plans`, `subagent-driven-development` present?
 
-Example: "Found CLAUDE.md with no Agent skills block, no docs/agents/, GitHub remote owner/repo."
+Example: "Found CLAUDE.md (present), no docs/agents/, GitHub remote owner/repo."
 
 Append to the summary line if collections are missing:
 - Both absent: `"Tip: GSD Redux and Superpowers are recommended companion collections — see https://github.com/open-gsd/get-shit-done-redux and https://github.com/obra/superpowers"`
@@ -95,7 +96,7 @@ If custom: ask for model name (e.g. `qwen2.5-coder-32b`) and context window size
 
 ## Output
 
-After all five sections, show the draft of what will be written and confirm before writing. Then execute the 10-step output sequence in `output-steps.md` — it covers: `## Agent skills` block, `harness.json`, GitHub labels, milestones, Project v2 board, branch protection, CI scaffold, `.gitignore`, and seed files to `docs/agents/`.
+After all five sections, show the draft of what will be written and confirm before writing. Then execute the 10-step output sequence in `output-steps.md` — it covers: CLAUDE.md/AGENTS.md (only if absent, written from embedded template), `harness.json`, GitHub labels, milestones, Project v2 board, branch protection, CI scaffold, `.gitignore`, and seed files to `docs/agents/`.
 
 ### .harness/ files written by setup-harness-skills
 

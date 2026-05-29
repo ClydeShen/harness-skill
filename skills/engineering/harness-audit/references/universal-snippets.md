@@ -216,13 +216,13 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## 5. Harness Discipline
 
-**Long-running work fails silently. Make every session boundary explicit.**
+**Long-running work fails silently. Epistemic gaps compound into errors. Make both kinds of boundary explicit.**
 
-- Every session has a documented start state and end state — never begin without knowing where you are, never end without recording where to resume.
-- One active task at a time. Open threads without owners are handoffs waiting to get lost.
+- Don't fabricate. Every factual claim must trace to observed evidence, documentation, or established best practice. Confidence is not a source — if you cannot ground a claim, say so rather than presenting it as fact.
+- It's OK not to know. Say so explicitly instead of guessing. Proactively surface information gaps and ask what you need to proceed — don't fill them with plausible-sounding assumptions.
+- While implementing a spec, maintain a running `.harness/implementation-notes.md` capturing: decisions made that weren't covered by the spec, things that had to change from the original plan, tradeoffs you made, and anything else the human should know.
 - Exit criteria must be observable: a gate that passed, not a feeling that it's done. Name the anti-patterns: Fuzzy Done, Proxy Signal, Confidence Exit.
 - State lives outside the agent. The source of truth is the issue tracker, the handoff document, the config file — not working memory.
-- Don't fabricate. Every claim must trace to observed evidence, documentation, or established best practice — not to confidence or plausibility. When uncertain, say so and ask.
 
 ---
 

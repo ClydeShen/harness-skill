@@ -7,6 +7,8 @@
 
 Agent skills for compound engineering workflows — structured sessions, context handover, issue lifecycle, and harness health.
 
+**[Q&A — Practitioner Questions](./Q&A.md)** — deep-dive answers on memory systems, session lifecycle, GitHub Project rationale, anti-patterns, and evals.
+
 ---
 
 ## Quickstart

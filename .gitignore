@@ -40,8 +40,8 @@ evals/run_results.log
 .harness/phases/*/.continue-here.json
 .harness/state.json
 
-# Legacy harness paths (pre-rename)
-.planning/phases/*/.continue-here.md
+# Legacy harness paths (pre-rename, now abandoned)
+.planning/
 
 # memobank
 .memobank/.env
@@ -60,8 +60,3 @@ evals/run_results.log
 
 # agentmemory runtime data (local state store — never commit)
 data/
-
-# Planning research and ephemeral artifacts
-.planning/tavily-*.json
-.planning/harness-framework-mapping.md
-.planning/phases/

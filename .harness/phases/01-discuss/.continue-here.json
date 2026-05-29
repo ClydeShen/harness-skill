@@ -4,8 +4,8 @@
   "task": 1,
   "total_tasks": 1,
   "status": "in_progress",
-  "last_updated": "2026-05-29T06:00:00Z",
-  "current_state": "Docs updated, effort calibration corrected, eval pipeline migrated to omlx on macos branch.",
+  "last_updated": "2026-05-29T05:35:00Z",
+  "current_state": "Local llama.cpp provider configured. .env.local written with correct port and model. Evals not yet executed to confirm the setup works end-to-end.",
   "completed_work": [
     "Fetched agentskills.io/skill-creation/best-practices and audited all 10 SKILL.md files",
     "Fixed harness-audit, harness-guide, write-harness-skill per best-practices audit",
@@ -14,20 +14,23 @@
     "Updated effort calibration: 1 window = ~150K-200K tokens across all skill files (was ~30K-60K)",
     "Updated model list in setup-harness-skills: Opus 4.x / Sonnet 4.6 (1M), Haiku 4.5 (200K)",
     "Linked Q&A.md from README",
-    "Created macos branch: omlx eval provider at 127.0.0.1:8000, Qwen2.5-Coder-7B-Instruct-4bit, API key",
-    "Fixed context-handover eval assertions: aligned to .continue-here.json JSON format"
+    "Synced repo — pulled 20 commits (Q&A.md, skills.sh.json, roam CI workflow, provider env-var migration, skill SKILL.md updates)",
+    "Detected local LLM: llama.cpp on port 8081 (qwen2.5-coder-32b-instruct-q5_k_m.gguf), port 8082 (bge-m3 embeddings)",
+    "Created .env.local at repo root with EVAL_API_BASE=http://localhost:8081/v1, EVAL_PROVIDER_MODEL and EVAL_GRADER_MODEL set to qwen2.5-coder-32b-instruct-q5_k_m.gguf",
+    "Saved user LLM preference (llama.cpp) to memobank memory"
   ],
   "remaining_work": [
-    "Audit remaining eval yaml files for stale format references (STATE.md, .continue-here.md, YAML/XML sections)",
-    "Verify https://skills.sh/ClydeShen/harness-skill shows updated skill listing"
+    "Run evals to verify provider setup works: python evals/run_evals.py --skill harness-audit",
+    "Check all evals pass or triage failures",
+    "Audit remaining eval yaml files for stale format references (STATE.md, .continue-here.md, YAML/XML sections)"
   ],
   "decisions_made": [
     "Effort unit: 1 window = ~150K-200K tokens effective working budget (Opus 4.x / Sonnet 4.6; context rot ~150K-180K)",
-    "7B model eval FAIL is expected — eval infrastructure confirmed working, model too small for structured output (accepted)",
-    "macos branch strategy: Mac-local operational changes only; main stays cross-platform",
+    "Use port 8081 (not default 8080) — that is where llama.cpp is running on this machine",
+    "Same model for both provider and grader (qwen2.5-coder-32b-instruct-q5_k_m.gguf) — only one inference server available",
     "agentmemory first recommendation for coding agents; mem0 for general-purpose; MEMORY.md for zero-dep"
   ],
   "blockers": [],
-  "context": "Maintained on macOS (this machine) + Windows. macos branch has omlx provider config. main is cross-platform.",
-  "next_action": "Audit remaining eval yaml files (session-start, harness-audit, harness-guide, etc.) for stale STATE.md and format references."
+  "context": ".env.local is auto-loaded by evals/run_evals.py (lines 27-34). No code changes needed — env vars were already wired in the recent commits. Port 8080 is down; 8081 is the active inference server. Port 8082 runs bge-m3 embeddings (not used by evals).",
+  "next_action": "Run `python evals/run_evals.py --skill harness-audit` to confirm the provider reaches llama.cpp and returns parseable output."
 }

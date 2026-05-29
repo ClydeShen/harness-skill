@@ -25,11 +25,10 @@ jobs:
   # No-op: push events don't need sync — ensures the run isn't marked failed
   # ─────────────────────────────────────────────────────────────────────────────
   no-op:
-    name: No-op (push)
-    if: github.event_name == 'push'
+    name: No-op (always passes)
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Push event — no sync needed"
+      - run: echo "event=${{ github.event_name }} — no sync needed for this trigger"
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Job 1: status:* label applied to an issue → move board column

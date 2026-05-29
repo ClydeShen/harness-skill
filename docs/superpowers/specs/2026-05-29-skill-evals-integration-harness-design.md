@@ -28,6 +28,36 @@ Create a slightly heavier integration eval harness that keeps promptfoo as the o
 
 The harness should make each eval answer this question: **did the skill outcome happen, not merely get described?**
 
+## Feasibility Summary
+
+This design is feasible, but not because promptfoo natively knows how to inspect changed files or fake GitHub. It is feasible because promptfoo supports custom Python providers and Python/JavaScript assertions. The integration harness lives inside those extension points.
+
+| Plan item | Feasibility | Basis |
+|---|---|---|
+| Keep promptfoo as orchestration layer | Supported directly | promptfoo configs support prompts, providers, tests, and assertions. Existing repo already uses this pattern in `evals/promptfoo/provider.py`. |
+| Python provider that builds temp workspace | Supported directly | promptfoo supports Python provider files via `file://provider.py`; the current repo already implements this provider shape. |
+| Deterministic Python assertions | Supported directly | promptfoo supports `type: python` assertions and file-backed assertion functions. |
+| JavaScript assertions for lightweight checks | Supported directly | promptfoo supports `type: javascript` assertions. |
+| JSON structure checks | Supported directly | promptfoo supports JSON-oriented assertions such as `is-json` and `contains-json`; custom Python can cover deeper schema checks. |
+| Artifact block that provider applies to temp files | Feasible custom layer | Not a promptfoo built-in. The provider can parse model output, apply writes inside the temp workspace, and return `files_after` for assertions. |
+| Fake `gh` command log | Feasible custom layer | Not a promptfoo built-in. It requires either a fake executable on PATH when subprocess execution is used, or an explicit `gh_calls` artifact block in the first implementation. |
+| GitHub Projects field sync assertions | Feasible with fake calls | GitHub supports `gh api graphql` and ProjectV2 field update mutations; evals should mock the calls rather than hit live GitHub. |
+| Multi-turn interactive flows | Deferred | promptfoo can run tests, but this design intentionally avoids a full conversation simulator in the first iteration. |
+
+## References
+
+- Promptfoo Python integration: `file://` Python prompts, providers, tests, and assertions are supported. Source: <https://github.com/promptfoo/promptfoo/blob/main/site/docs/integrations/python.md>
+- Promptfoo custom provider via executable command: examples use `exec:python ...` as a provider. Source: <https://github.com/promptfoo/promptfoo/blob/main/site/docs/guides/prevent-llm-hallucinations.md>
+- Promptfoo standard assertions: examples cover `contains`, `llm-rubric`, `similar`, `is-json`, and `latency`. Source: <https://github.com/promptfoo/promptfoo/blob/main/site/docs/guides/mixtral-vs-gpt.md>
+- Promptfoo JSON assertions: examples cover `contains-json` and JSON validation. Source: <https://github.com/promptfoo/promptfoo/blob/main/site/docs/configuration/guide.md>
+- Promptfoo JavaScript assertions: examples use `type: javascript` for custom checks. Source: <https://github.com/promptfoo/promptfoo/blob/main/site/docs/configuration/guide.md>
+- GitHub CLI issue inspection: `gh issue view` supports `--comments`, `--json`, and `--jq`. Source: <https://cli.github.com/manual/gh_help_reference>
+- GitHub CLI API calls: `gh api` supports REST and GraphQL, `--field`, `--raw-field`, `--jq`, and request body input. Source: <https://cli.github.com/manual/gh_api>
+- GitHub ProjectV2 field updates: GitHub documents `updateProjectV2ItemFieldValue` for project item field updates. Source: <https://docs.github.com/en/graphql/reference/mutations>
+- GitHub Projects automation note: project items must be added before field values are updated. Source: <https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects>
+- Current repo provider pattern: `evals/promptfoo/provider.py` already creates a temp project and uses a Python provider entrypoint.
+- Current schema source of truth: `skills/engineering/session-start/SKILL.md` and `skills/engineering/context-handover/SKILL.md` define `.harness/state.json` and `.continue-here.json` as the current state/handoff schema.
+
 ## Non-Goals
 
 - Do not hit live GitHub in evals.

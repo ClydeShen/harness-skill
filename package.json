@@ -6,7 +6,7 @@
     "eval": "promptfoo eval -c evals/promptfoo/promptfooconfig.yaml --no-cache --no-share",
     "eval:view": "promptfoo view",
     "eval:one": "promptfoo eval -c evals/promptfoo/promptfooconfig.yaml --filter-first-n 1 --no-cache --no-share",
-    "eval:validate": "promptfoo validate config -c evals/promptfoo/promptfooconfig.yaml"
+    "eval:validate": "for f in evals/promptfoo/*.yaml; do echo \"Validating $f...\"; promptfoo validate config -c \"$f\"; done"
   },
   "devDependencies": {
     "promptfoo": "0.120.19"

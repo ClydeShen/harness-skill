@@ -3,31 +3,31 @@
   "phase": "01-discuss",
   "task": 1,
   "total_tasks": 1,
-  "status": "completed",
-  "last_updated": "2026-05-28T14:02:15Z",
-  "current_state": "v2.6.0 shipped. Dedup vs mattpocock/skills complete. Repo has clean identity — no verbatim copies, adapted skills carry harness-prefixed names.",
+  "status": "in_progress",
+  "last_updated": "2026-05-29T06:00:00Z",
+  "current_state": "Docs updated, effort calibration corrected, eval pipeline migrated to omlx on macos branch.",
   "completed_work": [
-    "Deep content comparison of all overlapping skills between this repo and mattpocock/skills",
-    "Confirmed 5 as verbatim copies: caveman, grill-me, handoff, zoom-out, grill-with-docs — deleted",
-    "Confirmed 4 as adapted (not copies): triage, to-prd, to-issues, write-a-skill — renamed",
-    "Renamed: triage→harness-triage, to-prd→harness-prd, to-issues→harness-issues, write-a-skill→write-harness-skill",
-    "Updated SKILL.md name: frontmatter and descriptions for all 4 renamed skills",
-    "Fixed all internal cross-references (effort-calibration path, /to-issues→/harness-issues, /triage→/harness-triage)",
-    "Updated plugin.json to v2.6.0 with 10 skills (was 15)",
-    "Updated skills/engineering/README.md, skills/productivity/README.md, CLAUDE.md, README.md",
-    "Updated all evals/evals.json prompt strings to use new skill names",
-    "Deleted stale eval output JSONs for deleted skills",
-    "Committed as 865cd1c (not yet pushed)"
+    "Fetched agentskills.io/skill-creation/best-practices and audited all 10 SKILL.md files",
+    "Fixed harness-audit, harness-guide, write-harness-skill per best-practices audit",
+    "Replaced memobank/letta with mem0/agentmemory/MEMORY.md across all skills and references/",
+    "Added Q&A.md with collapsible sections for practitioner questions (memory, session lifecycle, GitHub Project, anti-patterns, evals)",
+    "Updated effort calibration: 1 window = ~150K-200K tokens across all skill files (was ~30K-60K)",
+    "Updated model list in setup-harness-skills: Opus 4.x / Sonnet 4.6 (1M), Haiku 4.5 (200K)",
+    "Linked Q&A.md from README",
+    "Created macos branch: omlx eval provider at 127.0.0.1:8000, Qwen2.5-Coder-7B-Instruct-4bit, API key",
+    "Fixed context-handover eval assertions: aligned to .continue-here.json JSON format"
   ],
-  "remaining_work": [],
+  "remaining_work": [
+    "Audit remaining eval yaml files for stale format references (STATE.md, .continue-here.md, YAML/XML sections)",
+    "Verify https://skills.sh/ClydeShen/harness-skill shows updated skill listing"
+  ],
   "decisions_made": [
-    "Verbatim copies deleted — users assumed to have mattpocock/skills installed",
-    "Adapted skills get harness- prefix to signal framework integration and avoid name collision",
-    "grill-with-docs and zoom-out kept in README Mermaid diagram — still valid via mattpocock/skills",
-    "triage-labels.md filename references unchanged — it is a project file name, not a skill",
-    "grill-me reference in harness-audit/references/scenarios.md unchanged — valid via mattpocock/skills"
+    "Effort unit: 1 window = ~150K-200K tokens effective working budget (Opus 4.x / Sonnet 4.6; context rot ~150K-180K)",
+    "7B model eval FAIL is expected — eval infrastructure confirmed working, model too small for structured output (accepted)",
+    "macos branch strategy: Mac-local operational changes only; main stays cross-platform",
+    "agentmemory first recommendation for coding agents; mem0 for general-purpose; MEMORY.md for zero-dep"
   ],
   "blockers": [],
-  "context": "Clean session. v2.6.0 committed, not yet pushed. Collection is now 10 skills. No open threads.",
-  "next_action": "Push to remote (git push), then start new work or run /harness-audit on a target project."
+  "context": "Maintained on macOS (this machine) + Windows. macos branch has omlx provider config. main is cross-platform.",
+  "next_action": "Audit remaining eval yaml files (session-start, harness-audit, harness-guide, etc.) for stale STATE.md and format references."
 }

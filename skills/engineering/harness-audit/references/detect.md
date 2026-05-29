@@ -74,11 +74,11 @@ Count as "memory present" if **any** of these signals exist:
 | Signal | Tool |
 |---|---|
 | `~/.claude/projects/*/memory/MEMORY.md` exists | Claude Code native auto memory |
-| `MEMORY.md` in project root | Manual memory file (simple, zero-dep) |
-| `.memobank/` directory in project root | memobank |
+| `MEMORY.md` in project root | File-based memory (zero-dep, recommended starting point) |
 | `memory/` or `.memory/` directory in project root | Generic memory directory |
+| `mem0` in `package.json` / `pyproject.toml` / imports | [mem0](https://mem0.ai) — popular agent memory library |
+| `@agentmemory/agentmemory` in global npm or `~/.agentmemory/` dir | [agentmemory](https://github.com/rohitg00/agentmemory) — coding-agent-native persistent memory |
 | `onecontext` in installed skills or CLAUDE.md reference | OneContext |
-| `mem0` package in `package.json` / `pyproject.toml` | mem0 |
 | `CLAUDE.md` references a memory file with `@` import | Custom memory via import |
 
 If none found, suggest the simplest option first: a `MEMORY.md` file at project root with a note in `CLAUDE.md` to load it at session start. Only suggest heavier tools if the user asks.

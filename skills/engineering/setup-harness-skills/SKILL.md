@@ -73,7 +73,7 @@ Options: Single-context · Multi-context · Neither yet
 After confirming the board, inform the user of the two sizing fields (no new questions — informational only):
 
 > "The board uses two sizing fields:
-> - **Effort (windows):** token budget estimate — set from the `Effort:` value in an agent brief. 1 ≈ 30K–60K tokens (single slice); 2 ≈ 80K–150K (1 phase); 3 ≈ 200K–300K (full feature); 4+ = epic.
+> - **Effort (windows):** token budget estimate — set from the `Effort:` value in an agent brief. 1 ≈ 150K–200K tokens (single slice); 2 ≈ 300K–400K (1 phase); 3 ≈ 500K–700K (full feature); 4+ = epic.
 > - **Size** (T-shirt): rough relative size. Suggested mapping: XS ≤ 1 window, S = 2, M = 3–4, L = 5–6, XL ≥ 7.
 > Both are optional but Effort is read by `context-handover` for session budget planning."
 
@@ -85,10 +85,9 @@ After confirming the board, inform the user of the two sizing fields (no new que
 
 > "Which model are you using? This determines the context window size and affects session budget calculations."
 
-1. **Claude Code** (Claude Sonnet 4) — 1M context (1,000,000 tokens) ✅ default
-2. **Claude Code** (Claude Sonnet 3.5) — 200K context (200,000 tokens)
-3. **Claude Code** (Claude Haiku 3.5) — 200K context (200,000 tokens)
-4. **Custom model** — specify model name + context window in tokens
+1. **Claude Code** (Opus 4.x / Sonnet 4.6) — 1M context (1,000,000 tokens) ✅ default
+2. **Claude Code** (Haiku 4.5 / other models) — 200K context (200,000 tokens)
+3. **Custom model** — specify model name + context window in tokens
 
 Wait for answer before proceeding.
 

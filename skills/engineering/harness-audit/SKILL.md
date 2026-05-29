@@ -9,6 +9,20 @@ description: Scans a project for agent-harness gaps and outputs a prioritised li
 
 ---
 
+## Reference files
+
+Load on demand — do not load all upfront:
+
+- **`references/detect.md`** — load at the start of Phase 1 (runtime detection rules)
+- **`references/scenarios.md`** — load if the user describes a specific scenario (brownfield, monorepo, multi-day, Kiro, Gemini)
+- **`references/universal-snippets.md`** — load when generating a fix snippet for hooks, CI, init.sh, or CLAUDE.md
+- **`references/node-snippets.md`** — load instead of (or after) universal-snippets when a Node.js or TypeScript project is detected
+- **`references/python-snippets.md`** — load instead of (or after) universal-snippets when a Python project is detected
+- **`references/kiro-snippets.md`** — load when `.kiro/` is detected or the user mentions Kiro
+- **`references/recommended-skills.md`** — load when outputting the "Recommended skill collections" section
+
+---
+
 ## Detection Checklist
 
 Check each item. List unsatisfied items as gaps in priority order.
@@ -32,14 +46,15 @@ Before analyzing gaps, state: **"run lint + build to verify the baseline, check 
 
 ### 4. Memory system
 Check for any of these signals (one positive signal = gap closed):
-- `.memobank/` directory present at root or user-level
-- `mem0.json`, `letta.json`, or equivalent system config file at root
-- `mem0`, `letta`, `memobank` in `requirements.txt`, `package.json`, or `pyproject.toml`
-- Any mention of "mem0", "letta", "memobank", "agentmemory", "memory system", "persistent memory" in CLAUDE.md / AGENTS.md
-- `MEMORY.md` present (convention used by memobank and compatible systems)
-- `agentmemory` path present in `.claude/settings.json` hooks (any hook entry)
+- `MEMORY.md` present in project root or `~/.claude/projects/*/memory/MEMORY.md` (file-based memory — zero dependencies)
+- `memory/` or `.memory/` directory in project root
+- `mem0` in `requirements.txt`, `package.json`, or `pyproject.toml` (most popular agent memory library)
+- `@mem0ai/mem0` or `mem0ai` import in code
+- Any mention of "mem0", "memory system", "persistent memory" in CLAUDE.md / AGENTS.md
+- `~/.agentmemory/` directory present, or `agentmemory` running on port 3111
+- A memory-related hook entry in `.claude/settings.json` hooks
 
-No signal → **Gap: No memory system configured.** Why: mid-session interruption recovery falls back to GitHub per-AC comments (requires GitHub) or cold git-log reconstruction — no local recovery path exists without a memory system.
+No signal → **Gap: No memory system configured.** Why: mid-session interruption recovery falls back to GitHub per-AC comments (requires GitHub) or cold git-log reconstruction — no local recovery path exists without a memory system. Simplest fix: create `MEMORY.md` at project root and add a note in CLAUDE.md to load it at session start. For coding-agent-native persistent memory: [agentmemory](https://github.com/rohitg00/agentmemory) (`npm install -g @agentmemory/agentmemory`). For a general-purpose library: [mem0](https://mem0.ai).
 
 ### 5. CI
 `.github/workflows/*.yml` runs both lint AND build? Build-only → **Gap: CI only runs build — no lint.**

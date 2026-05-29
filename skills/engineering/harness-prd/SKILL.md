@@ -90,4 +90,4 @@ Any further notes about the feature.
 
 **Spike recommendation:** If the solution approach is uncertain — whether the output is a PRD or a GSD CONTEXT.md — append after writing:
 
-> *Solution uncertainty detected — recommend creating a `type:spike` issue (1–2 context windows / 30K–150K tokens, AFK, throwaway) to validate the approach before breaking down into implementation stories. Spike output is a decision (proceed / pivot / split), not shippable code.*
+> *Solution uncertainty detected — recommend creating a `type:spike` issue (1–2 context windows / ~150K–400K tokens, AFK, throwaway) to validate the approach before breaking down into implementation stories. Spike output is a decision (proceed / pivot / split), not shippable code.*

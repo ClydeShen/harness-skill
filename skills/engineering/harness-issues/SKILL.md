@@ -110,7 +110,7 @@ Minimum 1 happy path + 1 sad path per story. Valid source types (exactly three):
 - [ ] Implementation notes written if agent deviated from spec
 
 ### Effort estimate
-Unit = token budget. 1 ≈ 30K–60K tokens (single slice). See [Effort calibration table](../harness-triage/references/effort-calibration.md).
+Unit = token budget. 1 ≈ 150K–200K tokens (single slice). See [Effort calibration table](../harness-triage/references/effort-calibration.md).
 
 ---
 
@@ -161,7 +161,7 @@ An agent that cannot populate the Source column for every AC row must classify t
 Check each story against all three gates before creating the issue:
 
 1. **Estimable gate:** A story that cannot be estimated must be refined before the issue is created.
-2. **Size gate:** A story estimated at >8 context windows must be split. Above this, scope is too large to track and hand over reliably. (8 windows ≈ 1.2M tokens total — approaches model limit)
+2. **Size gate:** A story estimated at >8 context windows must be split. Above this, scope is too large to track and hand over reliably. (8 windows ≈ 8 sessions of focused work — handoff drift compounds beyond this point)
 3. **Vertical slice gate:** Every issue must deliver a **demoable user-facing outcome**. Ask: *"Can this story be demonstrated to a stakeholder end-to-end without implementing any other story first?"* If no → restructure into a vertical slice before creation.
 
 ### 6. Write .harness/phases/02-plan/02-PLAN.md (dual output)
@@ -172,7 +172,7 @@ In addition to GitHub Issues, write a GSD PLAN.md file. One task block per issue
 ## Task N: [title]
 
 **Type:** feature | bug | chore | spike
-**Effort:** N context window(s) (token budget: 1 = ~30–60K tokens / single slice; 2 = ~80–150K / 1 phase; 3 = ~200–300K / full feature; 4+ = epic)
+**Effort:** N context window(s) (token budget: 1 = ~150K–200K tokens / single slice; 2 = ~300K–400K / 1 phase; 3 = ~500K–700K / full feature; 4+ = epic)
 
 ### What to build
 [User-facing outcome, one sentence]

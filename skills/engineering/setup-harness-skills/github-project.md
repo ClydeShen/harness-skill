@@ -20,7 +20,7 @@ Sizing convention:
 
 | Field | Type | Unit | Mapping |
 |---|---|---|---|
-| **Effort (windows)** | number | Token budget | 1 = ~30–60K tokens (single slice); 2 = ~80–150K (1 phase); 3 = ~200–300K (full feature); 4+ = epic |
+| **Effort (windows)** | number | Token budget | 1 = ~150K–200K tokens (single slice); 2 = ~300K–400K (1 phase); 3 = ~500K–700K (full feature); 4+ = epic |
 | **Size** | T-shirt | Rough relative | XS ≤ 1 window; S = 2; M = 3–4; L = 5–6; XL ≥ 7 |
 
 Effort is read by `context-handover` for session budget planning. Set from the `Effort:` field in an agent brief. Execute agent updates if actual effort differs significantly. See [effort calibration](../harness-triage/references/effort-calibration.md).

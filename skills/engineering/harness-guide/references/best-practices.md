@@ -38,11 +38,11 @@ Reference: [Effective Harnesses for Long-Running Agents](https://www.anthropic.c
 
 ## Memory System
 
-**What:** A configured memory system: memobank (`.memobank/`, `MEMORY.md`), mem0, letta, or equivalent.
+**What:** A configured memory system — `MEMORY.md` (zero-dep file), [agentmemory](https://github.com/rohitg00/agentmemory) (coding-agent-native, `~/.agentmemory/`), or [mem0](https://mem0.ai) (general-purpose library).
 
 **Why:** Without a memory system, interrupted session recovery requires git-log reconstruction or GitHub comments as the sole context source. Both are slow and incomplete.
 
-**Signal of alignment:** `.memobank/` present, `MEMORY.md` present, or `mem0`/`letta` in dependencies.
+**Signal of alignment:** `MEMORY.md` at project root, `~/.agentmemory/` present, `memory/` directory, or `mem0` in dependencies.
 
 ---
 

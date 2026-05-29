@@ -55,8 +55,8 @@ Do NOT invoke `/compact` programmatically. Instruct the user to type it.
 ## Execution sequence
 
 - [ ] **1. Invoke memory system** — check `.claude/settings.json` hooks first:
-  - If the active memory system has a **Stop hook configured** (e.g. agentmemory's `stop.mjs`) — it fires automatically on session end, no action needed.
-  - Otherwise — call the memory system's update mechanism (mem0, letta, or equivalent) manually. It is a black box — trigger the update and move on.
+  - If the active memory system has a **Stop hook configured** — it fires automatically on session end, no action needed.
+  - Otherwise — call the memory system's update mechanism (e.g. mem0, or append to `MEMORY.md`) manually. It is a black box — trigger the update and move on.
   - If no memory system is detected — write key decisions into the `decisions_made` array of `.continue-here.json` (fallback).
   - Budget: <5% of remaining context.
 
@@ -82,7 +82,7 @@ Do NOT invoke `/compact` programmatically. Instruct the user to type it.
   **Session summary:** [1–3 sentences]
   **Next step:** [specific pick-up point]
 
-  _[N] of ~[effort_estimate] context window(s) used so far (token budget: 1 = ~30–60K)._
+  _[N] of ~[effort_estimate] context window(s) used so far (token budget: 1 = ~150K–200K)._
 
   ---
   _🤖 Posted by `/context-handover` (AI-generated)_

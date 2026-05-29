@@ -82,7 +82,7 @@ Session state lives in `.harness/state.json`. Schema:
   ## Session briefing
   Phase: [discuss / plan / execute / verify] (0N-name)
   Active task: #N — [title]
-  Effort remaining: ~N context window(s) (token budget: 1 = ~30–60K tokens)
+  Effort remaining: ~N context window(s) (token budget: 1 = ~150K–200K tokens)
   Pick up from: [<next_action> from .continue-here.json]
 
   Budget for this session:

@@ -5,6 +5,16 @@ description: Create new harness-compatible agent skills with proper structure, p
 
 # Writing Skills
 
+## Gotchas
+
+- **Generic description** — "Helps with X" gives the agent no way to distinguish this skill. Always include a concrete `Use when [specific triggers]` clause with keywords the agent will see in real requests.
+- **Missing trigger keywords** — if the description omits the words users naturally say ("triage", "handover", "cleanup"), the skill never loads. Test: would the description match the user's message verbatim?
+- **Over-stuffed SKILL.md** — dumping all edge cases into SKILL.md causes the agent to pursue unproductive paths. Move rarely-needed content to `references/` and add a conditional load instruction ("read `references/X.md` if Y").
+- **No working example** — a template or inline snippet is more reliable than prose description. If the output has a fixed structure, show it.
+- **Stale harness references** — skills that read setup config (issue tracker, labels, board) must include "run `/setup-harness-skills` if missing context" or they silently fail on unconfigured projects.
+
+---
+
 ## Process
 
 1. **Gather requirements** - ask user about:
@@ -118,4 +128,4 @@ After drafting, verify:
 - [ ] Does the skill's description mention its typical token budget? (e.g. "typically consumes ~5K–10K tokens / <5% of a context window")
 - [ ] If the skill reads setup config (issue tracker, labels, GitHub board), does it include "run `/setup-harness-skills` if missing context"?
 - [ ] If the skill posts any comment or body to the issue tracker, does every post end with the AI-generated footer (`🤖 Posted by /[skill-name] (AI-generated)`)?
-- [ ] If the skill creates issues, does it enforce all three creation gates: (1) Estimable, (2) ≤8 context windows (≈1.2M tokens total — approaches model limit), (3) demoable user-facing outcome?
+- [ ] If the skill creates issues, does it enforce all three creation gates: (1) Estimable, (2) ≤8 context windows (8 sessions of focused work — beyond this, handoff drift compounds), (3) demoable user-facing outcome?

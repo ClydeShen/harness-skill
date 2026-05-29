@@ -95,7 +95,7 @@ Do not ask for category, type, or effort fields before the state change. Those b
 
 **Category:** bug / enhancement
 **Type:** AFK / HITL
-**Effort:** N (token budget: 1 = ~30–60K tokens / single slice; 2 = ~80–150K / 1 phase; 3 = ~200–300K / full feature; 4+ = epic)
+**Effort:** N (token budget: 1 = ~150K–200K tokens / single slice; 2 = ~300K–400K / 1 phase; 3 = ~500K–700K / full feature; 4+ = epic)
 **Summary:** one-line description of what needs to happen
 
 **Current behavior:**

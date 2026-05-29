@@ -31,7 +31,7 @@
 | `type:bug` | Defect in existing functionality |
 | `type:chore` | Non-functional maintenance (deps, config, cleanup) |
 | `type:task` | Internal task with no direct user impact |
-| `type:spike` | Throwaway investigation — 1–2 context windows (30K–150K tokens), AFK, discarded after decision is made |
+| `type:spike` | Throwaway investigation — 1–2 context windows (~150K–400K tokens), AFK, discarded after decision is made |
 
 ## Priority labels
 

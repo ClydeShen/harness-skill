@@ -54,12 +54,12 @@ Build a complete picture of what is present, absent, and degraded before any out
 Output three buckets. Every finding goes into exactly one bucket. At least one item per bucket on a project with mixed state.
 
 ### ✅ Already aligned
-Practices matching Harness and Compound Engineering best practices. Examples:
+Practices matching Harness and Compound Engineering best practices (read `references/best-practices.md` for the full checklist). Examples:
 - Stop hook present and well-formed
 - CLAUDE.md / AGENTS.md under 200 lines with key commands
 - CI runs lint + build
 - `.harness/` with `state.json` present and `session.status` field valid
-- Memory system configured (memobank, mem0, letta, MEMORY.md)
+- Memory system configured (`MEMORY.md` present, `~/.agentmemory/` present, or mem0/equivalent in dependencies)
 - Evals covering observable behavior, not just happy path
 - Pre-commit configured
 

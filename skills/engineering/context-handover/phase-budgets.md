@@ -38,7 +38,7 @@ Used by both `/context-handover` (handoff content) and `/session-start` (session
 ### Handoff focuses on
 - Stories broken down so far (issue numbers)
 - Next story to write or refine
-- Effort remaining (context windows; 1 = ~30K–60K tokens)
+- Effort remaining (context windows; 1 = ~150K–200K tokens)
 - Any HITL stories pending human review (`status:needs-review`)
 - Suggested skills: `to-prd`, `to-issues`
 
@@ -94,7 +94,7 @@ Last updated: YYYY-MM-DD HH:mm
 
 ## Active task
 Issue: #N — [title]
-Effort remaining: ~N context window(s) (token budget: 1 = ~30–60K)
+Effort remaining: ~N context window(s) (token budget: 1 = ~150K–200K)
 
 ## This session
 [1–3 sentences: what was done]

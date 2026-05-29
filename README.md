@@ -45,7 +45,7 @@ These are harness problems, not model capability problems. This framework is the
 
 - **Named anti-patterns** — Fuzzy Done, Proxy Signal, Confidence Exit, Planning=Done. When an agent fails, you can say which pattern it hit. ([anti-patterns.md](./skills/engineering/harness-guide/references/anti-patterns.md))
 - **A session state machine** — `.harness/state.json` tracks phase, status, and active task as machine-readable JSON. Every session starts with a briefing; every session ends with a handoff. An interrupted session leaves a detectable fingerprint.
-- **Four-layer recoverable state** — Intent (state.json + CLAUDE.md) → Position (.continue-here.json + GitHub issue) → Evidence (git log + issue comments) → Memory (agentmemory / memobank / mem0 / letta). Any interruption is recoverable without human intervention.
+- **Four-layer recoverable state** — Intent (state.json + CLAUDE.md) → Position (.continue-here.json + GitHub issue) → Evidence (git log + issue comments) → Memory (agentmemory / mem0 / MEMORY.md). Any interruption is recoverable without human intervention.
 - **Glue between issue tracker, agent, and memory** — skills read from and write to GitHub Issues, `.harness/`, and the memory system as a coordinated unit.
 - **A behavioral baseline** — CLAUDE.md derived from [Karpathy's observations on LLM coding pitfalls](https://x.com/karpathy/status/2015883857489522876) plus a fifth section (Harness Discipline) that enforces session boundary discipline.
 
@@ -218,7 +218,7 @@ Outputs a prioritised gap list with paste-ready snippets. Typical first run:
 ```
 1. Missing Stop hook         → paste .claude/settings.json snippet
 2. No instruction file       → paste CLAUDE.md template
-3. No memory system          → install agentmemory, memobank, mem0, or equivalent
+3. No memory system          → install agentmemory or mem0, or create MEMORY.md
 4. CI runs build only        → paste .github/workflows/ci.yml snippet
 ```
 

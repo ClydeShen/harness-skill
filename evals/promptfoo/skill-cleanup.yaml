@@ -1,0 +1,136 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+# tier: text
+description: skill-cleanup skill eval suite
+
+prompts:
+  - id: skill-prompt
+    raw: "{{prompt}}"
+
+providers:
+  - id: python:provider.py
+    label: llamacpp-skill-cleanup
+    config:
+      skill_name: skill-cleanup
+
+defaultTest:
+  options:
+    provider: python:grader.py
+  assert:
+    - type: latency
+      threshold: 300000
+
+outputPath: output-skill-cleanup.json
+
+tests:
+
+  # ---------------------------------------------------------------------------
+  # Eval 1: Stale renamed skill detected
+  # ---------------------------------------------------------------------------
+  - description: "#1 stale renamed skill — detected and flagged"
+    vars:
+      prompt: |
+        I have both 'harness-triage' and 'triage' installed. The old 'triage' skill was renamed to 'harness-triage'.
+        Run skill-cleanup.
+      scaffold_files:
+        - ".claude/settings.json with stop hook and posttooluse hook"
+    assert:
+      - type: llm-rubric
+        value: Identifies 'triage' as a renamed original (stale) because 'harness-triage' is the current version
+      - type: llm-rubric
+        value: Flags the stale 'triage' skill in all platform directories where it appears
+      - type: llm-rubric
+        value: Does NOT remove anything before asking the user for confirmation
+      - type: not-icontains
+        value: "rm -rf"
+
+  # ---------------------------------------------------------------------------
+  # Eval 2: Dry-run does not remove files
+  # ---------------------------------------------------------------------------
+  - description: "#2 dry-run mode — shows plan, removes nothing"
+    vars:
+      prompt: |
+        Run skill-cleanup in dry-run mode. I think there may be some orphaned skills.
+        The ~/.codex/skills/ directory has 'old-skill' that is not in ~/.agents/skills/.
+      scaffold_files:
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: Describes what would be removed without issuing any actual remove/delete commands
+      - type: llm-rubric
+        value: Mentions dry-run mode (--dry-run flag or equivalent) and that no files are changed
+      - type: not-icontains
+        value: "Remove-Item"
+      - type: not-icontains
+        value: "rm -rf"
+
+  # ---------------------------------------------------------------------------
+  # Eval 3: Orphaned platform copy detected
+  # ---------------------------------------------------------------------------
+  - description: "#3 orphaned platform entry — present in codex but not central store"
+    vars:
+      prompt: |
+        Scan my installed skills. ~/.codex/skills/ has 'legacy-skill' but ~/.agents/skills/ does not.
+        Run the skill-cleanup scan and report what you find.
+      scaffold_files:
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: Identifies 'legacy-skill' in Codex platform as an orphaned platform entry (not in central store)
+      - type: llm-rubric
+        value: Lists stale type as orphaned platform entry or equivalent
+      - type: llm-rubric
+        value: Asks user to confirm before removing the orphaned entry
+
+  # ---------------------------------------------------------------------------
+  # Eval 4: Removal plan confirms platform-first ordering
+  # ---------------------------------------------------------------------------
+  - description: "#4 removal plan — platform entries removed before central store"
+    vars:
+      prompt: |
+        I confirmed I want to remove the 'old-triage' skill. It appears in ~/.claude/skills/,
+        ~/.codex/skills/, and ~/.agents/skills/. Generate the removal commands.
+      scaffold_files:
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: Generates removal commands that remove platform copies (Claude Code, Codex) before the central store (~/.agents/skills/)
+      - type: llm-rubric
+        value: Provides OS-correct removal commands (rm for symlinks, rm -rf for directories)
+      - type: llm-rubric
+        value: States that removal will proceed only after the user gave explicit confirmation
+
+  # ---------------------------------------------------------------------------
+  # Eval 5: Clean state — no stale entries
+  # ---------------------------------------------------------------------------
+  - description: "#5 no stale skills — clean state reported"
+    vars:
+      prompt: |
+        Run skill-cleanup. My ~/.agents/skills/ and all platform directories have exactly the same
+        skills with no old names or missing entries.
+      scaffold_files:
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: Reports "All installed skills look clean" or equivalent when no stale entries exist
+      - type: llm-rubric
+        value: Does not generate any removal commands or ask for confirmation when nothing is stale
+      - type: llm-rubric
+        value: Stops after reporting the clean state without proceeding to Phase 5
+
+  # ---------------------------------------------------------------------------
+  # Eval 6: Install artifact (.zip suffix) detected
+  # ---------------------------------------------------------------------------
+  - description: "#6 install artifact — .zip suffix entry flagged"
+    vars:
+      prompt: |
+        Scan installed skills. ~/.agents/skills/ contains 'context-handover.zip' alongside 'context-handover'.
+        Run skill-cleanup.
+      scaffold_files:
+        - "package.json"
+    assert:
+      - type: llm-rubric
+        value: Flags 'context-handover.zip' as an install artifact (zip suffix signal)
+      - type: llm-rubric
+        value: Does not flag 'context-handover' itself as stale
+      - type: llm-rubric
+        value: Asks for explicit confirmation before removing the artifact file

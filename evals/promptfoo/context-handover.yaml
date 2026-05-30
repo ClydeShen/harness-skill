@@ -1,4 +1,5 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+# tier: text
 description: context-handover skill eval suite
 
 prompts:
@@ -17,6 +18,10 @@ defaultTest:
   assert:
     - type: latency
       threshold: 300000
+    - type: not-icontains
+      value: ".harness/STATE.md"
+    - type: not-icontains
+      value: ".continue-here.md"
 
 outputPath: output-context-handover.json
 
@@ -28,9 +33,7 @@ tests:
   - description: "#1 execute phase handover — state.json + issue #42"
     vars:
       prompt: "My context is at 82%. Please run context-handover. I'm working on issue #42 'Add auth middleware', execute phase."
-      scaffold_files:
-        - ".harness/state.json with status in_progress phase 03-execute active_task issue 42"
-        - "CLAUDE.md"
+      scaffold_files: '[".harness/state.json with status in_progress phase 03-execute active_task issue 42", "CLAUDE.md"]'
     assert:
       - type: llm-rubric
         value: Writes .continue-here.json under .harness/phases/03-execute/ — not .claude/handoff.md or a timestamped path
@@ -49,8 +52,7 @@ tests:
   - description: "#2 no state.json — fallback chain, still writes handoff"
     vars:
       prompt: "Please do a context handover. I'm getting close to the limit."
-      scaffold_files:
-        - "package.json"
+      scaffold_files: '["package.json"]'
     assert:
       - type: llm-rubric
         value: Still writes a .continue-here.json or fallback handoff doc despite missing state.json
@@ -65,10 +67,7 @@ tests:
   - description: "#3 stated next-session focus — no inline content from MEMORY.md"
     vars:
       prompt: "Context handover — next session will focus on writing tests."
-      scaffold_files:
-        - "CLAUDE.md"
-        - "MEMORY.md"
-        - ".harness/state.json with status in_progress phase 03-execute"
+      scaffold_files: '["CLAUDE.md", "MEMORY.md", ".harness/state.json with status in_progress phase 03-execute"]'
     assert:
       - type: llm-rubric
         value: .continue-here.json does not inline the content of MEMORY.md or any source files

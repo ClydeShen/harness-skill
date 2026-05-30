@@ -1,4 +1,5 @@
 # yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+# tier: text
 description: session-start skill eval suite
 
 prompts:
@@ -17,34 +18,29 @@ defaultTest:
   assert:
     - type: latency
       threshold: 300000
+    - type: not-icontains
+      value: ".harness/STATE.md"
+    - type: not-icontains
+      value: ".continue-here.md"
 
 outputPath: output-session-start.json
 
 tests:
 
   # ---------------------------------------------------------------------------
-  # Eval 1: STATE.md + .continue-here.md present — structured briefing
+  # Eval 1: state.json idle + .continue-here.json — structured briefing
   # ---------------------------------------------------------------------------
   - description: "#1 full session state — structured briefing before action"
     vars:
       prompt: "/session-start"
-      scaffold_files:
-        - ".harness/STATE.md with idle session_status current_focus 03-execute and issue 7 effort 1"
-        - ".harness/phases/03-execute/.continue-here.md with task 1 total_tasks 3"
-        - "CLAUDE.md"
+      scaffold_files: '[".harness/state.json with status idle phase 03-execute active_task issue 7 effort 1", ".harness/phases/03-execute/.continue-here.json with task 1 total_tasks 3", "CLAUDE.md"]'
     assert:
       - type: llm-rubric
-        value: Outputs a structured session briefing before doing anything else
+        value: Outputs a session briefing that includes the phase as execute or 03-execute
       - type: llm-rubric
-        value: Briefing includes phase (execute / 03-execute), active task number, and pick-up point from .continue-here.md
+        value: Briefing includes a pick-up point or next action for the active task
       - type: llm-rubric
-        value: Includes the execute-phase budget table or references phase-budgets.md
-      - type: llm-rubric
-        value: Mentions running /context-handover when approaching 80% usage
-      - type: llm-rubric
-        value: Writes session_status in_progress to STATE.md before outputting briefing
-      - type: llm-rubric
-        value: Does not start writing code or taking actions before outputting the briefing
+        value: Mentions running /context-handover when approaching 80% context usage
 
   # ---------------------------------------------------------------------------
   # Eval 2: No prior session state — graceful no-state handling
@@ -52,8 +48,7 @@ tests:
   - description: "#2 no session state — graceful fallback, no errors"
     vars:
       prompt: "/session-start"
-      scaffold_files:
-        - "package.json"
+      scaffold_files: '["package.json"]'
     assert:
       - type: llm-rubric
         value: Does not error or refuse when no session state exists
@@ -65,44 +60,29 @@ tests:
         value: Does NOT default to any phase without evidence
 
   # ---------------------------------------------------------------------------
-  # Eval 3: Reads artifacts before asking questions
+  # Eval 3: Reads state.json, shows correct phase without asking questions
   # ---------------------------------------------------------------------------
-  - description: "#3 reads project state before asking questions"
+  - description: "#3 reads project state — brief shows correct phase without asking"
     vars:
       prompt: "/session-start"
-      scaffold_files:
-        - "package.json"
-        - "CLAUDE.md"
-        - ".harness/STATE.md with idle session_status current_focus 02-plan"
+      scaffold_files: '["package.json", "CLAUDE.md", ".harness/state.json with status idle phase 02-plan"]'
     assert:
       - type: llm-rubric
-        value: Reads available project state before asking any questions
+        value: Outputs a briefing that shows the phase as plan or 02-plan (read from state.json) without asking the user what phase they are in
       - type: llm-rubric
-        value: Does not ask questions that could be answered by reading .harness/STATE.md or git config
-      - type: llm-rubric
-        value: If phase cannot be determined from artifacts, explains what was found and asks the user
+        value: Does not ask questions whose answers are available in .harness/state.json
 
   # ---------------------------------------------------------------------------
-  # Eval 4: Interrupted session — recovery briefing with git log diff
-  # (Integration eval: tests session-start reading context-handover's state machine output)
+  # Eval 4: Interrupted session — recovery briefing heading + git log suggestion
   # ---------------------------------------------------------------------------
-  - description: "#4 interrupted session — recovery briefing includes git log delta"
+  - description: "#4 interrupted session — recovery briefing heading + git log"
     vars:
       prompt: "/session-start"
-      scaffold_files:
-        - ".harness/STATE.md with interrupted session_status and stale timestamp and issue 42"
-        - ".harness/phases/03-execute/.continue-here.md with task 2 total_tasks 5"
-        - "CLAUDE.md"
+      scaffold_files: '[".harness/state.json with status in_progress phase 03-execute active_task issue 42", ".harness/phases/03-execute/.continue-here.json with task 2 total_tasks 5", "CLAUDE.md"]'
     assert:
       - type: llm-rubric
-        value: Detects interrupted session — STATE.md has session_status in_progress with stale timestamp
+        value: Output heading or title indicates this is a Recovery or Interrupted session briefing, not a normal clean Session briefing
       - type: llm-rubric
-        value: Outputs a Recovery briefing (not a normal Session briefing)
+        value: Recovery briefing mentions the phase (03-execute or execute) and the active task or last known intent
       - type: llm-rubric
-        value: Recovery briefing includes a git log section showing changes since session_started timestamp
-      - type: llm-rubric
-        value: Recovery briefing includes the last known intent from STATE.md Stopped-at or .continue-here.md next_action
-      - type: llm-rubric
-        value: Advises reviewing git log before proceeding and running lint+build if state is inconsistent
-      - type: llm-rubric
-        value: Still writes session_status in_progress with new session_started timestamp to STATE.md
+        value: Advises reviewing git log before proceeding

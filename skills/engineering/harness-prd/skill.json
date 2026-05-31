@@ -1,7 +1,7 @@
 {
   "name": "harness-prd",
   "version": "0.1.0",
-  "description": "Turns the current conversation context into a GSD-compatible PRD with WHAT/HOW constraints, optionally writing to .planning/phases/01-discuss/CONTEXT.md. Use when creating a PRD from the current context.",
+  "description": "Turns the current conversation context into a GSD-compatible PRD with WHAT/HOW constraints, optionally writing to .harness/phases/01-discuss/CONTEXT.md. Use when creating a PRD from the current context.",
   "author": {
     "name": "Clyde Shen",
     "github": "ClydeShen"

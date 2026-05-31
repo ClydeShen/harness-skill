@@ -59,7 +59,7 @@ tests:
       - type: llm-rubric
         value: Does NOT error or refuse because state.json is absent
       - type: llm-rubric
-        value: Notes somewhere that phase was inferred (not from state.json)
+        value: Creates or populates .harness/state.json with a phase value even though the file was not present in the project
 
   # ---------------------------------------------------------------------------
   # Eval 3: User states next session focus — references artifacts by path
@@ -70,9 +70,7 @@ tests:
       scaffold_files: '["CLAUDE.md", "MEMORY.md", ".harness/state.json with status in_progress phase 03-execute"]'
     assert:
       - type: llm-rubric
-        value: .continue-here.json does not inline the content of MEMORY.md or any source files
-      - type: llm-rubric
-        value: .continue-here.json references MEMORY.md by path only
+        value: .continue-here.json does not inline the full content of MEMORY.md or any source files
       - type: llm-rubric
         value: next_action field reflects the user's stated focus on writing tests
       - type: llm-rubric

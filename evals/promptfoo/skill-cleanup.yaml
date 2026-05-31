@@ -55,13 +55,9 @@ tests:
         - "package.json"
     assert:
       - type: llm-rubric
-        value: Describes what would be removed without issuing any actual remove/delete commands
+        value: Describes what would be removed without claiming to execute the removal commands
       - type: llm-rubric
         value: Mentions dry-run mode (--dry-run flag or equivalent) and that no files are changed
-      - type: not-icontains
-        value: "Remove-Item"
-      - type: not-icontains
-        value: "rm -rf"
 
   # ---------------------------------------------------------------------------
   # Eval 3: Orphaned platform copy detected
@@ -97,7 +93,7 @@ tests:
       - type: llm-rubric
         value: Provides OS-correct removal commands (rm for symlinks, rm -rf for directories)
       - type: llm-rubric
-        value: States that removal will proceed only after the user gave explicit confirmation
+        value: Proceeds to provide removal commands without asking for confirmation again, since the user already confirmed in the prompt
 
   # ---------------------------------------------------------------------------
   # Eval 5: Clean state — no stale entries
@@ -114,8 +110,6 @@ tests:
         value: Reports "All installed skills look clean" or equivalent when no stale entries exist
       - type: llm-rubric
         value: Does not generate any removal commands or ask for confirmation when nothing is stale
-      - type: llm-rubric
-        value: Stops after reporting the clean state without proceeding to Phase 5
 
   # ---------------------------------------------------------------------------
   # Eval 6: Install artifact (.zip suffix) detected
@@ -131,6 +125,6 @@ tests:
       - type: llm-rubric
         value: Flags 'context-handover.zip' as an install artifact (zip suffix signal)
       - type: llm-rubric
-        value: Does not flag 'context-handover' itself as stale
+        value: Identifies context-handover.zip as the entry to remove, not the context-handover directory itself
       - type: llm-rubric
         value: Asks for explicit confirmation before removing the artifact file

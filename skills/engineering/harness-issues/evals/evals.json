@@ -28,6 +28,35 @@
         "Publishes issues in dependency order so blockers appear first",
         "Does not close or modify the parent issue #5"
       ]
+    },
+    {
+      "id": 8,
+      "prompt": "/harness-issues",
+      "files": [
+        "package.json",
+        "CLAUDE.md",
+        "docs/prd.md with billing feature spec",
+        "open issue #3 of type Milestone: v1.0 launch"
+      ],
+      "expectations": [
+        "Queries for Milestone-type issues via gh api repos/.../issues?type=Milestone before creating any issue — does NOT use gh milestone list or --milestone flag",
+        "Links newly created issues as sub-issues of the Milestone-type parent issue via sub-issues API",
+        "Sets issue type on each created issue via gh api PATCH (type field), because gh issue create has no --type flag"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "/harness-issues #12",
+      "files": [
+        "package.json",
+        "CLAUDE.md",
+        "issue #12 is an epic for the notification system"
+      ],
+      "expectations": [
+        "After creating each issue, calls GitHub sub-issues API to link it as sub-issue of #12",
+        "For issues blocked by another newly created issue, links blocked as sub-issue of blocker",
+        "Sub-issue linkage failure is non-blocking — prints warning and continues"
+      ]
     }
   ]
 }

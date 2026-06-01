@@ -313,7 +313,7 @@ tests:
       - type: llm-rubric
         value: Lists a memory system gap in the gap list
       - type: llm-rubric
-        value: Gap message mentions at least two of mem0, letta, memobank, or equivalent
+        value: Gap message mentions at least one of mem0, agentmemory, memobank, MEMORY.md, or equivalent memory tool
       - type: llm-rubric
         value: Memory system gap appears after stop hook and instruction file gaps (rank 4 or lower)
 

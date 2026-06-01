@@ -54,7 +54,7 @@ Check for any of these signals (one positive signal = gap closed):
 - `~/.agentmemory/` directory present, or `agentmemory` running on port 3111
 - A memory-related hook entry in `.claude/settings.json` hooks
 
-No signal → **Gap: No memory system configured.** Why: mid-session interruption recovery falls back to GitHub per-AC comments (requires GitHub) or cold git-log reconstruction — no local recovery path exists without a memory system. Simplest fix: create `MEMORY.md` at project root and add a note in CLAUDE.md to load it at session start. For coding-agent-native persistent memory: [agentmemory](https://github.com/rohitg00/agentmemory) (`npm install -g @agentmemory/agentmemory`). For a general-purpose library: [mem0](https://mem0.ai).
+No signal → **Gap: No memory system configured.** Why: mid-session interruption recovery falls back to GitHub per-AC comments (requires GitHub) or cold git-log reconstruction — no local recovery path exists without a memory system. Simplest fix: create `MEMORY.md` at project root and add a note in CLAUDE.md to load it at session start. For coding-agent-native persistent memory: [agentmemory](https://github.com/rohitg00/agentmemory) (`npm install -g @agentmemory/agentmemory`) or [memobank](https://github.com/clawde/memobank-cli). For a general-purpose library: [mem0](https://mem0.ai).
 
 ### 5. CI
 `.github/workflows/*.yml` runs both lint AND build? Build-only → **Gap: CI only runs build — no lint.**

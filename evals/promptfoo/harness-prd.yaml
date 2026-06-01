@@ -79,7 +79,7 @@ tests:
         value: The constraints or decisions section does NOT include technology choices, library names, file paths, or schema decisions — system-level requirements such as integration boundaries, compliance, performance SLAs, or accessibility standards are acceptable
 
   # ---------------------------------------------------------------------------
-  # Eval 4: GSD output path — writes to .planning/phases/01-discuss/
+  # Eval 4: GSD output path — writes to .harness/phases/01-discuss/
   # ---------------------------------------------------------------------------
   - description: "#4 GSD output — CONTEXT.md path and next-step message"
     vars:
@@ -89,12 +89,12 @@ tests:
       scaffold_files:
         - "package.json"
         - "CLAUDE.md"
-        - ".planning/state.json"
+        - ".harness/state.json"
     assert:
       - type: icontains
-        value: ".planning/phases/01-discuss"
+        value: ".harness/phases/01-discuss"
       - type: llm-rubric
-        value: Mentions writing to .planning/phases/01-discuss/01-CONTEXT.md or equivalent GSD path
+        value: Mentions writing to .harness/phases/01-discuss/01-CONTEXT.md or equivalent GSD path
       - type: llm-rubric
         value: After writing, suggests running /harness-issues to plan the phase
 

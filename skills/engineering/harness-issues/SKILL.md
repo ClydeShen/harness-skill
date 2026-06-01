@@ -53,6 +53,26 @@ Iterate until the user approves the breakdown.
 
 For each approved slice, publish a new issue to the issue tracker. Use the issue body template below. These issues are considered ready for AFK agents, so publish them with the correct triage label unless instructed otherwise.
 
+#### Milestone issue discovery
+
+In modern GitHub project planning, a "Milestone" is an issue with issue type `Milestone` (or the org's equivalent parent type), not GitHub's legacy Milestone progress-tracker feature. Before creating any issues, check whether a parent milestone issue already exists:
+
+```bash
+# List open issues typed as Milestone (adjust type name to match org config)
+gh api "repos/{owner}/{repo}/issues?state=open&type=Milestone" \
+  --jq '[.[] | {number: .number, title: .title, type: .issue_type.name}]'
+```
+
+- **No milestone-type issues found:** skip — create issues without a parent link. Do not fall back to the legacy `--milestone` flag.
+- **One milestone issue and context maps to it:** note it; new issues will be linked as sub-issues of it in the Sub-issue linkage step below.
+- **Multiple milestone issues or ambiguous mapping:** present the list and ask the user which to group under (or "none"). Do not guess.
+
+**Note:** `gh issue create` has no `--type` flag. Set issue type after creation via REST API:
+```bash
+gh api repos/{owner}/{repo}/issues/<number> --method PATCH -f type="<issue_type_name>"
+```
+Type assignment failure is non-blocking — print `⚠️ Type not set for #N: <error>` and continue.
+
 Publish issues in dependency order (blockers first) so you can reference real issue identifiers in the "Blocked by" field.
 
 #### Per-issue board field sync
@@ -77,17 +97,75 @@ Issue creation is NOT blocked — continue even if sync is skipped.
 
 **Sequence per issue:**
 
-1. Read `github.project_v2_id` from `.claude/harness.json` — this is the `projectId` for all mutations.
+All project board operations use **GraphQL** via `gh api graphql`. The `singleSelectOptionId` values for Size and Priority are stored in `project_fields` inside `.claude/harness.json` — fetch them once at the start of this sequence rather than querying the API each time.
+
+1. Read `github.project_v2_id` from `.claude/harness.json` — this is the `projectId` (GraphQL node ID, e.g. `PVT_...`) for all mutations.
 2. Capture the issue number from `gh issue create` output.
-3. Fetch issue node ID: `gh issue view N --json id --jq '.id'`.
-4. Add to project board: `addProjectV2ItemByContentId(projectId, contentId: nodeId)` → capture item ID.
+3. Fetch issue GraphQL node ID: `gh issue view N --json id --jq '.id'` → returns a node ID like `I_kwDO...`.
+4. Add to project board:
+   ```bash
+   gh api graphql -f query='
+     mutation {
+       addProjectV2ItemById(input: {projectId: "PVT_..." contentId: "I_kwDO..."}) {
+         item { id }
+       }
+     }'
+   ```
+   Capture the returned `item.id` (project item node ID, e.g. `PVTI_...`) — required for field updates.
 5. Parse Effort integer from the issue body (`Estimate: **N context window(s)**` line).
 6. Derive Size from Effort using the mapping above.
 7. Resolve Priority from labels: `priority:p1 → P1`, `priority:p2 → P2`, `priority:p3 → P3`; skip if no priority label present.
-8. Call `updateProjectV2ItemFieldValue` for Effort (number) and Size (singleSelectOptionId); call for Priority if resolved.
+8. Update fields (one call per field):
+   ```bash
+   gh api graphql -f query='
+     mutation {
+       updateProjectV2ItemFieldValue(input: {
+         projectId: "PVT_..."
+         itemId: "PVTI_..."
+         fieldId: "FIELD_ID"
+         value: { singleSelectOptionId: "OPTION_ID" }
+       }) { projectV2Item { id } }
+     }'
+   ```
+   Call for Effort (number field, use `value: { number: N }`), Size, and Priority if resolved.
 9. Print per-issue confirmation: `✅ #N board fields — Effort: N, Size: X, Priority: Pn / not set`.
 
 **Error handling:** Mutation failure is non-blocking — print `⚠️ Board field update failed for #N: <error>` and continue to the next issue.
+
+#### Sub-issue and dependency linkage
+
+After all issues are created, establish GitHub parent-child relationships so dependencies are visible in GitHub Projects. Sub-issues is GA (no preview header needed; requires write access).
+
+**Critical:** `sub_issue_id` takes the issue's **database ID** (the `id` field, a large integer like `7890123456`), NOT the issue number. Fetch it after each `gh issue create`:
+
+```bash
+# Fetch database ID for a newly created issue by its number
+gh api repos/{owner}/{repo}/issues/<number> --jq '.id'
+```
+
+**Case 1 — Source was an existing issue #N (`/harness-issues #N`), OR a milestone-type parent issue was identified in the discovery step:**
+For each created issue, link it as a sub-issue of that parent:
+```bash
+gh api repos/{owner}/{repo}/issues/N/sub_issues \
+  --method POST \
+  -F sub_issue_id=<child_database_id>
+```
+
+**Case 2 — Dependency between newly created issues (B is "Blocked by" A):**
+For each such pair, link B as a sub-issue of A:
+```bash
+gh api repos/{owner}/{repo}/issues/<A_number>/sub_issues \
+  --method POST \
+  -F sub_issue_id=<B_database_id>
+```
+
+**Guard:** If the API returns a non-2xx response:
+```
+⚠️ Sub-issue linkage failed for #A → #B: <error>. Check write permissions and that both issues are in the same organization.
+```
+Sub-issue linkage failure is non-blocking — issue creation is not affected.
+
+**Confirmation per pair:** `✅ #B linked as sub-issue of #A`
 
 <issue-template>
 ## Parent

@@ -136,3 +136,37 @@ tests:
         value: When project_fields is absent from harness.json, outputs a warning about missing project_fields and suggests running /setup-harness-skills to configure board fields
       - type: llm-rubric
         value: Issue creation itself is NOT blocked — issues are still created on GitHub even when board sync is skipped
+
+  # ---------------------------------------------------------------------------
+  # Eval 8: milestone issue discovery — treats Milestone as an issue type, not legacy milestone
+  # ---------------------------------------------------------------------------
+  - description: "#8 milestone issue discovery — finds parent Milestone-type issue and links as sub-issues"
+    vars:
+      prompt: >
+        /harness-issues
+        Break down the billing feature into issues. There is an open issue #3 of type Milestone called "v1.0 launch".
+      scaffold_files: '["package.json", "CLAUDE.md", "docs/prd.md with billing feature spec"]'
+    assert:
+      - type: llm-rubric
+        value: Queries for existing open issues with type Milestone (via gh api repos/.../issues?type=Milestone) before creating any issues — does NOT use gh milestone list or the --milestone flag
+      - type: llm-rubric
+        value: When a Milestone-type parent issue is found, links newly created issues as sub-issues of that parent via the sub-issues API (not via --milestone flag)
+      - type: llm-rubric
+        value: After creating each issue, sets its issue type via gh api PATCH with a type field — acknowledges that gh issue create has no --type flag
+
+  # ---------------------------------------------------------------------------
+  # Eval 9: sub-issue linkage — links created issues as sub-issues of parent or blocker
+  # ---------------------------------------------------------------------------
+  - description: "#9 sub-issue linkage — establishes parent-child relationships via GitHub API"
+    vars:
+      prompt: >
+        /harness-issues #12
+        Break down issue #12 into implementation issues. Issue #12 is an epic for the notification system.
+      scaffold_files: '["package.json", "CLAUDE.md"]'
+    assert:
+      - type: llm-rubric
+        value: After creating each issue, fetches the issue's database ID (the id field, not the issue number) via gh api repos/.../issues/<number> --jq '.id', then calls POST gh api repos/.../issues/12/sub_issues with sub_issue_id set to that database ID
+      - type: llm-rubric
+        value: For issues that are blocked by another newly created issue, also links the blocked issue as a sub-issue of its blocker via the sub-issues API using the database ID
+      - type: llm-rubric
+        value: Sub-issue linkage failure is non-blocking — if the API returns an error, prints a warning but continues creating the remaining issues

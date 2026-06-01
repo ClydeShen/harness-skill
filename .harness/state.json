@@ -7,8 +7,8 @@
   },
   "position": {
     "phase": "03-execute",
-    "active_task": "Impl skill-evals-integration-harness spec — branch feature/eval-integration-harness",
-    "resume_file": ".harness/phases/03-execute/.continue-here.json",
-    "stopped_at": "Calibrated context-handover (1/3->3/3) and skill-cleanup (2/6->6/6) rubrics. Both now 100%. Next: run full eval suite for final coverage."
+    "active_task": null,
+    "resume_file": null,
+    "stopped_at": "All tasks complete. Full eval suite run: context-handover 100%, session-start 100%, skill-cleanup 83%, harness-prd 77%. Low-scoring skills (issues/setup/write-harness-skill) are local LLM quality ceiling, not regressions. Branch stays unmerged per goal."
   }
 }

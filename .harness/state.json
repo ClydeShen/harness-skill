@@ -2,13 +2,13 @@
   "version": "1.0",
   "session": {
     "status": "idle",
-    "started_at": "2026-05-29T03:00:00Z",
-    "last_session": "2026-05-29T10:45:00Z"
+    "started_at": "2026-05-30T00:00:00Z",
+    "last_session": "2026-06-01T00:00:00Z"
   },
   "position": {
     "phase": "03-execute",
-    "active_task": "Board fields sync — issues #11, #12, #13 (all completed)",
+    "active_task": "Impl skill-evals-integration-harness spec — branch feature/eval-integration-harness",
     "resume_file": ".harness/phases/03-execute/.continue-here.json",
-    "stopped_at": "Issues #11, #12, #13 implemented and closed. No open issues remaining in this batch."
+    "stopped_at": "Calibrated context-handover (1/3->3/3) and skill-cleanup (2/6->6/6) rubrics. Both now 100%. Next: run full eval suite for final coverage."
   }
 }

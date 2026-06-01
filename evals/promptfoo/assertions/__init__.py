@@ -177,7 +177,7 @@ def effort_size_mapping(output: str) -> dict:
             expected_size = _EFFORT_SIZE_MAP.get(effort)
             if expected_size is None:
                 continue
-            size_id = size_match.group(1)
+            _size_id = size_match.group(1)
             # We can't resolve option ID → label here without fixture data
             # so this check is a placeholder for integration tests that pass
             # the size option ID mapping via the fixture.

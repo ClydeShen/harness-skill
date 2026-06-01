@@ -340,6 +340,61 @@ def scaffold(tmpdir: str, files: list) -> None:
               merge = refs/heads/main
         """))
 
+    # .harness/state.json — current schema (JSON)
+    if "state.json" in desc:
+        planning = root / ".harness"
+        planning.mkdir(exist_ok=True)
+        import re
+        status = "in_progress" if "in_progress" in desc or "interrupted" in desc else "idle"
+        phase_match = re.search(r"phase[:\s]+(\S+)", desc)
+        phase = phase_match.group(1) if phase_match else "03-execute"
+        task_match = re.search(r"(?:active_task\s+)?issue (\d+)", desc)
+        task_num = task_match.group(1) if task_match else "42"
+        effort_match = re.search(r"effort (\d+)", desc)
+        effort = effort_match.group(1) if effort_match else None
+        state: dict = {
+            "version": "1.0",
+            "session": {
+                "status": status,
+                "started_at": "2026-05-25T10:15:00Z" if status == "in_progress" else None,
+                "last_session": "2026-05-25T10:15:00Z",
+            },
+            "position": {
+                "phase": phase,
+                "active_task": f"Issue #{task_num} — Implement feature" + (f" (effort {effort})" if effort else ""),
+                "resume_file": f".harness/phases/{phase}/.continue-here.json",
+                "stopped_at": "Writing auth middleware tests." if status == "in_progress" else "Finished auth middleware, starting route handlers next.",
+            },
+        }
+        if state["session"]["started_at"] is None:
+            del state["session"]["started_at"]
+        (planning / "state.json").write_text(json.dumps(state, indent=2))
+
+    # .harness/phases/XX/.continue-here.json — current schema (JSON)
+    if ".continue-here.json" in desc:
+        import re
+        phase_match = re.search(r"phase[:\s]+(\S+)", desc)
+        phase = phase_match.group(1) if phase_match else "03-execute"
+        phase_dir = root / ".harness" / "phases" / phase
+        phase_dir.mkdir(parents=True, exist_ok=True)
+        task_match = re.search(r"task (\d+)", desc)
+        total_match = re.search(r"total[_ ]tasks (\d+)", desc)
+        task_num = task_match.group(1) if task_match else "2"
+        total = total_match.group(1) if total_match else "5"
+        resume = {
+            "phase": phase,
+            "task": int(task_num),
+            "total_tasks": int(total),
+            "status": "in_progress",
+            "last_updated": "2026-05-26T14:30:00Z",
+            "next_action": "Wire auth middleware into src/routes/index.ts",
+            "completed_work": ["Task 1: Schema migration — Done", "Task 2: Auth middleware stub — Done"],
+            "remaining_work": ["Task 2: Wire middleware into Express routes", "Task 3: Write integration tests"],
+            "decisions_made": ["Used JWT over session cookies for stateless auth"],
+            "blockers": [],
+        }
+        (phase_dir / ".continue-here.json").write_text(json.dumps(resume, indent=2))
+
     # .harness/STATE.md — idle state (clean prior session)
     if "state.md" in desc and "idle" in desc:
         planning = root / ".harness"
@@ -429,8 +484,8 @@ def scaffold(tmpdir: str, files: list) -> None:
             Resume file: .harness/phases/03-execute/.continue-here.md
         """))
 
-    # .harness/phases/XX/.continue-here.md
-    if ".continue-here.md" in desc or "continue-here" in desc:
+    # .harness/phases/XX/.continue-here.md (legacy format — only when .json not requested)
+    if (".continue-here.md" in desc or "continue-here" in desc) and ".continue-here.json" not in desc:
         import re
         phase_match = re.search(r"phase[:\s]+(\S+)", desc)
         phase = phase_match.group(1) if phase_match else "03-execute"

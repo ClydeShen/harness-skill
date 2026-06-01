@@ -52,8 +52,22 @@ def _load_system_prompt(skill_dir: Path) -> str:
 
 def _build_file_listing(project_dir: str) -> str:
     root = Path(project_dir)
-    lines = [f"  {p.relative_to(root)}" for p in sorted(root.rglob("*")) if p.is_file()]
-    return "\n".join(lines) if lines else "(no project files — fresh empty directory)"
+    parts: list[str] = []
+    for p in sorted(root.rglob("*")):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(root)
+        parts.append(f"  {rel}")
+        # Inline small text file contents so the model reads actual values,
+        # not placeholders hallucinated from the SKILL.md schema example.
+        try:
+            content = p.read_text(encoding="utf-8")
+            if len(content) < 1500:
+                indented = "\n".join(f"    {line}" for line in content.splitlines())
+                parts.append(indented)
+        except (UnicodeDecodeError, OSError):
+            pass
+    return "\n".join(parts) if parts else "(no project files — fresh empty directory)"
 
 
 def call_api(prompt: str, options: dict, context: dict) -> dict:
@@ -94,7 +108,7 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
                         {"role": "user", "content": user_message},
                     ],
                     "temperature": 0.1,
-                    "max_tokens": 512,
+                    "max_tokens": 1024,
                 },
                 timeout=300,
             )

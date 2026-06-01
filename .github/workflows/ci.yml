@@ -36,3 +36,9 @@ jobs:
 
       - name: Check Python syntax
         run: python -m py_compile evals/run_evals.py evals/promptfoo/provider.py evals/promptfoo/grader.py evals/promptfoo/scaffold_helper.py
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint Python
+        run: ruff check evals/

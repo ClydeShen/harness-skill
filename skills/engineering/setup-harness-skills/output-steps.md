@@ -239,6 +239,235 @@ Only if user opted in during Section D:
 
 **Graceful degradation:** If the board has no Priority/Size/Effort (windows) fields, omit the corresponding sub-key. Downstream skills check for key presence before calling mutations.
 
+## Step 5b — Configure Status columns and create board sync workflows
+
+Only run if a board was created in Step 5.
+
+### 5b.1 — Configure Status field options
+
+New boards have only three Status options by default: Todo, In Progress, Done. Add the missing harness columns using the GraphQL API:
+
+```bash
+# Get Status field ID
+STATUS_FIELD_ID=$(gh api graphql -f query='
+query($id: ID!) {
+  node(id: $id) {
+    ... on ProjectV2 {
+      fields(first: 20) {
+        nodes {
+          ... on ProjectV2SingleSelectField { id name options { id name } }
+        }
+      }
+    }
+  }
+}' -f id="$PROJECT_ID" \
+--jq '.data.node.fields.nodes[] | select(.name == "Status") | .id')
+
+# Add missing harness Status options
+EXISTING_OPTIONS=$(gh api graphql -f query='
+query($id: ID!) {
+  node(id: $id) {
+    ... on ProjectV2 {
+      fields(first: 20) {
+        nodes {
+          ... on ProjectV2SingleSelectField { name options { name } }
+        }
+      }
+    }
+  }
+}' -f id="$PROJECT_ID" \
+--jq '[.data.node.fields.nodes[] | select(.name == "Status") | .options[].name]')
+
+for OPTION in "Triage" "Needs PRD" "Needs Review" "Ready for Agent"; do
+  echo "$EXISTING_OPTIONS" | grep -qF "\"$OPTION\"" && continue
+  gh api graphql -f query='
+  mutation($fieldId: ID!, $projectId: ID!, $name: String!) {
+    createProjectV2FieldOption(input: {
+      fieldId: $fieldId
+      projectId: $projectId
+      name: $name
+      color: GRAY
+      description: ""
+    }) { clientMutationId }
+  }' \
+  -f fieldId="$STATUS_FIELD_ID" \
+  -f projectId="$PROJECT_ID" \
+  -f name="$OPTION" 2>/dev/null || true
+done
+```
+
+If the mutation fails (GitHub API may restrict it): record in setup summary:
+```
+⚠️ Status columns: add manually in GitHub Projects settings — add: Triage, Needs PRD, Needs Review, Ready for Agent
+```
+
+### 5b.2 — Set PROJECT_V2_ID as a repository Actions variable
+
+This lets the sync workflow resolve the board without hardcoding the node ID:
+
+```bash
+gh variable set PROJECT_V2_ID --repo "$OWNER/$REPO" --body "$PROJECT_ID"
+```
+
+If this fails (insufficient permission): record in setup summary as manual action.
+
+### 5b.3 — Write project-auto-add workflow
+
+Write `.github/workflows/project-auto-add.yml` (skip if file already exists):
+
+Determine project URL from owner type:
+```bash
+OWNER_TYPE=$(gh api users/$OWNER --jq '.type')  # "Organization" or "User"
+if [ "$OWNER_TYPE" = "Organization" ]; then
+  PROJECT_URL="https://github.com/orgs/$OWNER/projects/$PROJECT_NUMBER"
+else
+  PROJECT_URL="https://github.com/users/$OWNER/projects/$PROJECT_NUMBER"
+fi
+```
+
+Then write the file with `$PROJECT_URL` substituted:
+
+```yaml
+name: Auto-add issues to project board
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  add-to-project:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/add-to-project@v1.0.2
+        with:
+          project-url: <PROJECT_URL>
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+```
+
+### 5b.4 — Write project-sync-status workflow
+
+Write `.github/workflows/project-sync-status.yml` (skip if file already exists):
+
+```yaml
+name: Sync issue labels to project board status
+
+on:
+  issues:
+    types: [labeled, unlabeled]
+
+jobs:
+  sync-status:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+    steps:
+      - name: Find project item ID
+        id: item
+        run: |
+          ITEM_ID=$(gh api graphql -f query='
+          query($issue: ID!) {
+            node(id: $issue) {
+              ... on Issue {
+                projectItems(first: 5) {
+                  nodes { id project { ... on ProjectV2 { number } } }
+                }
+              }
+            }
+          }' -f issue="${{ github.event.issue.node_id }}" \
+          --jq --argjson num ${{ vars.PROJECT_NUMBER || 0 }} \
+          '.data.node.projectItems.nodes[] | select(.project.number == $num) | .id' \
+          2>/dev/null || echo "")
+          echo "item_id=$ITEM_ID" >> $GITHUB_OUTPUT
+
+      - name: Map label to Status column and update board
+        if: steps.item.outputs.item_id != ''
+        env:
+          PROJECT_ID: ${{ vars.PROJECT_V2_ID }}
+        run: |
+          LABEL="${{ github.event.label.name }}"
+          case "$LABEL" in
+            "status:triage"|"status:needs-triage") COL="Triage" ;;
+            "status:needs-prd")        COL="Needs PRD" ;;
+            "status:needs-review")     COL="Needs Review" ;;
+            "status:ready-for-agent")  COL="Ready for Agent" ;;
+            "status:in-progress")      COL="In Progress" ;;
+            "status:done")             COL="Done" ;;
+            *) exit 0 ;;
+          esac
+
+          FIELD_DATA=$(gh api graphql -f query='
+          query($id: ID!) {
+            node(id: $id) {
+              ... on ProjectV2 {
+                fields(first: 20) {
+                  nodes {
+                    ... on ProjectV2SingleSelectField {
+                      id name options { id name }
+                    }
+                  }
+                }
+              }
+            }
+          }' -f id="$PROJECT_ID")
+
+          FIELD_ID=$(echo "$FIELD_DATA" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .id')
+          OPTION_ID=$(echo "$FIELD_DATA" | jq -r --arg col "$COL" \
+            '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | select(.name == $col) | .id')
+
+          if [ -z "$FIELD_ID" ] || [ -z "$OPTION_ID" ]; then
+            echo "Status column '$COL' not found — add it in GitHub Projects UI settings"
+            exit 0
+          fi
+
+          gh api graphql -f query='
+          mutation($project: ID!, $item: ID!, $field: ID!, $option: String!) {
+            updateProjectV2ItemFieldValue(input: {
+              projectId: $project
+              itemId: $item
+              fieldId: $field
+              value: { singleSelectOptionId: $option }
+            }) { clientMutationId }
+          }' \
+          -f project="$PROJECT_ID" \
+          -f item="${{ steps.item.outputs.item_id }}" \
+          -f field="$FIELD_ID" \
+          -f option="$OPTION_ID"
+```
+
+Also set `PROJECT_NUMBER` as a repo variable so the workflow can resolve the correct board item:
+
+```bash
+gh variable set PROJECT_NUMBER --repo "$OWNER/$REPO" --body "$PROJECT_NUMBER"
+```
+
+### 5b.5 — PAT reminder (always print, cannot be automated)
+
+Print this block unconditionally after writing the workflows:
+
+```
+⚠️  ACTION REQUIRED — Board sync will silently fail without this step:
+
+    The two sync workflows need a repository secret named PROJECT_TOKEN.
+    Create a Classic PAT at https://github.com/settings/tokens with scopes:
+      ✓ repo
+      ✓ project
+
+    Then run in a REAL terminal (not via ! in Claude Code — stdin won't work):
+
+      gh secret set PROJECT_TOKEN --repo {owner}/{repo}
+
+    Paste the token when prompted.
+```
+
+Record in setup summary:
+```
+⚠️  PROJECT_TOKEN secret — requires manual step (see instructions above)
+✅  .github/workflows/project-auto-add.yml written
+✅  .github/workflows/project-sync-status.yml written
+✅  PROJECT_V2_ID repo variable set
+✅  PROJECT_NUMBER repo variable set
+```
+
 ## Step 6 — Configure branch protection
 
 ```bash
@@ -254,7 +483,7 @@ If this fails (insufficient permissions): record as "Requires manual action" in 
 
 ## Step 7 — Scaffold `.github/workflows/ci.yml`
 
-**Idempotency guard:** Before writing, check for any `*.yml` in `.github/workflows/`. If any exist, skip this step and record in the setup summary:
+**Idempotency guard:** Before writing, check for any `*.yml` in `.github/workflows/` **other than** the two harness sync files (`project-auto-add.yml`, `project-sync-status.yml`) written by Step 5b. If any such file exists, skip this step and record in the setup summary:
 
 ```
 ⚠️ CI scaffold skipped — existing workflows found

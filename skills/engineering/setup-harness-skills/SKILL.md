@@ -71,7 +71,15 @@ Options: Single-context · Multi-context · Neither yet
 
 > "Which board should `context-handover` and `session-start` use? (Leave blank to skip.) Default columns: Triage → Needs PRD → Needs Review → Ready for Agent → In Progress → Done. Default milestones: Design, MVP, v1.0."
 
-After confirming the board, inform the user of the two sizing fields (no new questions — informational only):
+After confirming the board, surface the PAT requirement (no new questions — informational only):
+
+> "**Board sync requires a PAT.** Two GitHub Actions workflows will be created to auto-add issues and sync label→column. Both need a repository secret named `PROJECT_TOKEN` — a Classic PAT with `repo` + `project` scopes. After setup completes, run this in a real terminal (not via `!` in Claude Code, which has no stdin):
+> ```
+> gh secret set PROJECT_TOKEN --repo {owner}/{repo}
+> ```
+> Without it, new issues won't appear on the board and column sync will silently fail."
+
+After that, inform the user of the two sizing fields (no new questions — informational only):
 
 > "The board uses two sizing fields:
 > - **Effort (windows):** token budget estimate — set from the `Effort:` value in an agent brief. 1 ≈ 150K–200K tokens (single slice); 2 ≈ 300K–400K (1 phase); 3 ≈ 500K–700K (full feature); 4+ = epic.

@@ -3,7 +3,7 @@
 ## Commands
 
 ```bash
-# Create issue (automatically added to board via label-based automation)
+# Create issue (auto-added to board via project-auto-add.yml workflow — requires PROJECT_TOKEN secret)
 gh issue create --title "type: description" --body "..." --label "status:triage,phase:execution"
 
 # List ready issues for current phase
@@ -12,7 +12,7 @@ gh issue list --label "status:ready-for-agent,phase:execution"
 # View issue
 gh issue view <N>
 
-# Update label (board column moves automatically)
+# Update label (board column syncs via project-sync-status.yml workflow — requires PROJECT_TOKEN secret)
 gh issue edit <N> --add-label "status:in-progress" --remove-label "status:ready-for-agent"
 
 # Add comment
@@ -30,7 +30,12 @@ gh issue comment <N> --body "..."
 | In Progress | `status:in-progress` |
 | Done | `status:done` |
 
-Column tracks `status:` label. When label changes, item moves automatically.
+**Column sync is NOT automatic.** GitHub Projects v2 does not bridge `status:` labels to the board Status field on its own. Two GitHub Actions workflows (written by Step 5b of `setup-harness-skills`) provide this:
+
+- `project-auto-add.yml` — adds every new issue to the board automatically
+- `project-sync-status.yml` — watches `issues: labeled` events and updates the board Status field to match the `status:` label
+
+Both workflows require a repository secret `PROJECT_TOKEN` (Classic PAT with `repo` + `project` scopes). Without it, column sync silently fails.
 
 ## Config
 

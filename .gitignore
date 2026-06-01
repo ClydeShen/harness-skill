@@ -60,3 +60,6 @@ evals/run_results.log
 
 # agentmemory runtime data (local state store — never commit)
 data/
+
+# Codex agent session artifacts
+.codex/

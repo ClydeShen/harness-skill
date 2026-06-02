@@ -7,7 +7,7 @@ prompts:
 
 providers:
   - id: python:provider.py
-    label: llamacpp-harness-issues
+    label: llm-harness-issues
     config:
       skill_name: harness-issues
 

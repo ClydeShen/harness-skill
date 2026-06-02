@@ -23,6 +23,7 @@ from scaffold_helper import scaffold
 REPO_ROOT = Path(__file__).parent.parent.parent
 API_BASE = os.getenv("EVAL_API_BASE", "http://localhost:8080/v1")
 MODEL = os.getenv("EVAL_PROVIDER_MODEL", "default-model")
+API_KEY = os.getenv("EVAL_API_KEY", "")
 
 _SYSTEM_CACHE: dict[str, str] = {}
 
@@ -81,6 +82,15 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
         _SYSTEM_CACHE[skill_name] = _load_system_prompt(skill_dir)
 
     system_prompt = _SYSTEM_CACHE[skill_name]
+    # Qwen3 agentic fine-tuning causes it to output tool calls or context-compression
+    # notes when the system prompt is long. Prefix with an explicit plain-text guard.
+    if "qwen3" in MODEL.lower():
+        system_prompt = (
+            "Respond with plain markdown text only. "
+            "Do not use tool calls, function calls, XML tags, or JSON tool invocations. "
+            "Do not output context management notes or conversation history summaries. "
+            "This is a fresh single-turn request — respond directly.\n\n"
+        ) + system_prompt
     # scaffold_files may be a JSON string (to prevent promptfoo list expansion)
     # or already a list (when called programmatically).
     raw = context.get("vars", {}).get("scaffold_files") or []
@@ -98,22 +108,36 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
         file_listing = _build_file_listing(project_dir)
         user_message = f"Project files present:\n{file_listing}\n\n{prompt}"
 
+        headers = {"content-type": "application/json"}
+        if API_KEY:
+            headers["Authorization"] = f"Bearer {API_KEY}"
+        body: dict = {
+            "model": MODEL,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+            "temperature": 0.1,
+            "max_tokens": 2048,
+        }
+        # Qwen3 thinking mode returns tool-call frames instead of text content;
+        # disable it when targeting NVIDIA/vLLM hosted Qwen3 models.
+        if "qwen3" in MODEL.lower():
+            body["chat_template_kwargs"] = {"enable_thinking": False}
+
         try:
             resp = requests.post(
                 f"{API_BASE}/chat/completions",
-                json={
-                    "model": MODEL,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_message},
-                    ],
-                    "temperature": 0.1,
-                    "max_tokens": 1024,
-                },
+                headers=headers,
+                json=body,
                 timeout=300,
             )
             resp.raise_for_status()
-            output = resp.json()["choices"][0]["message"]["content"]
+            msg = resp.json()["choices"][0]["message"]
+            output = msg.get("content") or ""
+            # Fallback: if model returned tool_calls instead of content, surface the error.
+            if not output and msg.get("tool_calls"):
+                return {"error": "Model returned tool_calls instead of text; disable tool use or switch model"}
             return {"output": output}
         except requests.exceptions.ConnectionError:
             return {"error": f"llamacpp server not reachable at {API_BASE}"}

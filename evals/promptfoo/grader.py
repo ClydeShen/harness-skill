@@ -12,6 +12,7 @@ import requests
 
 API_BASE = os.getenv("EVAL_API_BASE", "http://localhost:8080/v1")
 MODEL = os.getenv("EVAL_GRADER_MODEL", "default-model")
+API_KEY = os.getenv("EVAL_API_KEY", "")
 
 _SYSTEM = (
     "You are a strict pass/fail evaluator for LLM responses. "
@@ -70,10 +71,15 @@ def _build_messages(prompt: str) -> list[dict]:
 def call_api(prompt: str, options: dict, context: dict) -> dict:
     messages = _build_messages(prompt)  # handles JSON messages array or plain string
 
+    headers = {"content-type": "application/json"}
+    if API_KEY:
+        headers["Authorization"] = f"Bearer {API_KEY}"
+
     for attempt in range(3):
         try:
             resp = requests.post(
                 f"{API_BASE}/chat/completions",
+                headers=headers,
                 json={
                     "model": MODEL,
                     "messages": messages,

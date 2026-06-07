@@ -1,0 +1,14 @@
+{
+  "name": "harness-verify-before-move",
+  "version": "0.2.0",
+  "description": "Comprehensive pre-phase-transition sweep: verifies exit criteria, syncs code status, cleans design docs and implementation-notes, prunes stale documents and memory, syncs GitHub project state (milestones, issues, labels, board), updates README, writes memory snapshot, outputs clean project snapshot. Use before advancing phases or when user says sync everything, project snapshot, clean slate.",
+  "author": {
+    "name": "Clyde Shen",
+    "github": "ClydeShen"
+  },
+  "verticals": ["devops", "productivity"],
+  "tags": ["claude", "harness", "phase-gate", "session-lifecycle", "state-management", "compound-engineering", "github-sync", "project-snapshot"],
+  "scripts": {
+    "setup": ""
+  }
+}

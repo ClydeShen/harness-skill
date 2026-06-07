@@ -73,6 +73,18 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Exit criteria must be observable: a gate that passed, not a feeling that it's done. Name the anti-patterns: Fuzzy Done, Proxy Signal, Confidence Exit.
 - State lives outside the agent. The source of truth is the issue tracker, the handoff document, the config file — not working memory.
 
+## 6. Long-Task Checkpointing
+
+**Checkpoint after every committed chunk.**
+
+For multi-step tasks spanning more than one commit:
+
+- Write progress to `.harness/state.json` (`position.stopped_at`) after each chunk completes.
+- Commit the checkpoint alongside the work — never leave state and code out of sync.
+- If interrupted, the next session reads the checkpoint and resumes from the last known-good commit.
+
+Do not run long autonomous loops without a checkpoint strategy.
+
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, clarifying questions come before implementation rather than after mistakes, and long-running sessions hand off cleanly without lost context.
@@ -80,7 +92,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## Project Context
 
 Curated skill collection for compound engineering workflows, packaged as a Claude Code / Codex plugin. 14 skills across `skills/engineering/` and `skills/productivity/`.
-Install: `bash scripts/link-skills.sh`
+Install: `bash scripts/link-skills.sh` (Linux/Mac) · `powershell -File scripts\link-skills.ps1` (Windows)
 
 ## Key Commands
 

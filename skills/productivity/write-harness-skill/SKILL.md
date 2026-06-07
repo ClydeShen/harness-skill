@@ -131,3 +131,4 @@ After drafting, verify:
 - [ ] If the skill reads setup config (issue tracker, labels, GitHub board), does it include "run `/setup-harness-skills` if missing context"?
 - [ ] If the skill posts any comment or body to the issue tracker, does every post end with the AI-generated footer (`🤖 Posted by /[skill-name] (AI-generated)`)?
 - [ ] If the skill creates issues, does it enforce all three creation gates: (1) Estimable, (2) ≤8 context windows (8 sessions of focused work — beyond this, handoff drift compounds), (3) demoable user-facing outcome?
+- [ ] If the skill reports on the state of something (files, gates, code, GitHub), does it distinguish `[VERIFIED]` / `[ASSUMED]` / `[SKIPPED — reason]` rather than collapsing to a uniform pass signal? (A skill that reports "all good" when it only inferred the result is committing Fuzzy Done / Proxy Signal — the same anti-patterns it may exist to catch.)

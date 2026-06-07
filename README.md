@@ -74,6 +74,8 @@ Five skills in this collection have no equivalent in mattpocock — they are the
 | `/session-start` | Reads `.harness/state.json` and `.continue-here.json`. Outputs structured briefing or recovery brief when an interrupted session is detected. |
 | `/context-handover` | Session boundary manager: writes `.continue-here.json`, updates `.harness/state.json`, posts GitHub progress comment, updates memory system (skips if Stop hook already handles it automatically). |
 | `/skill-cleanup` | Audits installed skills across all agent platforms for stale or duplicate entries. Interactive, dry-run mode, never deletes without confirmation. |
+| `/fuller` | Comprehensive reasoning partner — maps whole systems before examining parts, finds the trim tab (smallest intervention with largest leverage), interrogates assumptions through Socratic one-question-at-a-time dialogue. Internal finding log accessible on request. |
+| `/harness-verify-before-move` | Comprehensive pre-phase-transition sweep: verifies exit criteria, syncs code (git/lint/build/tests), cleans design docs and implementation-notes, prunes stale documents and memory, syncs GitHub (milestones, issues, labels, board), updates README, writes memory snapshot, outputs a clean project snapshot. |
 
 ---
 

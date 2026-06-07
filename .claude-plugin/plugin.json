@@ -11,7 +11,9 @@
     "./skills/engineering/harness-prd",
     "./skills/engineering/harness-issues",
     "./skills/engineering/harness-guide",
+    "./skills/engineering/harness-verify-before-move",
     "./skills/productivity/write-harness-skill",
-    "./skills/productivity/skill-cleanup"
+    "./skills/productivity/skill-cleanup",
+    "./skills/productivity/fuller"
   ]
 }

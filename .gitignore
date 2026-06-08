@@ -1,6 +1,7 @@
 # Agent session state — never commit (written by context-handover / session-start)
 .claude/handoff.md
 .claude/session.json
+.claude/scheduled_tasks.lock
 
 # Python eval runner artifacts
 __pycache__/

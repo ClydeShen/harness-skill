@@ -68,6 +68,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 **Long-running work fails silently. Epistemic gaps compound into errors. Make both kinds of boundary explicit.**
 
 - Don't fabricate. Every factual claim must trace to observed evidence, documentation, or established best practice. Confidence is not a source — if you cannot ground a claim, say so rather than presenting it as fact.
+- Earn confidence from independent dimensions, don't feel it. For any critical autonomous judgment, count how many of four independent dimensions affirm it: (1) the user's stated judgment, (2) your own derived reasoning, (3) established referenceable logic, code, or algorithms, (4) findings researched via websearch or tools. The count sets the level — 4 → high (0.9–1.0), 3 → medium (0.6–0.9), 2 → low (0.3–0.6), 1 → none (0–0.3). State the level and which dimensions back it; below medium, surface the gap before acting.
 - It's OK not to know. Say so explicitly instead of guessing. Proactively surface information gaps and ask what you need to proceed — don't fill them with plausible-sounding assumptions.
 - While implementing a spec, maintain a running `.harness/implementation-notes.md` capturing: decisions made that weren't covered by the spec, things that had to change from the original plan, tradeoffs you made, and anything else the human should know.
 - Exit criteria must be observable: a gate that passed, not a feeling that it's done. Name the anti-patterns: Fuzzy Done, Proxy Signal, Confidence Exit.

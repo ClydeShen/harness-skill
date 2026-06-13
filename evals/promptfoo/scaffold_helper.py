@@ -536,57 +536,45 @@ def scaffold(tmpdir: str, files: list) -> None:
             </next_action>
         """))
 
-    # .harness/config.json
+    # .harness/config.json — harness config lives under the `harness` namespace
     if ".harness/config.json" in desc or "planning config" in desc or "planning/config" in desc:
         planning = root / ".harness"
         planning.mkdir(exist_ok=True)
-        has_harness = "harness key" in desc or "with harness" in desc
+        has_harness = (
+            "harness key" in desc or "with harness" in desc
+            or "project_v2_id" in desc or "project_fields" in desc
+        )
         config: dict = {
             "model_profile": "balanced",
             "commit_docs": True,
         }
         if has_harness:
-            config["harness"] = {
+            harness: dict = {
                 "schema_version": 1,
                 "github": {
-                    "owner": "org",
-                    "repo": "my-project",
+                    "owner": "my-org",
+                    "repo": "my-repo",
                     "default_branch": "main",
+                    "project_v2_id": "PVT_abc123" if "project_v2_id" in desc else None,
+                    "project_board_name": "Task Board" if "project_v2_id" in desc else None,
                 },
                 "docs_agents_dir": "docs/agents",
                 "issue_tracker": "github",
             }
-        (planning / "config.json").write_text(json.dumps(config, indent=2))
-
-    # .claude/harness.json
-    if ".claude/harness.json" in desc:
-        c = root / ".claude"
-        c.mkdir(exist_ok=True)
-        harness: dict = {
-            "schema_version": 1,
-            "github": {
-                "owner": "my-org",
-                "repo": "my-repo",
-                "default_branch": "main",
-                "project_v2_id": "PVT_abc123" if "project_v2_id" in desc else None,
-                "project_board_name": "Task Board" if "project_v2_id" in desc else None,
-            },
-            "docs_agents_dir": "docs/agents",
-            "issue_tracker": "github",
-        }
-        if "project_fields populated" in desc or "project_fields" in desc and "without" not in desc:
-            harness["project_fields"] = {
-                "priority": {
-                    "id": "PVTSSF_priority_abc",
-                    "options": {"P1": "opt_p1", "P2": "opt_p2", "P3": "opt_p3"},
-                },
-                "size": {
-                    "id": "PVTSSF_size_abc",
-                    "options": {
-                        "XS": "opt_xs", "S": "opt_s", "M": "opt_m",
-                        "L": "opt_l", "XL": "opt_xl",
+            if "project_fields populated" in desc or ("project_fields" in desc and "without" not in desc):
+                harness["project_fields"] = {
+                    "priority": {
+                        "id": "PVTSSF_priority_abc",
+                        "options": {"P1": "opt_p1", "P2": "opt_p2", "P3": "opt_p3"},
                     },
-                },
-                "effort": {"id": "PVTF_effort_abc"},
-            }
-        (c / "harness.json").write_text(json.dumps(harness, indent=2))
+                    "size": {
+                        "id": "PVTSSF_size_abc",
+                        "options": {
+                            "XS": "opt_xs", "S": "opt_s", "M": "opt_m",
+                            "L": "opt_l", "XL": "opt_xl",
+                        },
+                    },
+                    "effort": {"id": "PVTF_effort_abc"},
+                }
+            config["harness"] = harness
+        (planning / "config.json").write_text(json.dumps(config, indent=2))

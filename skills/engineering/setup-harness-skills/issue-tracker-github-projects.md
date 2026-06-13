@@ -39,7 +39,7 @@ Both workflows require a repository secret `PROJECT_TOKEN` (Classic PAT with `re
 
 ## Config
 
-- Board ID: read from `.claude/harness.json` → `github.project_v2_id`
-- Board name: read from `.claude/harness.json` → `github.project_board_name`
+- Board ID: read from `.harness/config.json` → `harness.github.project_v2_id`
+- Board name: read from `.harness/config.json` → `harness.github.project_board_name`
 - Active issue: `.harness/state.json` → `position.active_task` (title); issue number from GitHub issue body
-- Active item ID: `.claude/harness.json` → `github.project_v2_id` (board-level; item ID resolved via GraphQL)
+- Active item ID: `.harness/config.json` → `harness.github.project_v2_id` (board-level; item ID resolved via GraphQL)

@@ -110,10 +110,10 @@ tests:
       prompt: >
         /harness-triage #42
         The issue is ready. Post an agent brief with Effort: 3, then sync the board fields.
-      scaffold_files: '["package.json", "CLAUDE.md", ".claude/harness.json with project_fields populated"]'
+      scaffold_files: '["package.json", "CLAUDE.md", ".harness/config.json with project_fields populated"]'
     assert:
       - type: llm-rubric
-        value: After the agent brief is posted, reads project_fields from .claude/harness.json
+        value: After the agent brief is posted, reads project_fields from .harness/config.json
       - type: llm-rubric
         value: Derives Size from Effort using the mapping — Effort 3 maps to Size M (3-4 windows = M)
       - type: llm-rubric
@@ -124,15 +124,15 @@ tests:
   # ---------------------------------------------------------------------------
   # Eval 7: board sync guard — skips with warning if project_fields absent
   # ---------------------------------------------------------------------------
-  - description: "#7 board sync guard — skips sync when project_fields absent from harness.json"
+  - description: "#7 board sync guard — skips sync when project_fields absent from .harness/config.json"
     vars:
       prompt: >
         /harness-triage #42
         Move to ready-for-agent and post an agent brief.
-      scaffold_files: '["package.json", "CLAUDE.md", ".claude/harness.json without project_fields"]'
+      scaffold_files: '["package.json", "CLAUDE.md", ".harness/config.json without project_fields"]'
     assert:
       - type: llm-rubric
-        value: When project_fields is absent from harness.json, prints a warning containing "project_fields not in harness.json" and mentions running /setup-harness-skills
+        value: When project_fields is absent from .harness/config.json, prints a warning containing "project_fields not in .harness/config.json" and mentions running /setup-harness-skills
       - type: llm-rubric
         value: Skips board field mutations entirely — does not attempt GraphQL calls when project_fields is absent
       - type: llm-rubric

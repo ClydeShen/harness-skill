@@ -108,23 +108,25 @@ Written by: `context-handover`. Read by: `session-start`. Validated by: PostTool
 
 **Written by:** `setup-harness-skills` (Step 11). **Read by:** `context-handover` (session budget planning), `harness-audit` (model-aware gap detection).
 
-## harness.json schema
+## config.json (harness namespace) schema
 
-**Location:** `.claude/harness.json` (committed — shared team config, analogous to package.json)
+**Location:** `.harness/config.json` (committed — shared team config, analogous to package.json). Harness keys live under the `harness` namespace so GSD can own the rest of the file; GSD ignores unknown keys.
 
 ```json
 {
-  "schema_version": 1,
-  "github": {
-    "owner": "my-org",
-    "repo": "my-project",
-    "default_branch": "main",
-    "project_v2_id": "PVT_xxxx",
-    "project_board_name": "My Project Board"
-  },
-  "docs_agents_dir": "docs/agents",
-  "specs_dir": "docs/superpowers/specs",
-  "issue_tracker": "github"
+  "harness": {
+    "schema_version": 1,
+    "github": {
+      "owner": "my-org",
+      "repo": "my-project",
+      "default_branch": "main",
+      "project_v2_id": "PVT_xxxx",
+      "project_board_name": "My Project Board"
+    },
+    "docs_agents_dir": "docs/agents",
+    "specs_dir": "docs/superpowers/specs",
+    "issue_tracker": "github"
+  }
 }
 ```
 

@@ -79,9 +79,9 @@ Publish issues in dependency order (blockers first) so you can reference real is
 
 After each issue is created, sync its fields to the project board:
 
-**Guard:** Read `.claude/harness.json` → `project_fields`. If absent:
+**Guard:** Read `.harness/config.json` → `harness.project_fields`. If absent:
 ```
-⚠️ project_fields not in harness.json — skipping board field sync. Run /setup-harness-skills to populate.
+⚠️ project_fields not in .harness/config.json — skipping board field sync. Run /setup-harness-skills to populate.
 ```
 Issue creation is NOT blocked — continue even if sync is skipped.
 
@@ -97,9 +97,9 @@ Issue creation is NOT blocked — continue even if sync is skipped.
 
 **Sequence per issue:**
 
-All project board operations use **GraphQL** via `gh api graphql`. The `singleSelectOptionId` values for Size and Priority are stored in `project_fields` inside `.claude/harness.json` — fetch them once at the start of this sequence rather than querying the API each time.
+All project board operations use **GraphQL** via `gh api graphql`. The `singleSelectOptionId` values for Size and Priority are stored in `harness.project_fields` inside `.harness/config.json` — fetch them once at the start of this sequence rather than querying the API each time.
 
-1. Read `github.project_v2_id` from `.claude/harness.json` — this is the `projectId` (GraphQL node ID, e.g. `PVT_...`) for all mutations.
+1. Read `harness.github.project_v2_id` from `.harness/config.json` — this is the `projectId` (GraphQL node ID, e.g. `PVT_...`) for all mutations.
 2. Capture the issue number from `gh issue create` output.
 3. Fetch issue GraphQL node ID: `gh issue view N --json id --jq '.id'` → returns a node ID like `I_kwDO...`.
 4. Add to project board:

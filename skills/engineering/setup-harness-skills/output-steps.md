@@ -89,23 +89,25 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 - Record in summary: `✅ CLAUDE.md written` (or AGENTS.md).
 
-## Step 2 — Write `.claude/harness.json`
+## Step 2 — Write `.harness/config.json` (harness namespace)
 
-Merge over existing values if file already exists:
+Merge the `harness` key over existing values if the file already exists. Never overwrite GSD-owned top-level keys — GSD ignores the `harness` namespace (unknown keys pass through).
 
 ```json
 {
-  "schema_version": 1,
-  "github": {
-    "owner": "<from .git/config>",
-    "repo": "<from .git/config>",
-    "default_branch": "main",
-    "project_v2_id": null,
-    "project_board_name": null
-  },
-  "docs_agents_dir": "docs/agents",
-  "specs_dir": "docs/superpowers/specs",
-  "issue_tracker": "<from Section A>"
+  "harness": {
+    "schema_version": 1,
+    "github": {
+      "owner": "<from .git/config>",
+      "repo": "<from .git/config>",
+      "default_branch": "main",
+      "project_v2_id": null,
+      "project_board_name": null
+    },
+    "docs_agents_dir": "docs/agents",
+    "specs_dir": "docs/superpowers/specs",
+    "issue_tracker": "<from Section A>"
+  }
 }
 ```
 
@@ -210,32 +212,34 @@ Only if user opted in during Section D:
    - Field named `Effort (windows)` → `project_fields.effort` (`id` only)
    - Skip any field not found (partial population is valid).
 
-4. Merge `project_fields` key into `.claude/harness.json` (idempotent — merge over existing values; never overwrite keys already present):
+4. Merge `project_fields` into the `harness` namespace in `.harness/config.json` (idempotent — merge over existing values; never overwrite keys already present):
    ```json
    {
-     "project_fields": {
-       "priority": {
-         "id": "<PVTSSF_... from board>",
-         "options": { "P1": "<option-id>", "P2": "<option-id>", "P3": "<option-id>" }
-       },
-       "size": {
-         "id": "<PVTSSF_... from board>",
-         "options": {
-           "XS": "<option-id>",
-           "S":  "<option-id>",
-           "M":  "<option-id>",
-           "L":  "<option-id>",
-           "XL": "<option-id>"
+     "harness": {
+       "project_fields": {
+         "priority": {
+           "id": "<PVTSSF_... from board>",
+           "options": { "P1": "<option-id>", "P2": "<option-id>", "P3": "<option-id>" }
+         },
+         "size": {
+           "id": "<PVTSSF_... from board>",
+           "options": {
+             "XS": "<option-id>",
+             "S":  "<option-id>",
+             "M":  "<option-id>",
+             "L":  "<option-id>",
+             "XL": "<option-id>"
+           }
+         },
+         "effort": {
+           "id": "<PVTF_... from board>"
          }
-       },
-       "effort": {
-         "id": "<PVTF_... from board>"
        }
      }
    }
    ```
 
-5. Write `project_v2_id`, `project_board_name`, and `project_number` back to `harness.json`.
+5. Write `project_v2_id`, `project_board_name`, and `project_number` back to the `harness.github` namespace in `.harness/config.json`.
 
 **Graceful degradation:** If the board has no Priority/Size/Effort (windows) fields, omit the corresponding sub-key. Downstream skills check for key presence before calling mutations.
 
@@ -574,7 +578,7 @@ Idempotent — skip lines already present:
 .harness/phases/*/.continue-here.json
 ```
 
-`.claude/harness.json` and `.harness/state.json` are NOT gitignored — committed as shared team config.
+`.harness/config.json` and `.harness/state.json` are NOT gitignored — committed as shared team config.
 
 ## Step 9 — Write seed files to `docs/agents/`
 
@@ -600,7 +604,7 @@ Always write — this file is consumed by `context-handover` for session budget 
 
 ```
 ✅ CLAUDE.md written
-✅ .claude/harness.json written
+✅ .harness/config.json written
 ✅ GitHub labels created (N labels)
 ✅ docs/agents/ seed files written
 ✅ .harness/settings.json written (model: claude-sonnet-4, 1M context)

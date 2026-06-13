@@ -113,7 +113,7 @@ tests:
       prompt: >
         /harness-issues
         Break down the CSV export feature into issues and sync board fields.
-      scaffold_files: '["package.json", "CLAUDE.md", "docs/prd.md with CSV export spec", ".claude/harness.json with project_fields populated"]'
+      scaffold_files: '["package.json", "CLAUDE.md", "docs/prd.md with CSV export spec", ".harness/config.json with project_fields populated"]'
     assert:
       - type: llm-rubric
         value: After each issue is created, fetches the issue node ID and adds it to the project board
@@ -130,10 +130,10 @@ tests:
       prompt: >
         /harness-issues
         Create issues for the search feature.
-      scaffold_files: '["package.json", "CLAUDE.md", "docs/prd.md with search feature spec", ".claude/harness.json without project_fields"]'
+      scaffold_files: '["package.json", "CLAUDE.md", "docs/prd.md with search feature spec", ".harness/config.json without project_fields"]'
     assert:
       - type: llm-rubric
-        value: When project_fields is absent from harness.json, outputs a warning about missing project_fields and suggests running /setup-harness-skills to configure board fields
+        value: When project_fields is absent from .harness/config.json, outputs a warning about missing project_fields and suggests running /setup-harness-skills to configure board fields
       - type: llm-rubric
         value: Issue creation itself is NOT blocked — issues are still created on GitHub even when board sync is skipped
 

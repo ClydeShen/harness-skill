@@ -1,6 +1,6 @@
 # GitHub Project Board
 
-**Board ID:** [written by /setup-harness-skills from harness.json — do not edit manually]
+**Board ID:** [written by /setup-harness-skills from .harness/config.json — do not edit manually]
 **Board name:** [written by /setup-harness-skills]
 
 ## Columns
@@ -24,7 +24,7 @@ Sizing convention:
 | **Size** | T-shirt | Rough relative | XS ≤ 1 window; S = 2; M = 3–4; L = 5–6; XL ≥ 7 |
 | **Priority** | single-select | Urgency tier | P1 = critical/blocking; P2 = normal; P3 = low/nice-to-have |
 
-All three fields are created and populated automatically by harness skills: `setup-harness-skills` creates them on the board and writes their IDs to `.claude/harness.json`; `harness-triage` and `harness-issues` set the values per issue.
+All three fields are created and populated automatically by harness skills: `setup-harness-skills` creates them on the board and writes their IDs to `.harness/config.json`; `harness-triage` and `harness-issues` set the values per issue.
 
 Effort is read by `context-handover` for session budget planning. Set from the `Effort:` field in an agent brief. Execute agent updates if actual effort differs significantly. See [effort calibration](../harness-triage/references/effort-calibration.md).
 

@@ -125,17 +125,17 @@ tests:
         value: Step 7a is idempotent — skips any file that already exists at the destination
 
   # ---------------------------------------------------------------------------
-  # Eval 7: project_fields written to harness.json after board creation
+  # Eval 7: project_fields written to .harness/config.json after board creation
   # ---------------------------------------------------------------------------
   - description: "#7 project_fields written — Step 5 queries board metadata and writes project_fields"
     vars:
       prompt: "/setup-harness-skills"
-      scaffold_files: '["package.json", "CLAUDE.md", ".claude/harness.json with project_v2_id"]'
+      scaffold_files: '["package.json", "CLAUDE.md", ".harness/config.json with project_v2_id"]'
     assert:
       - type: llm-rubric
         value: After creating the board, queries board field metadata using gh api graphql to retrieve field IDs for Priority, Size, and Effort (windows)
       - type: llm-rubric
-        value: Writes project_fields key to .claude/harness.json containing priority.id, priority.options, size.id, size.options, and effort.id
+        value: Writes project_fields key to .harness/config.json (under the harness namespace) containing priority.id, priority.options, size.id, size.options, and effort.id
       - type: llm-rubric
         value: Creates Priority single-select field (P1/P2/P3) and Size single-select field (XS/S/M/L/XL) on the board if they do not already exist
 
@@ -145,7 +145,7 @@ tests:
   - description: "#8 project_fields idempotent — re-run merges, never overwrites existing keys"
     vars:
       prompt: "/setup-harness-skills"
-      scaffold_files: '["package.json", "CLAUDE.md", ".claude/harness.json with project_fields populated"]'
+      scaffold_files: '["package.json", "CLAUDE.md", ".harness/config.json with project_fields populated"]'
     assert:
       - type: llm-rubric
         value: When project_fields already contains populated keys, the skill merges over existing values and does NOT overwrite keys that are already present

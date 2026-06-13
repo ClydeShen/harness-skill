@@ -31,4 +31,4 @@ gh issue comment <N> --body "..."
 
 ## Owner / Repo
 
-Read from `.claude/harness.json` → `github.owner` and `github.repo`.
+Read from `.harness/config.json` → `harness.github.owner` and `harness.github.repo`.

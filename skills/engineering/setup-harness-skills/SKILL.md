@@ -104,7 +104,7 @@ If custom: ask for model name (e.g. `qwen2.5-coder-32b`) and context window size
 
 ## Output
 
-After all five sections, show the draft of what will be written and confirm before writing. Then execute the 10-step output sequence in `output-steps.md` — it covers: CLAUDE.md/AGENTS.md (only if absent, written from embedded template), `harness.json`, GitHub labels, milestones, Project v2 board, branch protection, CI scaffold, `.gitignore`, and seed files to `docs/agents/`.
+After all five sections, show the draft of what will be written and confirm before writing. Then execute the 10-step output sequence in `output-steps.md` — it covers: CLAUDE.md/AGENTS.md (only if absent, written from embedded template), `.harness/config.json` (harness namespace), GitHub labels, milestones, Project v2 board, branch protection, CI scaffold, `.gitignore`, and seed files to `docs/agents/`.
 
 ### .harness/ files written by setup-harness-skills
 
@@ -128,9 +128,9 @@ After all five sections, show the draft of what will be written and confirm befo
 - `.claude/handoff.md` → map into `.continue-here.json` fields (lossy — preserves content in `context`)
 - Old files are NOT deleted — user confirms before removal
 
-### .claude/harness.json — project_fields (written by Step 5)
+### .harness/config.json — project_fields (written by Step 5)
 
-When a GitHub Project v2 board is configured, Step 5 appends a `project_fields` key with field IDs and option maps. Downstream skills (`harness-triage`, `harness-issues`) read this key before syncing board fields. If absent, those skills skip board sync and print a warning.
+When a GitHub Project v2 board is configured, Step 5 appends a `harness.project_fields` key with field IDs and option maps. Downstream skills (`harness-triage`, `harness-issues`) read this key before syncing board fields. If absent, those skills skip board sync and print a warning.
 
 Print a setup summary at the end: ✅ completed · ⚠️ requires manual action · 📁 files written.
 

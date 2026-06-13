@@ -81,9 +81,9 @@ Show counts and a one-line summary per issue. Let the maintainer pick.
 
 **Trigger:** After the maintainer confirms `ready-for-agent` or `ready-for-human` AND the agent brief comment is posted.
 
-**Guard:** Read `.claude/harness.json` → `project_fields`. If absent or empty:
+**Guard:** Read `.harness/config.json` → `harness.project_fields`. If absent or empty:
 ```
-⚠️ project_fields not in harness.json — skipping board field sync. Run /setup-harness-skills to populate.
+⚠️ project_fields not in .harness/config.json — skipping board field sync. Run /setup-harness-skills to populate.
 ```
 Do not block the triage outcome — continue even if sync is skipped.
 
@@ -99,7 +99,7 @@ Do not block the triage outcome — continue even if sync is skipped.
 
 **Sequence:**
 
-1. Read `github.project_v2_id` from `.claude/harness.json` — this is the `projectId` for all mutations.
+1. Read `harness.github.project_v2_id` from `.harness/config.json` — this is the `projectId` for all mutations.
 2. Query `repository.issue.projectItems` to get the board item ID. If the issue is not yet on the board, call `addProjectV2ItemByContentId(projectId, contentId: issueNodeId)` to add it and capture the new item ID.
 3. Parse Effort integer from the agent brief text (`**Effort:** N` line).
 4. Derive Size from Effort using the mapping above.

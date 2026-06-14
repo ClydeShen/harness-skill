@@ -13,15 +13,17 @@
         "harness-triage",
         "harness-prd",
         "harness-issues",
-        "setup-harness-skills"
+        "setup-harness-skills",
+        "harness-verify-before-move"
       ]
     },
     {
       "title": "Productivity",
-      "description": "Skill authoring and maintenance tools.",
+      "description": "Skill authoring, maintenance, and reasoning tools.",
       "skills": [
         "write-harness-skill",
-        "skill-cleanup"
+        "skill-cleanup",
+        "fuller"
       ]
     }
   ]

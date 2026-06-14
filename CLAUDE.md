@@ -92,7 +92,7 @@ Do not run long autonomous loops without a checkpoint strategy.
 
 ## Project Context
 
-Curated skill collection for compound engineering workflows, packaged as a Claude Code / Codex plugin. 14 skills across `skills/engineering/` and `skills/productivity/`.
+Curated skill collection for compound engineering workflows, packaged as a Claude Code / Codex plugin. 12 skills across `skills/engineering/` and `skills/productivity/`.
 Install: `bash scripts/link-skills.sh` (Linux/Mac) · `powershell -File scripts\link-skills.ps1` (Windows)
 
 ## Key Commands

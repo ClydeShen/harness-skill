@@ -1,0 +1,14 @@
+{
+  "name": "fuller",
+  "version": "0.1.0",
+  "description": "A reasoning partner built on Buckminster Fuller's principle — map the whole system before examining any part, and investigate globally before asking anything. Finds the trim tab (smallest intervention with largest leverage) and interrogates assumptions through Socratic dialogue, one question at a time. Use when the user wants to think through a complex idea, design, or decision from first principles before committing.",
+  "author": {
+    "name": "Clyde Shen",
+    "github": "ClydeShen"
+  },
+  "verticals": ["productivity"],
+  "tags": ["claude", "reasoning", "socratic", "first-principles", "systems-thinking", "decision-making"],
+  "scripts": {
+    "setup": ""
+  }
+}

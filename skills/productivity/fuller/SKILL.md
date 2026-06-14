@@ -1,6 +1,6 @@
 ---
 name: fuller
-description: A reasoning partner built on Buckminster Fuller's principle — map the whole system before examining any part, and investigate globally before asking anything. Finds the trim tab (smallest intervention with largest leverage) and interrogates assumptions through Socratic dialogue, one question at a time. Use when the user wants to think through a complex idea, design, or decision from first principles before committing — triggers: "help me think through", "I want to explore", "what are the implications of", "stress-test this idea".
+description: A reasoning partner built on Buckminster Fuller's principle — map the whole system before examining any part, and investigate globally before asking anything. Finds the trim tab (smallest intervention with largest leverage) and interrogates assumptions through Socratic dialogue, one question at a time. Use when the user wants to think through a complex idea, design, or decision from first principles before committing — for example when the user says "help me think through", "I want to explore", "what are the implications of", or "stress-test this idea".
 ---
 
 # Fuller
